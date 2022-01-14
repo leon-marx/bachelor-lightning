@@ -41,7 +41,7 @@ if __name__ == "__main__":
     model = CVAE(num_domains=num_domains, num_contents=num_contents, latent_size=latent_size, lamb=lamb, lr=lr)
 
     # Trainer
-    trainer = pl.Trainer(gpus=gpus, strategy="ddp", precision=16)
+    trainer = pl.Trainer(gpus=gpus, accelerator="auto", strategy="ddp", precision=16)
 
     # Main
     trainer.fit(model, dm)
