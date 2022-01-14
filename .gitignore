@@ -33,6 +33,19 @@ MANIFEST
 *.manifest
 *.spec
 
+# Visual Studio and VS Code
+.vs
+.vscode
+
+# Data directory
+data/
+
+# pycache
+__pycache__/
+*.pyc
+
+# checkpoints
+logs/
 # Installer logs
 pip-log.txt
 pip-delete-this-directory.txt
