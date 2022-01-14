@@ -26,6 +26,16 @@ if __name__ == "__main__":
         print("No GPU specified!")
         raise ValueError
 
+    # Printing Configuration
+    print("Environment:")
+    print("\tPython: {}".format(sys.version.split(" ")[0]))
+    print("\tPyTorch: {}".format(torch.__version__))
+    print("\tTorchvision: {}".format(torchvision.__version__))
+    print("\tCUDA: {}".format(torch.version.cuda))
+    print("\tCUDNN: {}".format(torch.backends.cudnn.version()))
+    print("\tNumPy: {}".format(np.__version__))
+    print("\tPIL: {}".format(PIL.__version__))
+
     # Dataset
     domains = ["art_painting", "cartoon", "photo"]
     contents =  ["dog", "elephant", "giraffe", "guitar", "horse", "house", "person"]
@@ -41,7 +51,7 @@ if __name__ == "__main__":
     model = CVAE(num_domains=num_domains, num_contents=num_contents, latent_size=latent_size, lamb=lamb, lr=lr)
 
     # Trainer
-    trainer = pl.Trainer(gpus=gpus, precision=16)
+    trainer = pl.Trainer(gpus=gpus, strategy="ddp", precision=16)
 
     # Main
     trainer.fit(model, dm)
