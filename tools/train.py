@@ -1,7 +1,6 @@
 from argparse import ArgumentParser
 import torch
 import pytorch_lightning as pl
-import warnings
 
 from datasets.pacs import PACSDataModule
 from models.cvae import CVAE
@@ -28,13 +27,13 @@ if __name__ == "__main__":
 
     # Printing Configuration
     print("Environment:")
-    print("\tPython: {}".format(sys.version.split(" ")[0]))
     print("\tPyTorch: {}".format(torch.__version__))
-    print("\tTorchvision: {}".format(torchvision.__version__))
     print("\tCUDA: {}".format(torch.version.cuda))
     print("\tCUDNN: {}".format(torch.backends.cudnn.version()))
-    print("\tNumPy: {}".format(np.__version__))
-    print("\tPIL: {}".format(PIL.__version__))
+    # print("\tPython: {}".format(sys.version.split(" ")[0]))
+    # print("\tNumPy: {}".format(np.__version__))
+    # print("\tPIL: {}".format(PIL.__version__))
+    # print("\tTorchvision: {}".format(torchvision.__version__))
 
     # Dataset
     domains = ["art_painting", "cartoon", "photo"]
