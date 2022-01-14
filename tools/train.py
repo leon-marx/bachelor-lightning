@@ -22,7 +22,7 @@ if __name__ == "__main__":
     domains = ["art_painting", "cartoon", "photo", "sketch"]
     contents =  ["dog", "elephant", "giraffe", "guitar", "horse", "house", "person"]
     batch_size = 4
-    dm = PACSDataModule(domains=domains, contents=contents, batch_size=batch_size, num_workers=num_workers)
+    dm = PACSDataModule(domains=domains, contents=contents, batch_size=batch_size, num_workers=args.num_workers)
 
     num_domains = len(domains)
     num_contents = len(contents)
