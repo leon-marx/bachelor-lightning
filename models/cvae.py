@@ -1,20 +1,17 @@
-from xml.dom.pulldom import PROCESSING_INSTRUCTION
 import torch
 import pytorch_lightning as pl
 
 
 class CVAE(pl.LightningModule):
-    def __init__(self, num_classes, num_domains, latent_size, lamb, lr):
+    def __init__(self, num_domains, num_contents, latent_size, lamb, lr):
         super().__init__()
 
-        self.num_classes = num_classes
         self.num_domains = num_domains
+        self.num_contents = num_contents
         self.latent_size = latent_size
 
-        self.encoder = Encoder(num_classes=self.num_classes,
-                               num_domains=self.num_domains, latent_size=self.latent_size)
-        self.decoder = Decoder(num_classes=self.num_classes,
-                               num_domains=self.num_domains, latent_size=self.latent_size)
+        self.encoder = Encoder(num_domains=self.num_domains, num_contents=self.num_contents, latent_size=self.latent_size)
+        self.decoder = Decoder(num_domains=self.num_domains, num_contents=self.num_contents, latent_size=self.latent_size)
 
         self.flatten = torch.nn.Flatten()
         self.lamb = lamb
@@ -54,16 +51,16 @@ class CVAE(pl.LightningModule):
         else:
             return kld + recon
 
-    def forward(self, images, classes, domains, raw=False):
+    def forward(self, images, domains, contents, raw=False):
         """
         Calculates mean and diagonal log-variance of p(z | x) and of p(x | z).
 
         images: Tensor of shape (batch_size, channels, height, width)
-        classes: Tensor of shape (batch_size, num_classes)
         domains: Tensor of shape (batch_size, num_domains)
+        contents: Tensor of shape (batch_size, num_contents)
         raw: Bool, if True: z is sampled without noise
         """
-        enc_mu, enc_logvar = self.encoder(images, classes, domains)
+        enc_mu, enc_logvar = self.encoder(images, domains, contents)
 
         if raw:
             codes = enc_mu
@@ -72,7 +69,7 @@ class CVAE(pl.LightningModule):
             z_eps = torch.randn_like(enc_mu)
             codes = enc_mu + z_eps * z_std
 
-        dec_mu, dec_logvar = self.decoder(codes, classes, domains)
+        dec_mu, dec_logvar = self.decoder(codes, domains, contents)
 
         return enc_mu, enc_logvar, dec_mu, dec_logvar
 
@@ -80,22 +77,18 @@ class CVAE(pl.LightningModule):
         """
         Calculates the ELBO Loss (negative ELBO).
 
-        batch: List of tuples [(x, y)]
-            x: {"image": Tensor of shape (batch_size, channels, height, width),
-                "domain": Tensor of shape (batch_size)}
-                    The values correspond to int d = 0,...,2 (domain)
-            y: Tensor of shape (batch_size)
-                The values correspond to int d = 0,...,6 (class)
+        batch: List [x, domain, content, filenames]
+            images: Tensor of shape (batch_size, channels, height, width)
+            domains: Tensor of shape (batch_size, num_domains)
+            contents: Tensor of shape (batch_size, num_contents)
+            filenames: Tuple of strings of the form: {domain}/{content}/{fname}
         batch_idx: The index of the batch, not used.
         """
-        images = torch.cat([x["image"] for x, y in batch]
-                           )  # (batch_size, channels, height, width)
-        classes = torch.nn.functional.one_hot(torch.cat(
-            [y for x, y in batch]), num_classes=self.num_classes).flatten(start_dim=1)  # (batch_size, num_classes)
-        domains = torch.nn.functional.one_hot(torch.cat(
-            [x["domain"] for x, y in batch]), num_classes=self.num_domains).flatten(start_dim=1)  # (batch_size, num_domains)
+        images = batch[0]
+        domains = batch[1]
+        contents = batch[2]
 
-        enc_mu, enc_logvar, dec_mu, dec_logvar = self(images, classes, domains)
+        enc_mu, enc_logvar, dec_mu, dec_logvar = self(images, domains, contents)
 
         return self.loss(images, enc_mu, enc_logvar, dec_mu, dec_logvar)
 
@@ -104,13 +97,13 @@ class CVAE(pl.LightningModule):
 
 
 class Encoder(torch.nn.Module):
-    def __init__(self, num_classes, num_domains, latent_size):
+    def __init__(self, num_domains, num_contents, latent_size):
         super().__init__()
-        self.num_classes = num_classes
         self.num_domains = num_domains
+        self.num_contents = num_contents
         self.latent_size = latent_size
         self.enc_conv_sequential = torch.nn.Sequential(
-            torch.nn.Conv2d(in_channels=3 + self.num_classes + self.num_domains,
+            torch.nn.Conv2d(in_channels=3 + self.num_contents + self.num_domains,
                             out_channels=128, kernel_size=3, padding=1, bias=False),
             torch.nn.BatchNorm2d(num_features=128),
             torch.nn.LeakyReLU(),
@@ -196,19 +189,19 @@ class Encoder(torch.nn.Module):
             torch.nn.Tanh()
         )
 
-    def forward(self, images, classes, domains):
+    def forward(self, images, domains, contents):
         """
         Calculates mean and diagonal log-variance of p(z | x).
 
         images: Tensor of shape (batch_size, channels, height, width)
-        classes: Tensor of shape (batch_size, num_classes)
         domains: Tensor of shape (batch_size, num_domains)
+        contents: Tensor of shape (batch_size, num_contents)
         """
-        class_panels = torch.ones(size=(images.shape[0], self.num_classes, 224, 224)).to(
-            images.device) * classes.view(images.shape[0], self.num_classes, 1, 1)
         domain_panels = torch.ones(size=(images.shape[0], self.num_domains, 224, 224)).to(
             images.device) * domains.view(images.shape[0], self.num_domains, 1, 1)
-        x = torch.cat((images, class_panels, domain_panels), dim=1)
+        content_panels = torch.ones(size=(images.shape[0], self.num_contents, 224, 224)).to(
+            images.device) * contents.view(images.shape[0], self.num_contents, 1, 1)
+        x = torch.cat((images, domain_panels, content_panels), dim=1)
         x = self.enc_conv_sequential(x)
         x = self.flatten(x)
         enc_mu = self.get_enc_mu(x)
@@ -217,13 +210,13 @@ class Encoder(torch.nn.Module):
 
 
 class Decoder(torch.nn.Module):
-    def __init__(self, num_classes, num_domains, latent_size):
+    def __init__(self, num_domains, num_contents, latent_size):
         super().__init__()
-        self.num_classes = num_classes
         self.num_domains = num_domains
+        self.num_contents = num_contents
         self.latent_size = latent_size
         self.linear = torch.nn.Linear(
-            self.latent_size + self.num_classes + self.num_domains, 6272)
+            self.latent_size + self.num_domains + self.num_contents, 6272)
         self.reshape = lambda x: x.view(-1, 128, 7, 7)
         self.dec_conv_sequential = torch.nn.Sequential(
             torch.nn.ConvTranspose2d(
@@ -314,15 +307,15 @@ class Decoder(torch.nn.Module):
             torch.nn.Sigmoid(),
         )
 
-    def forward(self, codes, classes, domains):
+    def forward(self, codes, domains, contents):
         """
         Calculates mean and diagonal log-variance of p(x | z).
 
         codes: Tensor of shape (batch_size, latent_size)
-        classes: Tensor of shape (batch_size, num_classes)
         domains: Tensor of shape (batch_size, num_domains)
+        contents: Tensor of shape (batch_size, num_contents)
         """
-        x = torch.cat((codes, classes, domains), dim=1)
+        x = torch.cat((codes, domains, contents), dim=1)
         x = self.linear(x)
         x = self.reshape(x)
         x = self.dec_conv_sequential(x)
@@ -333,20 +326,20 @@ class Decoder(torch.nn.Module):
 
 if __name__ == "__main__":
     batch_size = 4
-    batch = []
-    for i in range(3):  # iterating over all datasets / environments
-        x = {"image": torch.randn(size=(batch_size, 3, 224, 224)),
-             "domain": torch.randint(low=0, high=2, size=(batch_size,))}
-        y = torch.randint(low=0, high=7, size=(batch_size,))
-        batch.append((x, y))
-
-    num_classes = 7
     num_domains = 3
+    num_contents = 7
     latent_size = 512
     lamb = 10.0
     lr = 0.01
-    cvae = CVAE(num_classes=num_classes,
-                num_domains=num_domains,
+    batch = [
+        torch.randn(size=(batch_size, 3, 224, 224)),
+        torch.nn.functional.one_hot(torch.randint(low=0, high=num_domains, size=(batch_size,)), num_classes=num_domains),
+        torch.nn.functional.one_hot(torch.randint(low=0, high=num_contents, size=(batch_size,)), num_classes=num_contents),
+        (f"pic_{i}" for i in range(batch_size))
+    ]
+
+    cvae = CVAE(num_domains=num_domains,
+                num_contents=num_contents,
                 latent_size=latent_size,
                 lamb=lamb,
                 lr=lr)
