@@ -8,7 +8,6 @@ from datasets.pacs import PACSDataModule
 from models.cvae import CVAE
 
 
-
 if __name__ == "__main__":
     # Parser
     parser = ArgumentParser()
@@ -38,16 +37,18 @@ if __name__ == "__main__":
     print(f"    PyTorch: {torch.__version__}")
     print(f"    CUDA: {torch.version.cuda}")
     print(f"    CUDNN: {torch.backends.cudnn.version()}")
-    
+
     print("Args:")
     for k, v in sorted(vars(args).items()):
         print(f"    {k}: {v}")
 
     # Dataset
     domains = ["art_painting", "cartoon", "photo"]
-    contents =  ["dog", "elephant", "giraffe", "guitar", "horse", "house", "person"]
+    contents = ["dog", "elephant", "giraffe",
+                "guitar", "horse", "house", "person"]
     batch_size = args.batch_size
-    dm = PACSDataModule(domains=domains, contents=contents, batch_size=batch_size, num_workers=args.num_workers)
+    dm = PACSDataModule(domains=domains, contents=contents,
+                        batch_size=batch_size, num_workers=args.num_workers)
 
     # Model
     num_domains = len(domains)
@@ -58,26 +59,20 @@ if __name__ == "__main__":
     if args.ckpt_path not in (None, "0"):
         model = CVAE.load_from_checkpoint(args.ckpt_path)
     else:
-        model = CVAE(num_domains=num_domains, num_contents=num_contents, latent_size=latent_size, lamb=lamb, lr=lr)
-
+        model = CVAE(num_domains=num_domains, num_contents=num_contents,
+                     latent_size=latent_size, lamb=lamb, lr=lr)
 
     # Trainer
-    trainer = pl.Trainer(gpus=args.gpus, strategy="ddp", precision=16, default_root_dir=args.output_dir)
+    trainer = pl.Trainer(
+        gpus=args.gpus,
+        strategy="ddp",
+        precision=16,
+        logger=pl.loggers.TensorBoardLogger(save_dir=os.getcwd(),
+                                            name=args.output_dir)
+    )
 
     # Main
     trainer.fit(model, dm)
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 """

@@ -89,8 +89,11 @@ class CVAE(pl.LightningModule):
         contents = batch[2]
 
         enc_mu, enc_logvar, dec_mu, dec_logvar = self(images, domains, contents)
-
-        return self.loss(images, enc_mu, enc_logvar, dec_mu, dec_logvar)
+        
+        kld, rec = self.loss(images, enc_mu, enc_logvar, dec_mu, dec_logvar, split_loss=True)
+        self.log("kld", kld, prog_bar=True)
+        self.log("rec", rec, prog_bar=True)
+        return kld + rec
 
     def validation_step(self, batch, batch_idx):
         """
