@@ -4,6 +4,6 @@ python -m tools.train\
     --latent_size 512\
     --lamb 10\
     --lr 1e-03\
-    --ckpt_path None\
+    --ckpt_path 0\
     --gpus 2,3\
     --output_dir logs/test

@@ -29,8 +29,6 @@ if __name__ == "__main__":
     # Configuration
     if args.output_dir is not None:
         os.makedirs(args.output_dir, exist_ok=True)
-    if args.output_dir == "None":
-        args.output_dir = None
     pl.seed_everything(17, workers=True)
     torch.backends.cudnn.deterministic = True
     torch.backends.cudnn.benchmark = False
@@ -57,7 +55,7 @@ if __name__ == "__main__":
     latent_size = args.latent_size
     lamb = args.lamb
     lr = args.lr
-    if args.ckpt_path is not None:
+    if args.ckpt_path not in (None, "0"):
         model = CVAE.load_from_checkpoint(args.ckpt_path)
     else:
         model = CVAE(num_domains=num_domains, num_contents=num_contents, latent_size=latent_size, lamb=lamb, lr=lr)
