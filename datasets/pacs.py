@@ -1,4 +1,3 @@
-from importlib.resources import contents
 import os
 from PIL import Image
 import pytorch_lightning as pl
