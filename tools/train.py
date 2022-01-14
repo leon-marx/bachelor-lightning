@@ -41,8 +41,7 @@ if __name__ == "__main__":
     model = CVAE(num_domains=num_domains, num_contents=num_contents, latent_size=latent_size, lamb=lamb, lr=lr)
 
     # Trainer
-    print(gpus)
-    trainer = pl.Trainer(gpus=gpus, accelerator="gpu", precision=16)
+    trainer = pl.Trainer(gpus=gpus, precision=16)
 
     # Main
     trainer.fit(model, dm)
