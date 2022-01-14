@@ -10,47 +10,55 @@ from models.cvae import CVAE
 if __name__ == "__main__":
     # Parser
     parser = ArgumentParser()
+    # Dataset
+    parser.add_argument("--batch_size", type=int, default=None)
+    parser.add_argument("--num_workers", type=int, default=20)
+    # Model
+    parser.add_argument("--latent_size", type=int, default=512)
+    parser.add_argument("--lamb", type=float, default=1.0)
+    parser.add_argument("--lr", type=float, default=1e-03)
+    parser.add_argument("--ckpt_path", type=str, default=None)
+    # Training
     parser.add_argument("--gpus", type=str, default=None)
-    parser.add_argument("--num_workers", type=int, default=10)
+    parser.add_argument("--output_dir", type=str, default=None)
 
     args = parser.parse_args()
 
-    # Disabling warnings
-    # warnings.filterwarnings("ignore", ".*Could not log computational graph since the `model.example_input_array` attribute is not set or `input_array` was not given*")
-    
     # Configuration
-    if args.gpus is not None:
-        gpus = args.gpus
-    else:
-        print("No GPU specified!")
-        raise ValueError
+    pl.seed_everything(17, workers=True)
+    torch.backends.cudnn.deterministic = True
+    torch.backends.cudnn.benchmark = False
 
     # Printing Configuration
     print("Environment:")
-    print("\tPyTorch: {}".format(torch.__version__))
-    print("\tCUDA: {}".format(torch.version.cuda))
-    print("\tCUDNN: {}".format(torch.backends.cudnn.version()))
-    # print("\tPython: {}".format(sys.version.split(" ")[0]))
-    # print("\tNumPy: {}".format(np.__version__))
-    # print("\tPIL: {}".format(PIL.__version__))
-    # print("\tTorchvision: {}".format(torchvision.__version__))
+    print(f"    PyTorch: {torch.__version__}")
+    print(f"    CUDA: {torch.version.cuda}")
+    print(f"    CUDNN: {torch.backends.cudnn.version()}")
+    
+    print("Args:")
+    for k, v in sorted(vars(args).items()):
+        print(f"    {k}: {v}")
 
     # Dataset
     domains = ["art_painting", "cartoon", "photo"]
     contents =  ["dog", "elephant", "giraffe", "guitar", "horse", "house", "person"]
-    batch_size = 8
+    batch_size = args.batch_size
     dm = PACSDataModule(domains=domains, contents=contents, batch_size=batch_size, num_workers=args.num_workers)
 
     # Model
     num_domains = len(domains)
     num_contents = len(contents)
-    latent_size = 512
-    lamb = 10.0
-    lr = 0.01
-    model = CVAE(num_domains=num_domains, num_contents=num_contents, latent_size=latent_size, lamb=lamb, lr=lr)
+    latent_size = args.latent_size
+    lamb = args.lamb
+    lr = args.lr
+    if args.ckpt_path is not None:
+        model = CVAE.load_from_checkpoint(args.ckpt_path)
+    else:
+        model = CVAE(num_domains=num_domains, num_contents=num_contents, latent_size=latent_size, lamb=lamb, lr=lr)
+
 
     # Trainer
-    trainer = pl.Trainer(gpus=gpus, strategy="ddp", precision=16)
+    trainer = pl.Trainer(gpus=args.gpus, strategy="ddp", precision=16, default_root_dir=args.output_dir)
 
     # Main
     trainer.fit(model, dm)
