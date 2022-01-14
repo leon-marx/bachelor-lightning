@@ -1,0 +1,9 @@
+python -m tools.train\
+    --batch_size 32\
+    --num_workers 20\
+    --latent_size 512\
+    --lamb 10\
+    --lr 1e-03\
+    --ckpt_path None\
+    --gpus 2,3\
+    --output_dir logs/test

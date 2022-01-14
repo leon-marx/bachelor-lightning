@@ -1,7 +1,9 @@
 from argparse import ArgumentParser
-import torch
+import os
 import pytorch_lightning as pl
+import torch
 
+# Own Modules
 from datasets.pacs import PACSDataModule
 from models.cvae import CVAE
 
@@ -25,6 +27,8 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     # Configuration
+    if args.output_dir is not None:
+        os.makedirs(args.output_dir)
     pl.seed_everything(17, workers=True)
     torch.backends.cudnn.deterministic = True
     torch.backends.cudnn.benchmark = False
