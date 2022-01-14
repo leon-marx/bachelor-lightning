@@ -255,7 +255,6 @@ class Decoder(torch.nn.Module):
         self.latent_size = latent_size
         self.linear = torch.nn.Linear(
             self.latent_size + self.num_domains + self.num_contents, 6272)
-        self.reshape = lambda x: x.view(-1, 128, 7, 7)
         self.dec_conv_sequential = torch.nn.Sequential(
             torch.nn.ConvTranspose2d(
                 in_channels=128, out_channels=256, kernel_size=3, padding=1, bias=False),
@@ -344,6 +343,9 @@ class Decoder(torch.nn.Module):
                 in_channels=128, out_channels=3, kernel_size=3, padding=1),  # (N, 3, 224, 224)
             torch.nn.Sigmoid(),
         )
+
+    def reshape(self, x):
+        return x.view(-1, 128, 7, 7)
 
     def forward(self, codes, domains, contents):
         """
