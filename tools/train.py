@@ -17,7 +17,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     # Disabling warnings
-    warnings.filterwarnings("ignore", ".*Could not log computational graph since the `model.example_input_array` attribute is not set or `input_array` was not given*")
+    # warnings.filterwarnings("ignore", ".*Could not log computational graph since the `model.example_input_array` attribute is not set or `input_array` was not given*")
     
     # Configuration
     if args.gpus is not None:
