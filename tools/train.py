@@ -67,8 +67,7 @@ if __name__ == "__main__":
         gpus=args.gpus,
         strategy="ddp",
         precision=16,
-        logger=pl.loggers.TensorBoardLogger(save_dir=os.getcwd(),
-                                            name=args.output_dir)
+        default_root_dir=args.output_dir
     )
 
     # Main
