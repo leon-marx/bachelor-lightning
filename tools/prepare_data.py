@@ -66,23 +66,29 @@ if __name__ == "__main__":
             os.makedirs(f"data/{args.dataset}_train/{domain}/{content}")
             os.makedirs(f"data/{args.dataset}_val/{domain}/{content}")
             os.makedirs(f"data/{args.dataset}_test/{domain}/{content}")
+
+    if os.name == "nt":
+        copy = "copy"
+    else:
+        copy = "cp"
+
     print("Copying train set...")
     for ind in train_inds:
         source = f"data/{args.dataset}/{data_dict[ind]}"
         dest = f"data/{args.dataset}_train/{data_dict[ind]}"
-        os.popen(f"copy {source} {dest}")
+        os.popen(f"{copy} {source} {dest}")
 
     print("Copying val set...")
     for ind in val_inds:
         source = f"data/{args.dataset}/{data_dict[ind]}"
         dest = f"data/{args.dataset}_val/{data_dict[ind]}"
-        os.popen(f"copy {source} {dest}")
+        os.popen(f"{copy} {source} {dest}")
 
     print("Copying test set...")
     for ind in test_inds:
 
         source = f"data/{args.dataset}/{data_dict[ind]}"
         dest = f"data/{args.dataset}_test/{data_dict[ind]}"
-        os.popen(f"copy {source} {dest}")
+        os.popen(f"{copy} {source} {dest}")
 
     print("Done!")
