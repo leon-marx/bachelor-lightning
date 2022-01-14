@@ -9,6 +9,7 @@ from models.cvae import CVAE
 if __name__ == "__main__":
     parser = ArgumentParser()
     parser.add_argument("--gpus", type=str, default=None)
+    parser.add_argument("--num_workers", type=int, default=10)
 
     args = parser.parse_args()
 
@@ -21,7 +22,7 @@ if __name__ == "__main__":
     domains = ["art_painting", "cartoon", "photo", "sketch"]
     contents =  ["dog", "elephant", "giraffe", "guitar", "horse", "house", "person"]
     batch_size = 4
-    dm = PACSDataModule(domains=domains, contents=contents, batch_size=batch_size)
+    dm = PACSDataModule(domains=domains, contents=contents, batch_size=batch_size, num_workers=num_workers)
 
     num_domains = len(domains)
     num_contents = len(contents)
