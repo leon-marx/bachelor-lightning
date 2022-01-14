@@ -21,7 +21,7 @@ if __name__ == "__main__":
     
     # Configuration
     if args.gpus is not None:
-        gpus = args.gpus + ","
+        gpus = args.gpus
     else:
         print("No GPU specified!")
         raise ValueError
