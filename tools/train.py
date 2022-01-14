@@ -28,7 +28,9 @@ if __name__ == "__main__":
 
     # Configuration
     if args.output_dir is not None:
-        os.makedirs(args.output_dir)
+        os.makedirs(args.output_dir, exist_ok=True)
+    if args.output_dir == "None":
+        args.output_dir = None
     pl.seed_everything(17, workers=True)
     torch.backends.cudnn.deterministic = True
     torch.backends.cudnn.benchmark = False
