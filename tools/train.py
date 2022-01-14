@@ -1,29 +1,38 @@
 from argparse import ArgumentParser
 import torch
 import pytorch_lightning as pl
+import warnings
 
 from datasets.pacs import PACSDataModule
 from models.cvae import CVAE
 
 
+
 if __name__ == "__main__":
+    # Parser
     parser = ArgumentParser()
     parser.add_argument("--gpus", type=str, default=None)
     parser.add_argument("--num_workers", type=int, default=10)
 
     args = parser.parse_args()
 
+    # Disabling warnings
+    warnings.filterwarnings("ignore", ".*Could not log computational graph since the `model.example_input_array` attribute is not set or `input_array` was not given*")
+    
+    # Configuration
     if args.gpus is not None:
         gpus = args.gpus + ","
     else:
         print("No GPU specified!")
         raise ValueError
 
-    domains = ["art_painting", "cartoon", "photo", "sketch"]
+    # Dataset
+    domains = ["art_painting", "cartoon", "photo"]
     contents =  ["dog", "elephant", "giraffe", "guitar", "horse", "house", "person"]
-    batch_size = 4
+    batch_size = 8
     dm = PACSDataModule(domains=domains, contents=contents, batch_size=batch_size, num_workers=args.num_workers)
 
+    # Model
     num_domains = len(domains)
     num_contents = len(contents)
     latent_size = 512
@@ -31,8 +40,10 @@ if __name__ == "__main__":
     lr = 0.01
     model = CVAE(num_domains=num_domains, num_contents=num_contents, latent_size=latent_size, lamb=lamb, lr=lr)
 
-    trainer = pl.Trainer(gpus=gpus)
+    # Trainer
+    trainer = pl.Trainer(gpus=gpus, strategy="ddp", precision=16)
 
+    # Main
     trainer.fit(model, dm)
 
 

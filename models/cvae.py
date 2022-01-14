@@ -92,6 +92,44 @@ class CVAE(pl.LightningModule):
 
         return self.loss(images, enc_mu, enc_logvar, dec_mu, dec_logvar)
 
+    def validation_step(self, batch, batch_idx):
+        """
+        Calculates the ELBO Loss (negative ELBO).
+
+        batch: List [x, domain, content, filenames]
+            images: Tensor of shape (batch_size, channels, height, width)
+            domains: Tensor of shape (batch_size, num_domains)
+            contents: Tensor of shape (batch_size, num_contents)
+            filenames: Tuple of strings of the form: {domain}/{content}/{fname}
+        batch_idx: The index of the batch, not used.
+        """
+        images = batch[0]
+        domains = batch[1]
+        contents = batch[2]
+
+        enc_mu, enc_logvar, dec_mu, dec_logvar = self(images, domains, contents)
+
+        return self.loss(images, enc_mu, enc_logvar, dec_mu, dec_logvar)
+
+    def test_step(self, batch, batch_idx):
+        """
+        Calculates the ELBO Loss (negative ELBO).
+
+        batch: List [x, domain, content, filenames]
+            images: Tensor of shape (batch_size, channels, height, width)
+            domains: Tensor of shape (batch_size, num_domains)
+            contents: Tensor of shape (batch_size, num_contents)
+            filenames: Tuple of strings of the form: {domain}/{content}/{fname}
+        batch_idx: The index of the batch, not used.
+        """
+        images = batch[0]
+        domains = batch[1]
+        contents = batch[2]
+
+        enc_mu, enc_logvar, dec_mu, dec_logvar = self(images, domains, contents)
+
+        return self.loss(images, enc_mu, enc_logvar, dec_mu, dec_logvar)
+
     def configure_optimizers(self):
         return torch.optim.Adam(self.parameters(), lr=self.lr)
 
