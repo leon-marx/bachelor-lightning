@@ -21,14 +21,14 @@ class ImageLogger(Callback):
             train_contents = self.train_batch[2]
             train_recs = pl_module(train_imgs, train_domains, train_contents, raw=True)[2]
             train_grid = torchvision.utils.make_grid(torch.cat((train_imgs, train_recs), 0))
-            trainer.logger.experiment.add_image("train_images", train_grid, 0)
+            pl_module.logger.experiment.add_image("train_images", train_grid, 0)
 
             val_imgs = self.val_batch[0]
             val_domains = self.val_batch[1]
             val_contents = self.val_batch[2]
             val_recs = pl_module(val_imgs, val_domains, val_contents, raw=True)[2]
             val_grid = torchvision.utils.make_grid(torch.cat((val_imgs, val_recs), 0))
-            trainer.logger.experiment.add_image("val_images", val_grid, 0)
+            pl_module.logger.experiment.add_image("val_images", val_grid, 0)
 
             pl_module.train()
         return super().on_save_checkpoint(trainer, pl_module, checkpoint)
