@@ -56,11 +56,10 @@ if __name__ == "__main__":
     latent_size = args.latent_size
     lamb = args.lamb
     lr = args.lr
+    model = CVAE(num_domains=num_domains, num_contents=num_contents,
+                    latent_size=latent_size, lamb=lamb, lr=lr)
     if args.ckpt_path not in (None, "0"):
         model = CVAE.load_from_checkpoint(args.ckpt_path)
-    else:
-        model = CVAE(num_domains=num_domains, num_contents=num_contents,
-                     latent_size=latent_size, lamb=lamb, lr=lr)
 
     # Trainer
     trainer = pl.Trainer(
