@@ -66,7 +66,10 @@ if __name__ == "__main__":
                      latent_size=latent_size, lamb=lamb, lr=lr)
 
     # Callbacks
-    callbacks = [ImageLogger(args.output_dir)]
+    dm.setup()
+    train_batch = next(iter(dm.train_dataloader()))
+    val_batch = next(iter(dm.val_dataloader()))
+    callbacks = [ImageLogger(args.output_dir, train_batch, val_batch)]
 
     # Trainer
     trainer = pl.Trainer(

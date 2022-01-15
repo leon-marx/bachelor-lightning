@@ -5,17 +5,11 @@ import torchvision
 
 
 class ImageLogger(Callback):
-    def __init__(self, out_dir):
+    def __init__(self, out_dir, train_batch, val_batch):
         super().__init__()
         self.out_dir = out_dir
-
-    def on_train_batch_end(self, trainer, pl_module, outputs, batch, batch_idx, unused=0):
-        self.train_batch = batch
-        return super().on_train_batch_end(trainer, pl_module, outputs, batch, batch_idx, unused)
-
-    def on_validation_batch_end(self, trainer, pl_module, outputs, batch, batch_idx, dataloader_idx):
-        self.val_batch = batch
-        return super().on_validation_batch_end(trainer, pl_module, outputs, batch, batch_idx, dataloader_idx)
+        self.train_batch = train_batch
+        self.val_batch = val_batch
     
     def on_save_checkpoint(self, trainer, pl_module, checkpoint):
         self.log_reconstructions(trainer, pl_module, checkpoint)

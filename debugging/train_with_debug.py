@@ -1,7 +1,7 @@
 import os
 import subprocess
 
-bashCommand = "python -m tools.train --gpus 0"
+bashCommand = "python -m tools.train --batch_size 2 --num_workers 0 --latent_size 512 --lamb 10 --lr 1e-03 --ckpt_path 0 --gpus 0 --output_dir logs/test"
 
 process = subprocess.Popen(bashCommand.split(), stdout=subprocess.PIPE)
 output, error = process.communicate()
