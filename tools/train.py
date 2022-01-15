@@ -66,7 +66,7 @@ if __name__ == "__main__":
                      latent_size=latent_size, lamb=lamb, lr=lr)
 
     # Callbacks
-    callbacks = [ImageLogger()]
+    callbacks = [ImageLogger(args.output_dir)]
 
     # Trainer
     trainer = pl.Trainer(
