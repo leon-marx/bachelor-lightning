@@ -18,8 +18,13 @@ class ImageLogger(Callback):
         return super().on_validation_batch_end(trainer, pl_module, outputs, batch, batch_idx, dataloader_idx)
     
     def on_save_checkpoint(self, trainer, pl_module, checkpoint):
+        self.log_reconstructions(trainer, pl_module, checkpoint)
+        return super().on_save_checkpoint(trainer, pl_module, checkpoint)
+
+    def log_reconstructions(self, trainer, pl_module, checkpoint):
         with torch.no_grad():
             pl_module.eval()
+            os.makedirs(f"{self.out_dir}/images", exist_ok=True)
 
             train_imgs = self.train_batch[0]
             train_domains = self.train_batch[1]
@@ -36,4 +41,3 @@ class ImageLogger(Callback):
             torchvision.utils.save_image(val_grid, f"{self.out_dir}/images/val_reconstructions.png")
 
             pl_module.train()
-        return super().on_save_checkpoint(trainer, pl_module, checkpoint)
