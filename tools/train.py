@@ -1,11 +1,13 @@
 from argparse import ArgumentParser
 import os
+from tkinter import Image
 import pytorch_lightning as pl
 import torch
 
 # Own Modules
 from datasets.pacs import PACSDataModule
 from models.cvae import CVAE
+from callbacks.image_logger import ImageLogger
 
 
 if __name__ == "__main__":
@@ -63,6 +65,9 @@ if __name__ == "__main__":
         model = CVAE(num_domains=num_domains, num_contents=num_contents,
                      latent_size=latent_size, lamb=lamb, lr=lr)
 
+    # Callbacks
+    callbacks = [ImageLogger()]
+
     # Trainer
     trainer = pl.Trainer(
         gpus=args.gpus,
@@ -71,6 +76,7 @@ if __name__ == "__main__":
         default_root_dir=args.output_dir,
         logger=pl.loggers.TensorBoardLogger(save_dir=os.getcwd(),
                                             name=args.output_dir),
+        callbacks=callbacks
     )
 
     # Main
