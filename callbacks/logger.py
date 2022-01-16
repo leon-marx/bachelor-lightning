@@ -39,8 +39,7 @@ class Logger(Callback):
         return super().on_train_batch_end(trainer, pl_module, outputs, batch, batch_idx, unused)
 
     def on_validation_batch_end(self, trainer, pl_module, outputs, batch, batch_idx, dataloader_idx):
-        print(outputs)
-        self.val_loss.append(outputs["loss"].item())
+        self.val_loss.append(outputs.item())
 
         return super().on_validation_batch_end(trainer, pl_module, outputs, batch, batch_idx, dataloader_idx)
 
