@@ -34,15 +34,12 @@ class Logger(Callback):
         return super().on_save_checkpoint(trainer, pl_module, checkpoint)
 
     def on_train_batch_end(self, trainer, pl_module, outputs, batch, batch_idx, unused=0):
-        print("")
-        print(outputs)
-        print("")
-        self.train_loss.append(outputs)
+        self.train_loss.append(outputs["loss"].item())
 
         return super().on_train_batch_end(trainer, pl_module, outputs, batch, batch_idx, unused)
 
     def on_validation_batch_end(self, trainer, pl_module, outputs, batch, batch_idx, dataloader_idx):
-        self.val_loss.append(outputs)
+        self.val_loss.append(outputs["loss"].item())
 
         return super().on_validation_batch_end(trainer, pl_module, outputs, batch, batch_idx, dataloader_idx)
 
