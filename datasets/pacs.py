@@ -6,8 +6,9 @@ from torch.utils.data import Dataset, DataLoader
 from torchvision import transforms
 
 class PACSDataset(Dataset):
-    def __init__(self, mode, domains, contents):
+    def __init__(self, root, mode, domains, contents):
         """
+        root: str, root folder where PACS is located
         mode: str, choose one: "train", "val" or "test"
         domains: list of str ["art_painting", "cartoon", "photo", "sketch"]
         contents: list of str ["dog", "elephant", "giraffe", "guitar", "horse", "house", "person"]
@@ -18,7 +19,7 @@ class PACSDataset(Dataset):
         self.contents = contents
         self.domain_dict = {domain: torch.LongTensor([i]) for i, domain in enumerate(self.domains)}
         self.content_dict = {content: torch.LongTensor([i]) for i, content in enumerate(self.contents)}
-        self.data_dir = f"data/PACS_{mode}"
+        self.data_dir = f"{root}/PACS_{mode}"
         self.data = []
         for domain in os.listdir(f"{self.data_dir}"):
             if domain in self.domains:
@@ -49,8 +50,9 @@ class PACSDataset(Dataset):
 
         
 class PACSDataModule(pl.LightningDataModule):
-    def __init__(self, domains, contents, batch_size, num_workers, shuffle_all=False):
+    def __init__(self, root, domains, contents, batch_size, num_workers, shuffle_all=False):
         """
+        root: str, root folder where PACS is located
         domains: list of str ["art_painting", "cartoon", "photo", "sketch"]
         contents: list of str ["dog", "elephant", "giraffe", "guitar", "horse", "house", "person"]
         batch_size: int, batch_size to use for the dataloaders
@@ -58,6 +60,7 @@ class PACSDataModule(pl.LightningDataModule):
         shuffle_all: bool, if True val and test dataloaders are shuffled as well
         """
         super().__init__()
+        self.root = root
         self.domains = domains
         self.contents = contents
         self.batch_size = batch_size
@@ -69,10 +72,10 @@ class PACSDataModule(pl.LightningDataModule):
 
     def setup(self, stage=None):
         if stage in (None, "fit"):
-            self.pacs_train = PACSDataset(mode="train", domains=self.domains, contents=self.contents)
-            self.pacs_val = PACSDataset(mode="val", domains=self.domains, contents=self.contents)
+            self.pacs_train = PACSDataset(root=self.root, mode="train", domains=self.domains, contents=self.contents)
+            self.pacs_val = PACSDataset(root=self.root, mode="val", domains=self.domains, contents=self.contents)
         if stage in (None, "test"):
-            self.pacs_test = PACSDataset(mode="test", domains=self.domains, contents=self.contents)
+            self.pacs_test = PACSDataset(root=self.root, mode="test", domains=self.domains, contents=self.contents)
 
     def train_dataloader(self):
         return DataLoader(self.pacs_train, batch_size=self.batch_size, shuffle=self.shuffle_all, num_workers=self.num_workers)

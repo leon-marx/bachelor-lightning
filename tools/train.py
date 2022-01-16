@@ -15,6 +15,7 @@ if __name__ == "__main__":
     # Parser
     parser = ArgumentParser()
     # Dataset
+    parser.add_argument("--datadir", type=str, default="data")
     parser.add_argument("--batch_size", type=int, default=None)
     parser.add_argument("--num_workers", type=int, default=20)
     # Model
@@ -25,6 +26,8 @@ if __name__ == "__main__":
     parser.add_argument("--ckpt_path", type=str, default=None)
     # Training
     parser.add_argument("--gpus", type=str, default=None)
+    parser.add_argument("--output_dir", type=str, default=None)
+    parser.add_argument("--auto_lr", type=str, default=True)
     parser.add_argument("--output_dir", type=str, default=None)
 
     args = parser.parse_args()
@@ -51,9 +54,9 @@ if __name__ == "__main__":
     contents = ["dog", "elephant", "giraffe",
                 "guitar", "horse", "house", "person"]
     batch_size = args.batch_size
-    dm = PACSDataModule(domains=domains, contents=contents,
+    dm = PACSDataModule(root=args.datdirt, domains=domains, contents=contents,
                         batch_size=batch_size, num_workers=args.num_workers)
-    log_dm = PACSDataModule(domains=domains, contents=contents,
+    log_dm = PACSDataModule(root=args.datadir, domains=domains, contents=contents,
                         batch_size=batch_size, num_workers=args.num_workers, shuffle_all=True)
 
     # Model
@@ -84,7 +87,7 @@ if __name__ == "__main__":
     callbacks = [Logger(args.output_dir, train_batch, val_batch)]
 
     # Trainer
-    if len(args.gpus) < 3:
+    if len(args.gpus) < 3 and args.auto_lr:
         auto_lr_find = True
     else:
         auto_lr_find = False
@@ -101,7 +104,7 @@ if __name__ == "__main__":
     )
 
     # Main
-    if len(args.gpus) < 3:
+    if len(args.gpus) < 3 and args.auto_lr:
         # Auto learning rate finder
         lr_finder = trainer.tuner.lr_find(model, dm)
         fig = lr_finder.plot(suggest=True)
