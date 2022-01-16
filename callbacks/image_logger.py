@@ -8,9 +8,9 @@ import numpy as np
 
 
 class ImageLogger(Callback):
-    def __init__(self, out_dir, train_batch, val_batch):
+    def __init__(self, output_dir, train_batch, val_batch):
         super().__init__()
-        self.out_dir = out_dir
+        self.output_dir = output_dir
         self.train_batch = train_batch
         self.val_batch = val_batch
         self.ave_grad_list = [[], [], [], [], [], [], [], [], [], []]
@@ -39,7 +39,7 @@ class ImageLogger(Callback):
     def log_reconstructions(self, trainer, pl_module, checkpoint):
         with torch.no_grad():
             pl_module.eval()
-            os.makedirs(f"{self.out_dir}/images", exist_ok=True)
+            os.makedirs(f"{self.output_dir}/images", exist_ok=True)
 
             train_imgs = self.train_batch[0][:max(8, len(self.train_batch[0]))].to(pl_module.device)
             train_domains = self.train_batch[1][:max(8, len(self.train_batch[0]))].to(pl_module.device)
@@ -49,7 +49,7 @@ class ImageLogger(Callback):
             if pl_module.__class__.__name__ == "AE":
                 train_recs = pl_module(train_imgs, train_domains, train_contents)
             train_grid = torchvision.utils.make_grid(torch.stack((train_imgs, train_recs), dim=1).view(-1, 3, 224, 224))
-            torchvision.utils.save_image(train_grid, f"{self.out_dir}/images/train_reconstructions.png")
+            torchvision.utils.save_image(train_grid, f"{self.output_dir}/images/train_reconstructions.png")
 
             val_imgs = self.val_batch[0][:max(8, len(self.val_batch[0]))].to(pl_module.device)
             val_domains = self.val_batch[1][:max(8, len(self.val_batch[0]))].to(pl_module.device)
@@ -59,7 +59,7 @@ class ImageLogger(Callback):
             if pl_module.__class__.__name__ == "AE":
                 val_recs = pl_module(val_imgs, val_domains, val_contents)
             val_grid = torchvision.utils.make_grid(torch.stack((val_imgs, val_recs), dim=1).view(-1, 3, 224, 224))
-            torchvision.utils.save_image(val_grid, f"{self.out_dir}/images/val_reconstructions.png")
+            torchvision.utils.save_image(val_grid, f"{self.output_dir}/images/val_reconstructions.png")
 
             pl_module.train()
 
@@ -86,7 +86,7 @@ class ImageLogger(Callback):
         plt.legend([Line2D([0], [0], color="c", lw=4),
                     Line2D([0], [0], color="b", lw=4),
                     Line2D([0], [0], color="k", lw=4)], ['max-gradient', 'mean-gradient', 'zero-gradient'])
-        plt.savefig(os.path.join(self.out_dir, "gradient_flow.png"))
+        plt.savefig(os.path.join(self.output_dir, "gradient_flow.png"))
         plt.close()
         plt.figure(figsize=(24, 16))
         for mg in self.max_grad_list:
@@ -104,5 +104,5 @@ class ImageLogger(Callback):
         plt.legend([Line2D([0], [0], color="c", lw=4),
                     Line2D([0], [0], color="b", lw=4),
                     Line2D([0], [0], color="k", lw=4)], ['max-gradient', 'mean-gradient', 'zero-gradient'])
-        plt.savefig(os.path.join(self.out_dir, "gradient_flow_zoomed.png"))
+        plt.savefig(os.path.join(self.output_dir, "gradient_flow_zoomed.png"))
         plt.close()

@@ -102,5 +102,11 @@ if __name__ == "__main__":
 
     # Main
     if len(args.gpus) < 3:
-        trainer.tune(model, dm)
+        # Auto learning rate finder
+        lr_finder = trainer.tuner.lr_find(model)
+        fig = lr_finder.plot(suggest=True)
+        fig.savefig(f"{args.output_dir}/learning_rate.png")
+        print(f"Best learning rate: {lr_finder.suggestion()}")
+        model.lr = lr_finder.suggestion()
+
     trainer.fit(model, dm)
