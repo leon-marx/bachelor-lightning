@@ -49,18 +49,20 @@ class PACSDataset(Dataset):
 
         
 class PACSDataModule(pl.LightningDataModule):
-    def __init__(self, domains, contents, batch_size, num_workers):
+    def __init__(self, domains, contents, batch_size, num_workers, shuffle_all=False):
         """
         domains: list of str ["art_painting", "cartoon", "photo", "sketch"]
         contents: list of str ["dog", "elephant", "giraffe", "guitar", "horse", "house", "person"]
         batch_size: int, batch_size to use for the dataloaders
         num_workers: int, how many workers to use for the dataloader
+        shuffle_all: bool, if True val and test dataloaders are shuffled as well
         """
         super().__init__()
         self.domains = domains
         self.contents = contents
         self.batch_size = batch_size
         self.num_workers = num_workers
+        self.shuffle_all = shuffle_all
 
     def prepare_data(self):
         pass
@@ -73,13 +75,13 @@ class PACSDataModule(pl.LightningDataModule):
             self.pacs_test = PACSDataset(mode="test", domains=self.domains, contents=self.contents)
 
     def train_dataloader(self):
-        return DataLoader(self.pacs_train, batch_size=self.batch_size, shuffle=True, num_workers=self.num_workers)
+        return DataLoader(self.pacs_train, batch_size=self.batch_size, shuffle=self.shuffle_all, num_workers=self.num_workers)
     
     def val_dataloader(self):
-        return DataLoader(self.pacs_val, batch_size=self.batch_size, num_workers=self.num_workers)
+        return DataLoader(self.pacs_val, batch_size=self.batch_size, shuffle=self.shuffle_all, num_workers=self.num_workers)
     
     def test_dataloader(self):
-        return DataLoader(self.pacs_test, batch_size=self.batch_size, num_workers=self.num_workers)
+        return DataLoader(self.pacs_test, batch_size=self.batch_size, shuffle=self.shuffle_all, num_workers=self.num_workers)
     
 
 if __name__ == "__main__":

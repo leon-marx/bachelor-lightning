@@ -24,14 +24,14 @@ class ImageLogger(Callback):
             train_domains = self.train_batch[1].to(pl_module.device)
             train_contents = self.train_batch[2].to(pl_module.device)
             train_recs = pl_module(train_imgs, train_domains, train_contents, raw=True)[2]
-            train_grid = torchvision.utils.make_grid(torch.cat((train_imgs, train_recs), 0))
+            train_grid = torchvision.utils.make_grid(torch.Tensor(list(zip(train_imgs, train_recs))).view(-1, 3, 224, 224))
             torchvision.utils.save_image(train_grid, f"{self.out_dir}/images/train_reconstructions.png")
 
             val_imgs = self.val_batch[0].to(pl_module.device)
             val_domains = self.val_batch[1].to(pl_module.device)
             val_contents = self.val_batch[2].to(pl_module.device)
             val_recs = pl_module(val_imgs, val_domains, val_contents, raw=True)[2]
-            val_grid = torchvision.utils.make_grid(torch.cat((val_imgs, val_recs), 0))
+            val_grid = torchvision.utils.make_grid(torch.Tensor(list(zip(val_imgs, val_recs))).view(-1, 3, 224, 224))
             torchvision.utils.save_image(val_grid, f"{self.out_dir}/images/val_reconstructions.png")
 
             pl_module.train()
