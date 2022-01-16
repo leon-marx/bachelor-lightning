@@ -84,6 +84,11 @@ if __name__ == "__main__":
     callbacks = [ImageLogger(args.output_dir, train_batch, val_batch)]
 
     # Trainer
+    if len(args.gpus) < 3:
+        auto_lr_find = True
+    else:
+        auto_lr_find = False
+
     trainer = pl.Trainer(
         gpus=args.gpus,
         strategy="dp",
@@ -91,8 +96,11 @@ if __name__ == "__main__":
         default_root_dir=args.output_dir,
         logger=pl.loggers.TensorBoardLogger(save_dir=os.getcwd(),
                                             name=args.output_dir),
-        callbacks=callbacks
+        callbacks=callbacks,
+        auto_lr_find=auto_lr_find
     )
 
     # Main
+    if len(args.gpus) < 3:
+        trainer.tune(model)
     trainer.fit(model, dm)
