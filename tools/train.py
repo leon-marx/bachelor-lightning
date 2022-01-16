@@ -53,7 +53,7 @@ if __name__ == "__main__":
     contents = ["dog", "elephant", "giraffe",
                 "guitar", "horse", "house", "person"]
     batch_size = args.batch_size
-    dm = PACSDataModule(root=args.datdirt, domains=domains, contents=contents,
+    dm = PACSDataModule(root=args.datadir, domains=domains, contents=contents,
                         batch_size=batch_size, num_workers=args.num_workers)
     log_dm = PACSDataModule(root=args.datadir, domains=domains, contents=contents,
                         batch_size=batch_size, num_workers=args.num_workers, shuffle_all=True)
