@@ -74,7 +74,7 @@ if __name__ == "__main__":
             model = CVAE(num_domains=num_domains, num_contents=num_contents,
                         latent_size=latent_size, lamb=lamb, lr=lr)
         if args.model == "AE":
-            model = AE.load_from_checkpoint(num_domains=num_domains, num_contents=num_contents,
+            model = AE(num_domains=num_domains, num_contents=num_contents,
                         latent_size=latent_size, lr=lr)
 
     # Callbacks
