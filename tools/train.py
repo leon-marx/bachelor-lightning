@@ -100,7 +100,7 @@ if __name__ == "__main__":
                                             name=args.output_dir),
         callbacks=callbacks,
         auto_lr_find=auto_lr_find,
-        max_epochs=1
+        max_epochs=100
     )
 
     # Main
