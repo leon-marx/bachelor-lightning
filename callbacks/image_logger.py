@@ -13,6 +13,24 @@ class ImageLogger(Callback):
         self.out_dir = out_dir
         self.train_batch = train_batch
         self.val_batch = val_batch
+        self.ave_grad_list = [[], [], [], [], [], [], [], [], [], []]
+        self.max_grad_list = [[], [], [], [], [], [], [], [], [], []]
+
+    def on_train_epoch_end(self, trainer, pl_module):
+        layers = []
+        ave_grads = []
+        max_grads = []
+        for n, p in pl_module.named_parameters:
+            if(p.requires_grad) and ("bias" not in n):
+                layers.append(n)
+                ave_grads.append(p.grad.abs().mean().cpu())
+                max_grads.append(p.grad.abs().max().cpu())
+        self.layers = layers
+        self.ave_grad_list.pop(0)
+        self.ave_grad_list.append(ave_grads)
+        self.max_grad_list.pop(0)
+        self.max_grad_list.append(max_grads)
+        return super().on_train_epoch_end(trainer, pl_module)
     
     def on_save_checkpoint(self, trainer, pl_module, checkpoint):
         self.log_reconstructions(trainer, pl_module, checkpoint)
@@ -53,26 +71,14 @@ class ImageLogger(Callback):
         Usage: Plug this function in Trainer class after loss.backwards() as 
         "plot_grad_flow(self.model.named_parameters())" to visualize the gradient flow
         """
-        layers = []
-        ave_grads = []
-        max_grads = []
-        for n, p in pl_module.named_parameters:
-            if(p.requires_grad) and ("bias" not in n):
-                layers.append(n)
-                ave_grads.append(p.grad.abs().mean().cpu())
-                max_grads.append(p.grad.abs().max().cpu())
-        self.ave_grad_list.pop(0)
-        self.ave_grad_list.append(ave_grads)
-        self.max_grad_list.pop(0)
-        self.max_grad_list.append(max_grads)
         plt.figure(figsize=(24, 16))
         for mg in self.max_grad_list:
             plt.bar(np.arange(len(mg)), mg, alpha=0.1, lw=1, color="c")
         for ag in self.ave_grad_list:
             plt.bar(np.arange(len(ag)), ag, alpha=0.1, lw=1, color="b")
-        plt.hlines(0, 0, len(ave_grads)+1, lw=2, color="k" )
-        plt.xticks(range(0,len(ave_grads), 1), layers, rotation=45)
-        plt.xlim(left=0, right=len(ave_grads))
+        plt.hlines(0, 0, len(self.ave_grad_list)+1, lw=2, color="k" )
+        plt.xticks(range(0,len(self.ave_grad_list), 1), self.layers, rotation=45)
+        plt.xlim(left=0, right=len(self.ave_grad_list))
         plt.xlabel("Layers")
         plt.ylabel("average gradient")
         plt.title("Gradient flow")
@@ -87,9 +93,9 @@ class ImageLogger(Callback):
             plt.bar(np.arange(len(mg)), mg, alpha=0.1, lw=1, color="c")
         for ag in self.ave_grad_list:
             plt.bar(np.arange(len(ag)), ag, alpha=0.1, lw=1, color="b")
-        plt.hlines(0, 0, len(ave_grads)+1, lw=2, color="k" )
-        plt.xticks(range(0,len(ave_grads), 1), layers, rotation=45)
-        plt.xlim(left=0, right=len(ave_grads))
+        plt.hlines(0, 0, len(self.ave_grad_list)+1, lw=2, color="k" )
+        plt.xticks(range(0,len(self.ave_grad_list), 1), self.layers, rotation=45)
+        plt.xlim(left=0, right=len(self.ave_grad_list))
         plt.ylim(bottom = -0.001, top=0.02) # zoom in on the lower gradient regions
         plt.xlabel("Layers")
         plt.ylabel("average gradient")
