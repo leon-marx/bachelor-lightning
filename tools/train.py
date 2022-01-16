@@ -99,17 +99,19 @@ if __name__ == "__main__":
         logger=pl.loggers.TensorBoardLogger(save_dir=os.getcwd(),
                                             name=args.output_dir),
         callbacks=callbacks,
-        auto_lr_find=auto_lr_find
+        auto_lr_find=auto_lr_find,
+        max_epochs=1
     )
 
     # Main
-    if len(args.gpus) < 3 and args.auto_lr:
-        # Auto learning rate finder
-        lr_finder = trainer.tuner.lr_find(model, dm)
-        fig = lr_finder.plot(suggest=True)
-        os.makedirs(f"{args.output_dir}/images", exist_ok=True)
-        fig.savefig(f"{args.output_dir}/images/learning_rate.png")
-        print(f"Best learning rate: {lr_finder.suggestion()}")
-        model.lr = lr_finder.suggestion()
+    while True:
+        if len(args.gpus) < 3 and args.auto_lr:
+            # Auto learning rate finder
+            lr_finder = trainer.tuner.lr_find(model, dm)
+            fig = lr_finder.plot(suggest=True)
+            os.makedirs(f"{args.output_dir}/images", exist_ok=True)
+            fig.savefig(f"{args.output_dir}/images/learning_rate.png")
+            print(f"Best learning rate: {lr_finder.suggestion()}")
+            model.lr = lr_finder.suggestion()
 
-    trainer.fit(model, dm)
+        trainer.fit(model, dm)
