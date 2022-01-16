@@ -20,7 +20,7 @@ class ImageLogger(Callback):
         layers = []
         ave_grads = []
         max_grads = []
-        for n, p in pl_module.named_parameters:
+        for n, p in pl_module.named_parameters():
             if(p.requires_grad) and ("bias" not in n):
                 layers.append(n)
                 ave_grads.append(p.grad.abs().mean().cpu())
