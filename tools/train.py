@@ -28,7 +28,6 @@ if __name__ == "__main__":
     parser.add_argument("--gpus", type=str, default=None)
     parser.add_argument("--output_dir", type=str, default=None)
     parser.add_argument("--auto_lr", type=str, default=True)
-    parser.add_argument("--output_dir", type=str, default=None)
 
     args = parser.parse_args()
 

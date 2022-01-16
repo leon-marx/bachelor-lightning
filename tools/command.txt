@@ -1,10 +1,11 @@
 python -m tools.train\
-    --batch_size 32\
+    --datadir data/PACS_mini\
+    --batch_size 16\
     --num_workers 20\
     --model AE\
     --latent_size 512\
     --lamb 10\
     --lr 1e-03\
     --ckpt_path 0\
-    --gpus 2,3\
-    --output_dir logs/test
+    --gpus 2\
+    --output_dir logs/ae
