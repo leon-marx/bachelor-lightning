@@ -34,6 +34,9 @@ class Logger(Callback):
         return super().on_save_checkpoint(trainer, pl_module, checkpoint)
 
     def on_train_batch_end(self, trainer, pl_module, outputs, batch, batch_idx, unused=0):
+        print("")
+        print(outputs)
+        print("")
         self.train_loss.append(outputs)
 
         return super().on_train_batch_end(trainer, pl_module, outputs, batch, batch_idx, unused)
