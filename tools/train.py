@@ -102,5 +102,5 @@ if __name__ == "__main__":
 
     # Main
     if len(args.gpus) < 3:
-        trainer.tune(model)
+        trainer.tune(model, dm)
     trainer.fit(model, dm)
