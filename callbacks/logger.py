@@ -7,39 +7,45 @@ from matplotlib.lines import Line2D
 import numpy as np
 
 
-class ImageLogger(Callback):
+class Logger(Callback):
     def __init__(self, output_dir, train_batch, val_batch):
         super().__init__()
         self.output_dir = output_dir
+        os.makedirs(f"{self.output_dir}/images", exist_ok=True)
+
         self.train_batch = train_batch
         self.val_batch = val_batch
+
         self.ave_grad_list = [[], [], [], [], [], [], [], [], [], []]
         self.max_grad_list = [[], [], [], [], [], [], [], [], [], []]
 
+        self.train_loss = []
+        self.val_loss = []
+
     def on_train_epoch_end(self, trainer, pl_module):
-        layers = []
-        ave_grads = []
-        max_grads = []
-        for n, p in pl_module.named_parameters():
-            if(p.requires_grad) and ("bias" not in n):
-                layers.append(n)
-                ave_grads.append(p.grad.abs().mean().cpu())
-                max_grads.append(p.grad.abs().max().cpu())
-        self.layers = layers
-        self.ave_grad_list.pop(0)
-        self.ave_grad_list.append(ave_grads)
-        self.max_grad_list.pop(0)
-        self.max_grad_list.append(max_grads)
+        self.gather_grad_flow_data(pl_module)
+
         return super().on_train_epoch_end(trainer, pl_module)
     
     def on_save_checkpoint(self, trainer, pl_module, checkpoint):
-        self.log_reconstructions(trainer, pl_module, checkpoint)
+        self.log_reconstructions(pl_module)
+        self.log_losses()
+
         return super().on_save_checkpoint(trainer, pl_module, checkpoint)
 
-    def log_reconstructions(self, trainer, pl_module, checkpoint):
+    def on_train_batch_end(self, trainer, pl_module, outputs, batch, batch_idx, unused=0):
+        self.train_loss.append(outputs)
+
+        return super().on_train_batch_end(trainer, pl_module, outputs, batch, batch_idx, unused)
+
+    def on_validation_batch_end(self, trainer, pl_module, outputs, batch, batch_idx, dataloader_idx):
+        self.val_loss.append(outputs)
+
+        return super().on_validation_batch_end(trainer, pl_module, outputs, batch, batch_idx, dataloader_idx)
+
+    def log_reconstructions(self, pl_module):
         with torch.no_grad():
             pl_module.eval()
-            os.makedirs(f"{self.output_dir}/images", exist_ok=True)
 
             train_imgs = self.train_batch[0][:max(8, len(self.train_batch[0]))].to(pl_module.device)
             train_domains = self.train_batch[1][:max(8, len(self.train_batch[0]))].to(pl_module.device)
@@ -63,7 +69,7 @@ class ImageLogger(Callback):
 
             pl_module.train()
 
-    def log_grad_flow(self, trainer, pl_module, checkpoint):
+    def log_grad_flow(self):
         """
         Plots the gradients flowing through different layers in the net during training.
         Can be used for checking for possible gradient vanishing / exploding problems.
@@ -106,3 +112,28 @@ class ImageLogger(Callback):
                     Line2D([0], [0], color="k", lw=4)], ['max-gradient', 'mean-gradient', 'zero-gradient'])
         plt.savefig(os.path.join(self.output_dir, "gradient_flow_zoomed.png"))
         plt.close()
+
+    def gather_grad_flow_data(self, pl_module):
+        layers = []
+        ave_grads = []
+        max_grads = []
+        for n, p in pl_module.named_parameters():
+            if(p.requires_grad) and ("bias" not in n):
+                layers.append(n)
+                ave_grads.append(p.grad.abs().mean().cpu())
+                max_grads.append(p.grad.abs().max().cpu())
+        self.layers = layers
+        self.ave_grad_list.pop(0)
+        self.ave_grad_list.append(ave_grads)
+        self.max_grad_list.pop(0)
+        self.max_grad_list.append(max_grads)
+
+    def log_losses(self):
+        plt.figure(figsize=(16, 8))
+        plt.plot(self.train_loss)
+        plt.title("training loss", size=18)
+        plt.savefg(f"{self.output_dir}/images/train_loss.png")
+        plt.figure(figsize=(16, 8))
+        plt.plot(self.val_loss)
+        plt.title("validation loss", size=18)
+        plt.savefg(f"{self.output_dir}/images/val_loss.png")

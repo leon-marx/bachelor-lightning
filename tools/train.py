@@ -8,7 +8,7 @@ import torch
 from datasets.pacs import PACSDataModule
 from models.cvae import CVAE
 from models.ae import AE
-from callbacks.image_logger import ImageLogger
+from callbacks.logger import Logger
 
 
 if __name__ == "__main__":
@@ -81,7 +81,7 @@ if __name__ == "__main__":
     log_dm.setup()
     train_batch = next(iter(log_dm.train_dataloader()))
     val_batch = next(iter(log_dm.val_dataloader()))
-    callbacks = [ImageLogger(args.output_dir, train_batch, val_batch)]
+    callbacks = [Logger(args.output_dir, train_batch, val_batch)]
 
     # Trainer
     if len(args.gpus) < 3:
@@ -105,7 +105,8 @@ if __name__ == "__main__":
         # Auto learning rate finder
         lr_finder = trainer.tuner.lr_find(model, dm)
         fig = lr_finder.plot(suggest=True)
-        fig.savefig(f"{args.output_dir}/learning_rate.png")
+        os.makedirs(f"{args.output_dir}/images", exist_ok=True)
+        fig.savefig(f"{args.output_dir}/images/learning_rate.png")
         print(f"Best learning rate: {lr_finder.suggestion()}")
         model.lr = lr_finder.suggestion()
 
