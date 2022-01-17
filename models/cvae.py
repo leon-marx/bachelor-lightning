@@ -113,7 +113,9 @@ class CVAE(pl.LightningModule):
 
         enc_mu, enc_logvar, dec_mu, dec_logvar = self(images, domains, contents)
 
-        return self.loss(images, enc_mu, enc_logvar, dec_mu, dec_logvar)
+        loss = self.loss(images, enc_mu, enc_logvar, dec_mu, dec_logvar)
+        self.log("val_loss", loss)
+        return loss
 
     def test_step(self, batch, batch_idx):
         """

@@ -54,8 +54,10 @@ class PL_AE(pl.LightningModule):
         contents = batch[2]
 
         reconstructions = self(images, domains, contents)
-        
-        return self.loss(images, reconstructions)
+
+        loss = self.loss(images, reconstructions)
+        self.log("train_loss", loss)
+        return loss
 
     def validation_step(self, batch, batch_idx):
         """
@@ -74,7 +76,9 @@ class PL_AE(pl.LightningModule):
 
         reconstructions = self(images, domains, contents)
         
-        return self.loss(images, reconstructions)
+        loss = self.loss(images, reconstructions)
+        self.log("val_loss", loss)
+        return loss
 
     def test_step(self, batch, batch_idx):
         """
