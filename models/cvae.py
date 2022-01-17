@@ -137,6 +137,21 @@ class CVAE(pl.LightningModule):
     def configure_optimizers(self):
         return torch.optim.Adam(self.parameters(), lr=self.lr)
 
+    def reconstruct(self, images, domains, contents):
+        """
+        Reconstructs the given image according to the given conditions.
+
+        images: Tensor of shape (batch_size, channels, height, width)
+        domains: Tensor of shape (batch_size, num_domains)
+        contents: Tensor of shape (batch_size, num_contents)
+        """
+        enc_mu, enc_logvar = self.encoder(images, domains, contents)
+
+        codes = enc_mu
+
+        dec_mu, dec_logvar = self.decoder(codes, domains, contents)
+
+        return dec_mu
 
 class Encoder(torch.nn.Module):
     def __init__(self, num_domains, num_contents, latent_size):
@@ -382,12 +397,12 @@ if __name__ == "__main__":
         (f"pic_{i}" for i in range(batch_size))
     ]
 
-    cvae = CVAE(num_domains=num_domains,
+    model = CVAE(num_domains=num_domains,
                 num_contents=num_contents,
                 latent_size=latent_size,
                 lamb=lamb,
                 lr=lr)
-    print(cvae)
-    train_loss = cvae.training_step(batch, batch_idx=0)
+    print(model)
+    train_loss = model.training_step(batch, batch_idx=0)
     print(train_loss)
     print("Done!")

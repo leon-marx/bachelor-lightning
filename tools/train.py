@@ -8,6 +8,7 @@ import torch
 from datasets.pacs import PACSDataModule
 from models.cvae import CVAE
 from models.ae import AE
+from models.pl_ae import PL_AE
 from callbacks.logger import Logger
 
 
@@ -69,12 +70,18 @@ if __name__ == "__main__":
         if args.model == "AE":
             model = AE.load_from_checkpoint(args.ckpt_path, num_domains=num_domains, num_contents=num_contents,
                         latent_size=latent_size, lr=lr)
+        if args.model == "PL_AE":
+            model = PL_AE.load_from_checkpoint(args.ckpt_path, num_domains=num_domains, num_contents=num_contents,
+                        latent_size=latent_size, lr=lr)
     else:
         if args.model == "CVAE":
             model = CVAE(num_domains=num_domains, num_contents=num_contents,
                         latent_size=latent_size, lamb=lamb, lr=lr)
         if args.model == "AE":
             model = AE(num_domains=num_domains, num_contents=num_contents,
+                        latent_size=latent_size, lr=lr)
+        if args.model == "PL_AE":
+            model = PL_AE(num_domains=num_domains, num_contents=num_contents,
                         latent_size=latent_size, lr=lr)
 
     # Callbacks

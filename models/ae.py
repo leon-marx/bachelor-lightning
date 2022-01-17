@@ -97,6 +97,18 @@ class AE(pl.LightningModule):
     def configure_optimizers(self):
         return torch.optim.Adam(self.parameters(), lr=self.lr)
 
+    def reconstruct(self, images, domains, contents):
+        """
+        Calculates codes for the given images and returns their reconstructions.
+
+        images: Tensor of shape (batch_size, channels, height, width)
+        domains: Tensor of shape (batch_size, num_domains)
+        contents: Tensor of shape (batch_size, num_contents)
+        """
+        codes = self.encoder(images, domains, contents)
+        reconstructions = self.decoder(codes, domains, contents)
+
+        return reconstructions
 
 class Encoder(torch.nn.Module):
     def __init__(self, num_domains, num_contents, latent_size):
@@ -323,11 +335,11 @@ if __name__ == "__main__":
         (f"pic_{i}" for i in range(batch_size))
     ]
 
-    cvae = AE(num_domains=num_domains,
+    model = AE(num_domains=num_domains,
                 num_contents=num_contents,
                 latent_size=latent_size,
                 lr=lr)
-    print(cvae)
-    train_loss = cvae.training_step(batch, batch_idx=0)
+    print(model)
+    train_loss = model.training_step(batch, batch_idx=0)
     print(train_loss)
     print("Done!")

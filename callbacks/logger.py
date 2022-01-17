@@ -51,20 +51,14 @@ class Logger(Callback):
             train_imgs = self.train_batch[0][:max(8, len(self.train_batch[0]))].to(pl_module.device)
             train_domains = self.train_batch[1][:max(8, len(self.train_batch[0]))].to(pl_module.device)
             train_contents = self.train_batch[2][:max(8, len(self.train_batch[0]))].to(pl_module.device)
-            if pl_module.__class__.__name__ == "CVAE":
-                train_recs = pl_module(train_imgs, train_domains, train_contents, raw=True)[2]
-            if pl_module.__class__.__name__ == "AE":
-                train_recs = pl_module(train_imgs, train_domains, train_contents)
+            train_recs = pl_module.reconstruct(train_imgs, train_domains, train_contents)
             train_grid = torchvision.utils.make_grid(torch.stack((train_imgs, train_recs), dim=1).view(-1, 3, 224, 224))
             torchvision.utils.save_image(train_grid, f"{self.output_dir}/version_{trainer.logger.version}/images/train_reconstructions.png")
 
             val_imgs = self.val_batch[0][:max(8, len(self.val_batch[0]))].to(pl_module.device)
             val_domains = self.val_batch[1][:max(8, len(self.val_batch[0]))].to(pl_module.device)
             val_contents = self.val_batch[2][:max(8, len(self.val_batch[0]))].to(pl_module.device)
-            if pl_module.__class__.__name__ == "CVAE":
-                val_recs = pl_module(val_imgs, val_domains, val_contents, raw=True)[2]
-            if pl_module.__class__.__name__ == "AE":
-                val_recs = pl_module(val_imgs, val_domains, val_contents)
+            val_recs = pl_module.reconstruct(val_imgs, val_domains, val_contents)
             val_grid = torchvision.utils.make_grid(torch.stack((val_imgs, val_recs), dim=1).view(-1, 3, 224, 224))
             torchvision.utils.save_image(val_grid, f"{self.output_dir}/version_{trainer.logger.version}/images/val_reconstructions.png")
 
