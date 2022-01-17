@@ -27,7 +27,7 @@ class Logger(Callback):
         return super().on_train_epoch_end(trainer, pl_module)
     
     def on_save_checkpoint(self, trainer, pl_module, checkpoint):
-        os.makedirs(f"{self.output_dir}/version_{trainer.logger.log_dir}/images", exist_ok=True)
+        os.makedirs(f"{self.output_dir}/version_{trainer.logger.version}/images", exist_ok=True)
         self.log_reconstructions(trainer, pl_module)
         self.log_losses(trainer)
         self.log_grad_flow(trainer)
@@ -56,7 +56,7 @@ class Logger(Callback):
             if pl_module.__class__.__name__ == "AE":
                 train_recs = pl_module(train_imgs, train_domains, train_contents)
             train_grid = torchvision.utils.make_grid(torch.stack((train_imgs, train_recs), dim=1).view(-1, 3, 224, 224))
-            torchvision.utils.save_image(train_grid, f"{self.output_dir}/version_{trainer.logger.log_dir}/images/train_reconstructions.png")
+            torchvision.utils.save_image(train_grid, f"{self.output_dir}/version_{trainer.logger.version}/images/train_reconstructions.png")
 
             val_imgs = self.val_batch[0][:max(8, len(self.val_batch[0]))].to(pl_module.device)
             val_domains = self.val_batch[1][:max(8, len(self.val_batch[0]))].to(pl_module.device)
@@ -66,7 +66,7 @@ class Logger(Callback):
             if pl_module.__class__.__name__ == "AE":
                 val_recs = pl_module(val_imgs, val_domains, val_contents)
             val_grid = torchvision.utils.make_grid(torch.stack((val_imgs, val_recs), dim=1).view(-1, 3, 224, 224))
-            torchvision.utils.save_image(val_grid, f"{self.output_dir}/version_{trainer.logger.log_dir}/images/val_reconstructions.png")
+            torchvision.utils.save_image(val_grid, f"{self.output_dir}/version_{trainer.logger.version}/images/val_reconstructions.png")
 
             pl_module.train()
 
@@ -93,7 +93,7 @@ class Logger(Callback):
         plt.legend([Line2D([0], [0], color="c", lw=4),
                     Line2D([0], [0], color="b", lw=4),
                     Line2D([0], [0], color="k", lw=4)], ['max-gradient', 'mean-gradient', 'zero-gradient'])
-        plt.savefig(f"{self.output_dir}/version_{trainer.logger.log_dir}/images/gradient_flow.png")
+        plt.savefig(f"{self.output_dir}/version_{trainer.logger.version}/images/gradient_flow.png")
         plt.close()
         plt.figure(figsize=(24, 16))
         for mg in self.max_grad_list:
@@ -111,7 +111,7 @@ class Logger(Callback):
         plt.legend([Line2D([0], [0], color="c", lw=4),
                     Line2D([0], [0], color="b", lw=4),
                     Line2D([0], [0], color="k", lw=4)], ['max-gradient', 'mean-gradient', 'zero-gradient'])
-        plt.savefig(f"{self.output_dir}/version_{trainer.logger.log_dir}/images/gradient_flow_zoomed.png")
+        plt.savefig(f"{self.output_dir}/version_{trainer.logger.version}/images/gradient_flow_zoomed.png")
         plt.close()
 
     def gather_grad_flow_data(self, pl_module):
@@ -133,8 +133,8 @@ class Logger(Callback):
         plt.figure(figsize=(16, 8))
         plt.plot(self.train_loss)
         plt.title("training loss", size=18)
-        plt.savefig(f"{self.output_dir}/version_{trainer.logger.log_dir}/images/train_loss.png")
+        plt.savefig(f"{self.output_dir}/version_{trainer.logger.version}/images/train_loss.png")
         plt.figure(figsize=(16, 8))
         plt.plot(self.val_loss)
         plt.title("validation loss", size=18)
-        plt.savefig(f"{self.output_dir}/version_{trainer.logger.log_dir}/images/val_loss.png")
+        plt.savefig(f"{self.output_dir}/version_{trainer.logger.version}/images/val_loss.png")
