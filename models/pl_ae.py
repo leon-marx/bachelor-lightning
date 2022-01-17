@@ -96,7 +96,13 @@ class PL_AE(pl.LightningModule):
         return self.loss(images, reconstructions)
 
     def configure_optimizers(self):
-        return torch.optim.Adam(self.parameters(), lr=self.lr)
+        optimizer = torch.optim.Adam(self.parameters(), lr=self.lr)
+        scheduler = torch.optim.ReduceLROnPlateau(optimizer,
+            factor=0.1,
+            patience=2,
+            verbose=True
+        )
+        return [optimizer], [scheduler]
 
     def reconstruct(self, images, domains, contents):
         """

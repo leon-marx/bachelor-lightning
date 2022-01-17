@@ -135,7 +135,13 @@ class CVAE(pl.LightningModule):
         return self.loss(images, enc_mu, enc_logvar, dec_mu, dec_logvar)
 
     def configure_optimizers(self):
-        return torch.optim.Adam(self.parameters(), lr=self.lr)
+        optimizer = torch.optim.Adam(self.parameters(), lr=self.lr)
+        scheduler = torch.optim.ReduceLROnPlateau(optimizer,
+            factor=0.1,
+            patience=2,
+            verbose=True
+        )
+        return [optimizer], [scheduler]
 
     def reconstruct(self, images, domains, contents):
         """

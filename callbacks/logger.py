@@ -20,6 +20,10 @@ class Logger(Callback):
 
         self.train_loss = []
         self.val_loss = []
+
+    def on_epoch_start(self, trainer, pl_module):
+        pl_module.log("lr", pl_module.optimizer.lr, prog_bar=True)
+        return super().on_epoch_start(trainer, pl_module)
     
     def on_save_checkpoint(self, trainer, pl_module, checkpoint):
         os.makedirs(f"{self.output_dir}/version_{trainer.logger.version}/images", exist_ok=True)

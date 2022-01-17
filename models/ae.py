@@ -1,3 +1,4 @@
+from tabnanny import verbose
 import torch
 import pytorch_lightning as pl
 
@@ -10,8 +11,10 @@ class AE(pl.LightningModule):
         self.num_contents = num_contents
         self.latent_size = latent_size
 
-        self.encoder = Encoder(num_domains=self.num_domains, num_contents=self.num_contents, latent_size=self.latent_size)
-        self.decoder = Decoder(num_domains=self.num_domains, num_contents=self.num_contents, latent_size=self.latent_size)
+        self.encoder = Encoder(num_domains=self.num_domains,
+                               num_contents=self.num_contents, latent_size=self.latent_size)
+        self.decoder = Decoder(num_domains=self.num_domains,
+                               num_contents=self.num_contents, latent_size=self.latent_size)
 
         self.lr = lr
 
@@ -23,7 +26,7 @@ class AE(pl.LightningModule):
         reconstructions: Tensor of shape (batch_size, channels, height, width)s
         """
         return torch.sum(abs(images - reconstructions))
-    
+
     def forward(self, images, domains, contents):
         """
         Calculates codes for the given images and returns their reconstructions.
@@ -53,7 +56,7 @@ class AE(pl.LightningModule):
         contents = batch[2]
 
         reconstructions = self(images, domains, contents)
-        
+
         return self.loss(images, reconstructions)
 
     def validation_step(self, batch, batch_idx):
@@ -72,7 +75,7 @@ class AE(pl.LightningModule):
         contents = batch[2]
 
         reconstructions = self(images, domains, contents)
-        
+
         return self.loss(images, reconstructions)
 
     def test_step(self, batch, batch_idx):
@@ -91,11 +94,17 @@ class AE(pl.LightningModule):
         contents = batch[2]
 
         reconstructions = self(images, domains, contents)
-        
+
         return self.loss(images, reconstructions)
 
     def configure_optimizers(self):
-        return torch.optim.Adam(self.parameters(), lr=self.lr)
+        optimizer = torch.optim.Adam(self.parameters(), lr=self.lr)
+        scheduler = torch.optim.ReduceLROnPlateau(optimizer,
+            factor=0.1,
+            patience=2,
+            verbose=True
+        )
+        return [optimizer], [scheduler]
 
     def reconstruct(self, images, domains, contents):
         """
@@ -109,6 +118,7 @@ class AE(pl.LightningModule):
         reconstructions = self.decoder(codes, domains, contents)
 
         return reconstructions
+
 
 class Encoder(torch.nn.Module):
     def __init__(self, num_domains, num_contents, latent_size):
@@ -330,15 +340,17 @@ if __name__ == "__main__":
     lr = 0.01
     batch = [
         torch.randn(size=(batch_size, 3, 224, 224)),
-        torch.nn.functional.one_hot(torch.randint(low=0, high=num_domains, size=(batch_size,)), num_classes=num_domains),
-        torch.nn.functional.one_hot(torch.randint(low=0, high=num_contents, size=(batch_size,)), num_classes=num_contents),
+        torch.nn.functional.one_hot(torch.randint(
+            low=0, high=num_domains, size=(batch_size,)), num_classes=num_domains),
+        torch.nn.functional.one_hot(torch.randint(
+            low=0, high=num_contents, size=(batch_size,)), num_classes=num_contents),
         (f"pic_{i}" for i in range(batch_size))
     ]
 
     model = AE(num_domains=num_domains,
-                num_contents=num_contents,
-                latent_size=latent_size,
-                lr=lr)
+               num_contents=num_contents,
+               latent_size=latent_size,
+               lr=lr)
     print(model)
     train_loss = model.training_step(batch, batch_idx=0)
     print(train_loss)
