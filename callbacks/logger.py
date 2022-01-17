@@ -22,7 +22,7 @@ class Logger(Callback):
         self.val_loss = []
 
     def on_epoch_start(self, trainer, pl_module):
-        pl_module.log("lr", pl_module.lr_schedulers().get_lr(), prog_bar=True)
+        pl_module.log("lr", pl_module.optimizer().param_groups[0]["lr"], prog_bar=True)
         return super().on_epoch_start(trainer, pl_module)
     
     def on_save_checkpoint(self, trainer, pl_module, checkpoint):
