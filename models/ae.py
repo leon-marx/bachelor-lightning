@@ -104,7 +104,14 @@ class AE(pl.LightningModule):
             patience=2,
             verbose=True
         )
-        return [optimizer], [scheduler]
+        scheduler_dict = {
+            "scheduler": scheduler,
+            "monitor": "val_loss",
+            "frequency": 1
+            # If "monitor" references validation metrics, then "frequency" should be set to a
+            # multiple of "trainer.check_val_every_n_epoch".
+        }
+        return {"optimizer": optimizer, "lr_scheduler": scheduler_dict}
 
     def reconstruct(self, images, domains, contents):
         """
