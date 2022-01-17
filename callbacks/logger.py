@@ -20,11 +20,6 @@ class Logger(Callback):
 
         self.train_loss = []
         self.val_loss = []
-
-    def on_train_epoch_end(self, trainer, pl_module):
-        self.gather_grad_flow_data(pl_module)
-
-        return super().on_train_epoch_end(trainer, pl_module)
     
     def on_save_checkpoint(self, trainer, pl_module, checkpoint):
         os.makedirs(f"{self.output_dir}/version_{trainer.logger.version}/images", exist_ok=True)
@@ -35,6 +30,7 @@ class Logger(Callback):
         return super().on_save_checkpoint(trainer, pl_module, checkpoint)
 
     def on_train_batch_end(self, trainer, pl_module, outputs, batch, batch_idx, unused=0):
+        self.gather_grad_flow_data(pl_module)
         self.train_loss.append(outputs["loss"].item())
 
         return super().on_train_batch_end(trainer, pl_module, outputs, batch, batch_idx, unused)

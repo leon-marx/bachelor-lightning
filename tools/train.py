@@ -28,8 +28,7 @@ if __name__ == "__main__":
     # Training
     parser.add_argument("--gpus", type=str, default=None)
     parser.add_argument("--output_dir", type=str, default=None)
-    parser.add_argument("--auto_lr", type=str, default=True)
-
+    
     args = parser.parse_args()
 
     # Configuration
@@ -44,16 +43,16 @@ if __name__ == "__main__":
     print(f"    PyTorch: {torch.__version__}")
     print(f"    CUDA: {torch.version.cuda}")
     print(f"    CUDNN: {torch.backends.cudnn.version()}")
-
     print("Args:")
     for k, v in sorted(vars(args).items()):
         print(f"    {k}: {v}")
     
     # Dataset
     domains = ["art_painting", "cartoon", "photo"]
-    contents = ["dog", "elephant", "giraffe",
-                "guitar", "horse", "house", "person"]
+    contents = ["dog", "elephant", "giraffe", "guitar", "horse", "house", "person"]
     batch_size = args.batch_size
+    dm = PACSDataModule(root=args.datadir, domains=domains, contents=contents,
+                        batch_size=batch_size, num_workers=args.num_workers)
     log_dm = PACSDataModule(root=args.datadir, domains=domains, contents=contents,
                         batch_size=batch_size, num_workers=args.num_workers, shuffle_all=True)
 
@@ -90,37 +89,16 @@ if __name__ == "__main__":
     val_batch = next(iter(log_dm.val_dataloader()))
     callbacks = [Logger(args.output_dir, train_batch, val_batch)]
 
+    # Trainer
+    trainer = pl.Trainer(
+        gpus=args.gpus,
+        strategy="dp",
+        precision=16,
+        default_root_dir=args.output_dir,
+        logger=pl.loggers.TensorBoardLogger(save_dir=os.getcwd(),
+                                            name=args.output_dir),
+        callbacks=callbacks,
+    )
+
     # Main
-    try:
-        for i in range(1000):
-            print(f"Beginning Fit-Tune Cycle {i}")
-
-            # Dataset
-            dm = PACSDataModule(root=args.datadir, domains=domains, contents=contents,
-                                batch_size=batch_size, num_workers=args.num_workers)
-
-            # Trainer
-            trainer = pl.Trainer(
-                gpus=args.gpus,
-                strategy="dp",
-                precision=16,
-                default_root_dir=args.output_dir,
-                logger=pl.loggers.TensorBoardLogger(save_dir=os.getcwd(),
-                                                    name=args.output_dir),
-                callbacks=callbacks,
-                max_epochs=5
-            )
-            if len(args.gpus) < 3 and args.auto_lr:
-                # Auto learning rate finder
-                lr_finder = trainer.tuner.lr_find(model, dm)
-                fig = lr_finder.plot(suggest=True)
-                os.makedirs(f"{args.output_dir}/version_{trainer.logger.version}/images", exist_ok=True)
-                fig.savefig(f"{args.output_dir}/version_{trainer.logger.version}/images/learning_rate.png")
-                print(f"Best learning rate: {lr_finder.suggestion()}")
-                model.lr = lr_finder.suggestion()
-            trainer.fit(model, dm)
-            print("")
-            print("")
-            print("")
-    except KeyboardInterrupt:
-        print("Train-Tune loop ended by Keyboard Interrupt!")
+    trainer.fit(model, dm)
