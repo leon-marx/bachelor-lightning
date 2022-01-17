@@ -92,8 +92,9 @@ class CVAE(pl.LightningModule):
         enc_mu, enc_logvar, dec_mu, dec_logvar = self(images, domains, contents)
         
         kld, rec = self.loss(images, enc_mu, enc_logvar, dec_mu, dec_logvar, split_loss=True)
-        self.log("kld", kld, prog_bar=True)
-        self.log("rec", rec, prog_bar=True)
+        self.log("kld", kld, prog_bar=True, batch_size=images.shape[0])
+        self.log("rec", rec, prog_bar=True, batch_size=images.shape[0])
+        self.log("lr", self.optimizers().param_groups[0]["lr"], prog_bar=True, batch_size=images.shape[0])
         return kld + rec
 
     def validation_step(self, batch, batch_idx):
@@ -114,7 +115,7 @@ class CVAE(pl.LightningModule):
         enc_mu, enc_logvar, dec_mu, dec_logvar = self(images, domains, contents)
 
         loss = self.loss(images, enc_mu, enc_logvar, dec_mu, dec_logvar)
-        self.log("val_loss", loss)
+        self.log("val_loss", loss, batch_size=images.shape[0])
         return loss
 
     def test_step(self, batch, batch_idx):
