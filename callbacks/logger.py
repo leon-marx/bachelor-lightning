@@ -83,9 +83,9 @@ class Logger(Callback):
             plt.bar(np.arange(len(mg)), mg, alpha=0.1, lw=1, color="c")
         for ag in self.ave_grad_list:
             plt.bar(np.arange(len(ag)), ag, alpha=0.1, lw=1, color="b")
-        plt.hlines(0, 0, len(self.ave_grad_list)+1, lw=2, color="k" )
-        plt.xticks(range(0,len(self.ave_grad_list), 1), self.layers, rotation=45)
-        plt.xlim(left=0, right=len(self.ave_grad_list))
+        plt.hlines(0, 0, len(self.ave_grad_list[0])+1, lw=2, color="k" )
+        plt.xticks(range(0,len(self.ave_grad_list[0]), 1), self.layers, rotation=45)
+        plt.xlim(left=0, right=len(self.ave_grad_list[0]))
         plt.xlabel("Layers")
         plt.ylabel("average gradient")
         plt.title("Gradient flow")
@@ -100,9 +100,9 @@ class Logger(Callback):
             plt.bar(np.arange(len(mg)), mg, alpha=0.1, lw=1, color="c")
         for ag in self.ave_grad_list:
             plt.bar(np.arange(len(ag)), ag, alpha=0.1, lw=1, color="b")
-        plt.hlines(0, 0, len(self.ave_grad_list)+1, lw=2, color="k" )
-        plt.xticks(range(0,len(self.ave_grad_list), 1), self.layers, rotation=45)
-        plt.xlim(left=0, right=len(self.ave_grad_list))
+        plt.hlines(0, 0, len(self.ave_grad_list[0])+1, lw=2, color="k" )
+        plt.xticks(range(0,len(self.ave_grad_list[0]), 1), self.layers, rotation=45)
+        plt.xlim(left=0, right=len(self.ave_grad_list[0]))
         plt.ylim(bottom = -0.001, top=0.02) # zoom in on the lower gradient regions
         plt.xlabel("Layers")
         plt.ylabel("average gradient")
