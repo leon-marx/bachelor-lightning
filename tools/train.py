@@ -28,6 +28,7 @@ if __name__ == "__main__":
     # Training
     parser.add_argument("--gpus", type=str, default=None)
     parser.add_argument("--output_dir", type=str, default=None)
+    parser.add_argument("--max_epochs", type=int, default=1000)
     
     args = parser.parse_args()
 
@@ -103,6 +104,7 @@ if __name__ == "__main__":
         callbacks=callbacks,
         gradient_clip_val=0.5,
         gradient_clip_algorithm="value",
+        max_epochs=args.max_epochs
     )
 
     # Main
