@@ -2,7 +2,7 @@ import torch
 import pytorch_lightning as pl
 
 
-class PL_AE(pl.LightningModule):
+class AE_v2(pl.LightningModule):
     def __init__(self, num_domains, num_contents, latent_size, lr):
         super().__init__()
 
@@ -260,7 +260,7 @@ if __name__ == "__main__":
         (f"pic_{i}" for i in range(batch_size))
     ]
 
-    model = PL_AE(num_domains=num_domains,
+    model = AE_v2(num_domains=num_domains,
                 num_contents=num_contents,
                 latent_size=latent_size,
                 lr=lr)

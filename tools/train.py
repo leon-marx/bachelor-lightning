@@ -8,7 +8,8 @@ import torch
 from datasets.pacs import PACSDataModule
 from models.cvae import CVAE
 from models.ae import AE
-from models.pl_ae import PL_AE
+from models.ae_v2 import AE_v2
+from models.ae_v3 import AE_v3
 from callbacks.logger import Logger
 
 
@@ -23,12 +24,21 @@ if __name__ == "__main__":
     parser.add_argument("--model", type=str, default=None)
     parser.add_argument("--latent_size", type=int, default=512)
     parser.add_argument("--lamb", type=float, default=1.0)
-    parser.add_argument("--lr", type=float, default=1e-03)
-    parser.add_argument("--ckpt_path", type=str, default=None)
+    parser.add_argument("--lr", type=float, default=1e-04)
+    parser.add_argument("--ckpt_path", type=str, default="0")
+    parser.add_argument("--depth", type=int, default=2)
+    parser.add_argument("--out_channels", type=str, default="128,256,512,512,1024,1024")
+    parser.add_argument("--kernel_size", type=int, default=3)
+    parser.add_argument("--activation", type=str, default="relu")
+    parser.add_argument("--downsampling", type=str, default="stride")
+    parser.add_argument("--upsampling", type=str, default="stride")
+    parser.add_argument("--dropout", type=bool, default=False)
+    parser.add_argument("--batch_norm", type=bool, default=False)
     # Training
     parser.add_argument("--gpus", type=str, default=None)
     parser.add_argument("--output_dir", type=str, default=None)
     parser.add_argument("--max_epochs", type=int, default=1000)
+    parser.add_argument("--enable_checkpointing", type=bool, default=True)
     
     args = parser.parse_args()
 
@@ -63,16 +73,37 @@ if __name__ == "__main__":
     latent_size = args.latent_size
     lamb = args.lamb
     lr = args.lr
-    if args.ckpt_path not in (None, "0"):
+    depth = args.depth
+    out_channels = list(map(int, args.out_channels.split(",")))
+    kernel_size = args.kernel_size
+    activation = args.activation
+    if activation == "relu":
+        activation = torch.nn.ReLU()
+    if activation == "gelu":
+        activation = torch.nn.GELU()
+    if activation == "lrelu":
+        activation = torch.nn.LeakyReLU()
+    if activation == "elu":
+        activation = torch.nn.ELU()
+    downsampling = args.downsampling
+    upsampling = args.upsampling
+    dropout = args.dropout
+    batch_norm = args.batch_norm
+    if args.ckpt_path != "0":
         if args.model == "CVAE":
             model = CVAE.load_from_checkpoint(args.ckpt_path, num_domains=num_domains, num_contents=num_contents,
                         latent_size=latent_size, lamb=lamb, lr=lr)
         if args.model == "AE":
             model = AE.load_from_checkpoint(args.ckpt_path, num_domains=num_domains, num_contents=num_contents,
                         latent_size=latent_size, lr=lr)
-        if args.model == "PL_AE":
-            model = PL_AE.load_from_checkpoint(args.ckpt_path, num_domains=num_domains, num_contents=num_contents,
+        if args.model == "AE_v2":
+            model = AE_v2.load_from_checkpoint(args.ckpt_path, num_domains=num_domains, num_contents=num_contents,
                         latent_size=latent_size, lr=lr)
+        if args.model == "AE_v3":
+            model = AE_v3.load_from_checkpoint(args.ckpt_path, num_domains=num_domains, num_contents=num_contents, 
+                        latent_size=latent_size, lr=lr, depth=depth, out_channels=out_channels, 
+                        kernel_size=kernel_size, activation=activation, downsampling=downsampling, 
+                        upsampling=upsampling, dropout=dropout, batch_norm=batch_norm)
     else:
         if args.model == "CVAE":
             model = CVAE(num_domains=num_domains, num_contents=num_contents,
@@ -80,9 +111,14 @@ if __name__ == "__main__":
         if args.model == "AE":
             model = AE(num_domains=num_domains, num_contents=num_contents,
                         latent_size=latent_size, lr=lr)
-        if args.model == "PL_AE":
-            model = PL_AE(num_domains=num_domains, num_contents=num_contents,
+        if args.model == "AE_v2":
+            model = AE_v2(num_domains=num_domains, num_contents=num_contents,
                         latent_size=latent_size, lr=lr)
+        if args.model == "AE_v3":
+            model = AE_v3(num_domains=num_domains, num_contents=num_contents, 
+                        latent_size=latent_size, lr=lr, depth=depth, out_channels=out_channels, 
+                        kernel_size=kernel_size, activation=activation, downsampling=downsampling, 
+                        upsampling=upsampling, dropout=dropout, batch_norm=batch_norm)
 
     # Callbacks
     log_dm.setup()
@@ -104,7 +140,8 @@ if __name__ == "__main__":
         callbacks=callbacks,
         gradient_clip_val=0.5,
         gradient_clip_algorithm="value",
-        max_epochs=args.max_epochs
+        max_epochs=args.max_epochs,
+        enable_checkpointing=args.enable_checkpointing
     )
 
     # Main
