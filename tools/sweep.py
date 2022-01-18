@@ -1,7 +1,16 @@
 from argparse import ArgumentParser
-import copy
 import os
-import subprocess
+from tkinter import Image
+import pytorch_lightning as pl
+import torch
+
+# Own Modules
+from datasets.pacs import PACSDataModule
+from models.cvae import CVAE
+from models.ae import AE
+from models.ae_v2 import AE_v2
+from models.ae_v3 import AE_v3
+from callbacks.logger import Logger
 
 
 def get_combinations(arg_dict):
@@ -16,6 +25,7 @@ def get_combinations(arg_dict):
                     new_combs.append(d)
         combinations = new_combs
     return combinations
+
 
 if __name__ == "__main__":
     parser = ArgumentParser()
@@ -51,6 +61,33 @@ if __name__ == "__main__":
         },
     }
     ####################
+    # Configuration
+    pl.seed_everything(17, workers=True)
+    torch.backends.cudnn.deterministic = True
+    torch.backends.cudnn.benchmark = False
+
+    # Printing Configuration
+    print("Environment:")
+    print(f"    PyTorch: {torch.__version__}")
+    print(f"    CUDA: {torch.version.cuda}")
+    print(f"    CUDNN: {torch.backends.cudnn.version()}")
+
+    # Dataset
+    domains = ["art_painting", "cartoon", "photo"]
+    contents = ["dog", "elephant", "giraffe", "guitar", "horse", "house", "person"]
+    batch_size = 8
+    dm = PACSDataModule(root="data/variants/PACS_small", domains=domains, contents=contents,
+                        batch_size=batch_size, num_workers=20)
+    log_dm = PACSDataModule(root="data/variants/PACS_small", domains=domains, contents=contents,
+                        batch_size=batch_size, num_workers=20, shuffle_all=True)
+    num_domains = len(domains)
+    num_contents = len(contents)
+
+    # Callbacks
+    log_dm.setup()
+    train_batch = next(iter(log_dm.train_dataloader()))
+    val_batch = next(iter(log_dm.val_dataloader()))
+
     step = 0
     for model in configs:
         print(f"Starting loop over {model} configurations.")
@@ -59,7 +96,7 @@ if __name__ == "__main__":
             if step >= args.start_step:
                 print(f"Configuration: {conf}")
                 # Default values
-                log_dir = f"{model}"
+                log_dir = f"logs/sweep/{model}"
                 latent_size =  512
                 lamb =  10
                 lr =  1e-4
@@ -108,12 +145,61 @@ if __name__ == "__main__":
                     out_channels = conf["out_channels"]
                     log_dir += f"_{out_channels}"
                     
-                bashCommand = f"python -m tools.train --datadir data/variants/PACS_small --batch_size 32 --num_workers 20 --model {model} --latent_size {latent_size} --lamb {lamb} --lr {lr} --ckpt_path 0 --gpus 2,3 --output_dir logs/sweep/{log_dir} --max_epochs 50 --enable_checkpointing False --depth {depth} --out_channels {out_channels} --kernel_size {kernel_size} --activation {activation} --downsampling {downsampling} --upsampling {upsampling} --dropout {dropout} --batch_norm {batch_norm}"
-                process = subprocess.Popen(bashCommand.split(), stdout=subprocess.PIPE)
-                while True:
-                    line = process.stdout.readline()
-                    if not line:
-                        break
-                    print(line)
+
+                # Configuration
+                if log_dir is not None:
+                    os.makedirs(log_dir, exist_ok=True)
+                callbacks = [
+                    Logger(log_dir, train_batch, val_batch)
+                ]
+                
+                print("Args:")
+                for k, v in sorted(conf.items()):
+                    print(f"    {k}: {v}")
+
+                # Model
+                out_channels = list(map(int, out_channels.split(",")))
+                if activation == "relu":
+                    activation = torch.nn.ReLU()
+                if activation == "gelu":
+                    activation = torch.nn.GELU()
+                if activation == "lrelu":
+                    activation = torch.nn.LeakyReLU()
+                if activation == "elu":
+                    activation = torch.nn.ELU()
+                if model == "CVAE":
+                    model = CVAE(num_domains=num_domains, num_contents=num_contents,
+                                latent_size=latent_size, lamb=lamb, lr=lr)
+                if model == "AE":
+                    model = AE(num_domains=num_domains, num_contents=num_contents,
+                                latent_size=latent_size, lr=lr)
+                if model == "AE_v2":
+                    model = AE_v2(num_domains=num_domains, num_contents=num_contents,
+                                latent_size=latent_size, lr=lr)
+                if model == "AE_v3":
+                    model = AE_v3(num_domains=num_domains, num_contents=num_contents, 
+                                latent_size=latent_size, lr=lr, depth=depth, out_channels=out_channels, 
+                                kernel_size=kernel_size, activation=activation, downsampling=downsampling, 
+                                upsampling=upsampling, dropout=dropout, batch_norm=batch_norm)
+
+
+                # Trainer
+                trainer = pl.Trainer(
+                    gpus="3,2",
+                    strategy="dp",
+                    precision=16,
+                    default_root_dir=log_dir,
+                    logger=pl.loggers.TensorBoardLogger(save_dir=os.getcwd(),
+                                                        name=log_dir),
+                    callbacks=callbacks,
+                    gradient_clip_val=0.5,
+                    gradient_clip_algorithm="value",
+                    max_epochs=25,
+                    enable_checkpointing=False
+                )
+
+                # Main
+                trainer.fit(model, dm)
+
                 print(f"Completed step {step}!")
             step += 1
