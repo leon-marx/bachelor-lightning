@@ -3,6 +3,7 @@ import os
 from tkinter import Image
 import pytorch_lightning as pl
 import torch
+import copy
 
 # Own Modules
 from datasets.pacs import PACSDataModule
