@@ -98,6 +98,9 @@ if __name__ == "__main__":
         logger=pl.loggers.TensorBoardLogger(save_dir=os.getcwd(),
                                             name=args.output_dir),
         callbacks=callbacks,
+        gradient_clip_val=0.5,
+        gradient_clip_algorithm="value",
+        stochastic_weight_avg=True
     )
 
     # Main
