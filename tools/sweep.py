@@ -30,10 +30,10 @@ if __name__ == "__main__":
                 "128,128,256,256,512,512",
                 "128,256,512,512,1024,2048"
             ],
-            "latent_size": [128, 512, 1024],
-            "depth": [1, 2, 3],
-            "kernel_size": [3, 5, 7],
-            "activation": ["relu", "gelu", "lrelu", "elu"],
+            "latent_size": [128, 512],
+            "depth": [1, 2],
+            "kernel_size": [3, 5],
+            "activation": ["gelu", "lrelu"],
             "downsampling": ["stride", "maxpool"],
             "upsampling": ["stride", "upsample"],
             "dropout": [True, False],
@@ -108,8 +108,12 @@ if __name__ == "__main__":
                     out_channels = conf["out_channels"]
                     log_dir += f"_{out_channels}"
                     
-                bashCommand = f"python -m tools.train --datadir data/variants/PACS_small --batch_size 8 --num_workers 20 --model {model} --latent_size {latent_size} --lamb {lamb} --lr {lr} --ckpt_path 0 --gpus 2,3 --output_dir logs/sweep/{log_dir} --max_epochs 50 --enable_checkpointing False --depth {depth} --out_channels {out_channels} --kernel_size {kernel_size} --activation {activation} --downsampling {downsampling} --upsampling {upsampling} --dropout {dropout} --batch_norm {batch_norm}"
+                bashCommand = f"python -m tools.train --datadir data/variants/PACS_small --batch_size 32 --num_workers 20 --model {model} --latent_size {latent_size} --lamb {lamb} --lr {lr} --ckpt_path 0 --gpus 2,3 --output_dir logs/sweep/{log_dir} --max_epochs 50 --enable_checkpointing False --depth {depth} --out_channels {out_channels} --kernel_size {kernel_size} --activation {activation} --downsampling {downsampling} --upsampling {upsampling} --dropout {dropout} --batch_norm {batch_norm}"
                 process = subprocess.Popen(bashCommand.split(), stdout=subprocess.PIPE)
-                output, error = process.communicate()
+                while True:
+                    line = process.stdout.readline()
+                    if not line:
+                        break
+                    print(line)
                 print(f"Completed step {step}!")
             step += 1
