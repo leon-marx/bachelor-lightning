@@ -90,14 +90,14 @@ if __name__ == "__main__":
     val_batch = next(iter(log_dm.val_dataloader()))
 
     step = 0
-    for model in configs:
-        print(f"Starting loop over {model} configurations.")
-        combinations = get_combinations(configs[model])
+    for model_name in configs:
+        print(f"Starting loop over {model_name} configurations.")
+        combinations = get_combinations(configs[model_name])
         for conf in combinations:
             if step >= args.start_step:
                 print(f"Configuration: {conf}")
                 # Default values
-                log_dir = f"logs/sweep/{model}"
+                log_dir = f"logs/sweep/{model_name}"
                 latent_size =  512
                 lamb =  10
                 lr =  1e-4
@@ -168,16 +168,16 @@ if __name__ == "__main__":
                     activation = torch.nn.LeakyReLU()
                 if activation == "elu":
                     activation = torch.nn.ELU()
-                if model == "CVAE":
+                if model_name == "CVAE":
                     model = CVAE(num_domains=num_domains, num_contents=num_contents,
                                 latent_size=latent_size, lamb=lamb, lr=lr)
-                if model == "AE":
+                if model_name == "AE":
                     model = AE(num_domains=num_domains, num_contents=num_contents,
                                 latent_size=latent_size, lr=lr)
-                if model == "AE_v2":
+                if model_name == "AE_v2":
                     model = AE_v2(num_domains=num_domains, num_contents=num_contents,
                                 latent_size=latent_size, lr=lr)
-                if model == "AE_v3":
+                if model_name == "AE_v3":
                     model = AE_v3(num_domains=num_domains, num_contents=num_contents, 
                                 latent_size=latent_size, lr=lr, depth=depth, out_channels=out_channels, 
                                 kernel_size=kernel_size, activation=activation, downsampling=downsampling, 
