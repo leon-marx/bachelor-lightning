@@ -21,6 +21,7 @@ def get_combinations(arg_dict_list):
 
 
 if __name__ == "__main__":
+    #################### EDIT THIS IN ORDER TO CHANGE THE SWEEP
     configs = {
         "CVAE": {
             "latent_size": [128, 512, 1024],
@@ -33,7 +34,7 @@ if __name__ == "__main__":
             "latent_size": [128, 512, 1024],
         },
     }
-
+    ####################
     for model in configs:
         print(f"Starting loop over {model} configurations.")
         combinations = get_combinations(configs[model])
@@ -55,18 +56,7 @@ if __name__ == "__main__":
                 lr_string = "{:e}".format(lr)
                 log_dir += f"_{lr_string}"
                 
-            bashCommand = f"python -m tools.train\
-                --datadir data/variants/PACS_small\
-                --batch_size 32\
-                --num_workers 20\
-                --model {model}\
-                --latent_size {latent_size}\
-                --lamb {lamb}\
-                --lr {lr}\
-                --ckpt_path 0\
-                --gpus 2,3\
-                --output_dir logs/sweep/{log_dir}\
-                --max_epochs 100"
+            bashCommand = f"python -m tools.train --datadir data/variants/PACS_small --batch_size 32 --num_workers 20 --model {model} --latent_size {latent_size} --lamb {lamb} --lr {lr} --ckpt_path 0 --gpus 2,3 --output_dir logs/sweep/{log_dir} --max_epochs 100"
 
             process = subprocess.Popen(bashCommand.split(), stdout=subprocess.PIPE)
             output, error = process.communicate()

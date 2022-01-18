@@ -90,7 +90,7 @@ if __name__ == "__main__":
     val_batch = next(iter(log_dm.val_dataloader()))
     callbacks = [
         Logger(args.output_dir, train_batch, val_batch),
-        pl.callbacks.stochastic_weight_avg.StochasticWeightAveraging(swa_epoch_start=5)
+        # pl.callbacks.stochastic_weight_avg.StochasticWeightAveraging(swa_epoch_start=5)
     ]
 
     # Trainer
