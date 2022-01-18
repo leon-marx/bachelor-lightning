@@ -87,7 +87,10 @@ if __name__ == "__main__":
     log_dm.setup()
     train_batch = next(iter(log_dm.train_dataloader()))
     val_batch = next(iter(log_dm.val_dataloader()))
-    callbacks = [Logger(args.output_dir, train_batch, val_batch)]
+    callbacks = [
+        Logger(args.output_dir, train_batch, val_batch),
+        pl.callbacks.stochastic_weight_avg.StochasticWeightAveraging(swa_epoch_start=5)
+    ]
 
     # Trainer
     trainer = pl.Trainer(
@@ -100,7 +103,6 @@ if __name__ == "__main__":
         callbacks=callbacks,
         gradient_clip_val=0.5,
         gradient_clip_algorithm="value",
-        stochastic_weight_avg=True
     )
 
     # Main
