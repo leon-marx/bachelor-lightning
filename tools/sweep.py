@@ -50,14 +50,14 @@ if __name__ == "__main__":
             "batch_norm": [True, False],
         },
         "AE_v2": {
-            "latent_size": [128, 512, 1024],
+            "latent_size": [128, 512],
         },
         "AE": {
-            "latent_size": [128, 512, 1024],
+            "latent_size": [128, 512],
         },
         "CVAE": {
-            "latent_size": [128, 512, 1024],
-            "lamb": [0.01, 1, 100],
+            "latent_size": [128, 512],
+            "lamb": [0.01, 100],
         },
     }
     ####################
