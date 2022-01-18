@@ -23,16 +23,6 @@ if __name__ == "__main__":
     args = parser.parse_args()
     #################### EDIT THIS IN ORDER TO CHANGE THE SWEEP
     configs = {
-        "CVAE": {
-            "latent_size": [128, 512, 1024],
-            "lamb": [0.01, 1, 100],
-        },
-        "AE": {
-            "latent_size": [128, 512, 1024],
-        },
-        "AE_v2": {
-            "latent_size": [128, 512, 1024],
-        },
         "AE_v3": {
             "out_channels": [
                 "128,256,512,512,1024,1024",
@@ -48,6 +38,16 @@ if __name__ == "__main__":
             "upsampling": ["stride", "upsample"],
             "dropout": [True, False],
             "batch_norm": [True, False],
+        },
+        "AE_v2": {
+            "latent_size": [128, 512, 1024],
+        },
+        "AE": {
+            "latent_size": [128, 512, 1024],
+        },
+        "CVAE": {
+            "latent_size": [128, 512, 1024],
+            "lamb": [0.01, 1, 100],
         },
     }
     ####################
