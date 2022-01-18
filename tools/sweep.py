@@ -108,7 +108,7 @@ if __name__ == "__main__":
                     out_channels = conf["out_channels"]
                     log_dir += f"_{out_channels}"
                     
-                bashCommand = f"python -m tools.train --datadir data/variants/PACS_small --batch_size 8 --num_workers 20 --model {model} --latent_size {latent_size} --lamb {lamb} --lr {lr} --ckpt_path 0 --gpus 2,3 --output_dir logs/sweep/{log_dir} --max_epochs 100 --enable_checkpointing False --depth {depth} --out_channels {out_channels} --kernel_size {kernel_size} --activation {activation} --downsampling {downsampling} --upsampling {upsampling} --dropout {dropout} --batch_norm {batch_norm}"
+                bashCommand = f"python -m tools.train --datadir data/variants/PACS_small --batch_size 8 --num_workers 20 --model {model} --latent_size {latent_size} --lamb {lamb} --lr {lr} --ckpt_path 0 --gpus 2,3 --output_dir logs/sweep/{log_dir} --max_epochs 50 --enable_checkpointing False --depth {depth} --out_channels {out_channels} --kernel_size {kernel_size} --activation {activation} --downsampling {downsampling} --upsampling {upsampling} --dropout {dropout} --batch_norm {batch_norm}"
                 process = subprocess.Popen(bashCommand.split(), stdout=subprocess.PIPE)
                 output, error = process.communicate()
                 print(f"Completed step {step}!")
