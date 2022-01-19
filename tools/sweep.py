@@ -150,7 +150,7 @@ if __name__ == "__main__":
                 log_dir += f"_{out_channels.replace(',', '-')}"
                 
 
-            if args.restart or not os.path.isdir(f"logs/sweep/{log_dir}"):
+            if args.restart or not os.path.isdir(f"{log_dir}"):
                 # Configuration
                 os.makedirs(log_dir, exist_ok=True)
                 callbacks = [
