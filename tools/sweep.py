@@ -115,7 +115,8 @@ if __name__ == "__main__":
                 log_dir += f"_{latent_size}"
             if "lamb" in conf:
                 lamb = conf["lamb"]
-                log_dir += f"_{lamb}"
+                lamb_string = "{:e}".format(lamb)
+                log_dir += f"_{lamb_string}"
             if "lr" in conf:
                 lr = conf["lr"]
                 lr_string = "{:e}".format(lr)
@@ -143,7 +144,7 @@ if __name__ == "__main__":
                 log_dir += f"_{batch_norm}"
             if "out_channels" in conf:
                 out_channels = conf["out_channels"]
-                log_dir += f"_{out_channels}"
+                log_dir += f"_{out_channels.replace(',', '-')}"
                 
 
             if args.restart or not os.path.isdir(f"logs/sweep/{model_name}"):
