@@ -116,10 +116,12 @@ if __name__ == "__main__":
             if "lamb" in conf:
                 lamb = conf["lamb"]
                 lamb_string = "{:e}".format(lamb)
+                lamb_string = lamb_string.replace(".", "-")
                 log_dir += f"_{lamb_string}"
             if "lr" in conf:
                 lr = conf["lr"]
                 lr_string = "{:e}".format(lr)
+                lr_string = lr_string.replace(".", "-")
                 log_dir += f"_{lr_string}"
             if "depth" in conf:
                 depth = conf["depth"]
@@ -202,6 +204,5 @@ if __name__ == "__main__":
 
                 # Main
                 trainer.fit(model, dm)
-
                 print(f"Completed step {step}!")
             step += 1

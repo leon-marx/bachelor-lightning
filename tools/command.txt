@@ -12,4 +12,4 @@ python -m tools.train\
     --dropout False\
     --batch_norm False\
     --gpus 2,3\
-    --output_dir logs/AE_v3
+    --output_dir logs/ae_v3
