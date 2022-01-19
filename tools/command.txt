@@ -1,11 +1,15 @@
 python -m tools.train\
-    --datadir data/variants/PACS_small\
-    --batch_size 8\
-    --num_workers 20\
-    --model AE\
+    --batch_size 32\
+    --model AE_v3\
     --latent_size 512\
-    --lamb 10\
-    --lr 1e-03\
-    --ckpt_path logs/ae/version_2/checkpoints/*.ckpt\
+    --lr 1e-4\
+    --depth 1\
+    --out_channels 256,256,512,512,1024,1024\
+    --kernel_size 3\
+    --activation gelu\
+    --downsampling stride\
+    --upsampling stride\
+    --dropout False\
+    --batch_norm False\
     --gpus 2,3\
-    --output_dir logs/ae_small
+    --output_dir logs/AE_v3

@@ -17,6 +17,19 @@ class AE_v3(pl.LightningModule):
         self.upsampling = upsampling
         self.dropout = dropout
         self.batch_norm = batch_norm
+        self.hyper_param_dict = {
+            "num_domains": self.num_domains,
+            "num_contents": self.num_contents,
+            "latent_size": self.latent_size,
+            "depth": self.depth,
+            "out_channels": self.out_channels,
+            "kernel_size": self.kernel_size,
+            "activation": self.activation,
+            "downsampling": self.downsampling,
+            "upsampling": self.upsampling,
+            "dropout": self.dropout,
+            "batch_norm": self.batch_norm  ,
+        }
 
         self.encoder = Encoder(num_domains=self.num_domains,
                                num_contents=self.num_contents,
