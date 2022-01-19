@@ -32,6 +32,7 @@ def get_combinations(arg_dict):
 if __name__ == "__main__":
     parser = ArgumentParser()
     parser.add_argument("--restart", type=bool, default=False)
+    parser.add_argument("--gpus", type=str, default="3,")
     args = parser.parse_args()
     #################### EDIT THIS IN ORDER TO CHANGE THE SWEEP
     configs = {
@@ -188,7 +189,7 @@ if __name__ == "__main__":
 
                 # Trainer
                 trainer = pl.Trainer(
-                    gpus="3,",
+                    gpus=args.gpus,
                     strategy="dp",
                     precision=16,
                     default_root_dir=log_dir,
