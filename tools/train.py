@@ -39,6 +39,7 @@ if __name__ == "__main__":
     parser.add_argument("--output_dir", type=str, default=None)
     parser.add_argument("--max_epochs", type=int, default=1000)
     parser.add_argument("--enable_checkpointing", type=bool, default=True)
+    parser.add_argument("--log_every_n_steps", type=int, default=50)
     
     args = parser.parse_args()
 
@@ -141,7 +142,8 @@ if __name__ == "__main__":
         gradient_clip_val=0.5,
         gradient_clip_algorithm="value",
         max_epochs=args.max_epochs,
-        enable_checkpointing=args.enable_checkpointing
+        enable_checkpointing=args.enable_checkpointing,
+        log_every_n_steps=args.log_every_n_steps
     )
 
     # Main

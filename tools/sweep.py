@@ -4,6 +4,7 @@ from tkinter import Image
 import pytorch_lightning as pl
 import torch
 import copy
+import random
 
 # Own Modules
 from datasets.pacs import PACSDataModule
@@ -30,26 +31,10 @@ def get_combinations(arg_dict):
 
 if __name__ == "__main__":
     parser = ArgumentParser()
-    parser.add_argument("--start_step", type=int, default=0)
+    parser.add_argument("--restart", type=bool, default=False)
     args = parser.parse_args()
     #################### EDIT THIS IN ORDER TO CHANGE THE SWEEP
     configs = {
-        "AE_v3": {
-            "out_channels": [
-                "128,256,512,512,1024,1024",
-                "512,512,512,512,512,512",
-                "128,128,256,256,512,512",
-                "128,256,512,512,1024,2048"
-            ],
-            "latent_size": [128, 512],
-            "depth": [1, 2],
-            "kernel_size": [3, 5],
-            "activation": ["gelu", "lrelu"],
-            "downsampling": ["stride", "maxpool"],
-            "upsampling": ["stride", "upsample"],
-            "dropout": [True, False],
-            "batch_norm": [True, False],
-        },
         "AE_v2": {
             "latent_size": [128, 512],
         },
@@ -59,6 +44,21 @@ if __name__ == "__main__":
         "CVAE": {
             "latent_size": [128, 512],
             "lamb": [0.01, 100],
+        },
+        "AE_v3": {
+            "out_channels": [
+                "128,256,512,512,1024,1024",
+                "512,512,512,512,512,512",
+                "128,128,256,256,512,512",
+            ],
+            "latent_size": [128, 512],
+            "depth": [1, 2, 3],
+            "kernel_size": [3, 5],
+            "activation": ["gelu", "lrelu"],
+            "downsampling": ["stride", "maxpool"],
+            "upsampling": ["stride", "upsample"],
+            "dropout": [True, False],
+            "batch_norm": [True, False],
         },
     }
     ####################
@@ -93,63 +93,63 @@ if __name__ == "__main__":
     for model_name in configs:
         print(f"Starting loop over {model_name} configurations.")
         combinations = get_combinations(configs[model_name])
+        random.shuffle(combinations)
         for conf in combinations:
-            if step >= args.start_step:
-                print(f"Configuration: {conf}")
-                # Default values
-                log_dir = f"logs/sweep/{model_name}"
-                latent_size =  512
-                lamb =  10
-                lr =  1e-4
-                depth = 2
-                out_channels = "128,256,512,512,1024,1024"
-                kernel_size = 3
-                activation = "relu"
-                downsampling = "stride"
-                upsampling = "stride"
-                dropout = False
-                batch_norm = False
+            print(f"Configuration: {conf}")
+            # Default values
+            log_dir = f"logs/sweep/{model_name}"
+            latent_size =  512
+            lamb =  10
+            lr =  1e-4
+            depth = 2
+            out_channels = "128,256,512,512,1024,1024"
+            kernel_size = 3
+            activation = "relu"
+            downsampling = "stride"
+            upsampling = "stride"
+            dropout = False
+            batch_norm = False
 
 
-                if "latent_size" in conf:
-                    latent_size = conf["latent_size"]
-                    log_dir += f"_{latent_size}"
-                if "lamb" in conf:
-                    lamb = conf["lamb"]
-                    log_dir += f"_{lamb}"
-                if "lr" in conf:
-                    lr = conf["lr"]
-                    lr_string = "{:e}".format(lr)
-                    log_dir += f"_{lr_string}"
-                if "depth" in conf:
-                    depth = conf["depth"]
-                    log_dir += f"_{depth}"
-                if "kernel_size" in conf:
-                    kernel_size = conf["kernel_size"]
-                    log_dir += f"_{kernel_size}"
-                if "activation" in conf:
-                    activation = conf["activation"]
-                    log_dir += f"_{activation}"
-                if "downsampling" in conf:
-                    downsampling = conf["downsampling"]
-                    log_dir += f"_{downsampling}"
-                if "upsampling" in conf:
-                    upsampling = conf["upsampling"]
-                    log_dir += f"_{upsampling}"
-                if "dropout" in conf:
-                    dropout = conf["dropout"]
-                    log_dir += f"_{dropout}"
-                if "batch_norm" in conf:
-                    batch_norm = conf["batch_norm"]
-                    log_dir += f"_{batch_norm}"
-                if "out_channels" in conf:
-                    out_channels = conf["out_channels"]
-                    log_dir += f"_{out_channels}"
-                    
+            if "latent_size" in conf:
+                latent_size = conf["latent_size"]
+                log_dir += f"_{latent_size}"
+            if "lamb" in conf:
+                lamb = conf["lamb"]
+                log_dir += f"_{lamb}"
+            if "lr" in conf:
+                lr = conf["lr"]
+                lr_string = "{:e}".format(lr)
+                log_dir += f"_{lr_string}"
+            if "depth" in conf:
+                depth = conf["depth"]
+                log_dir += f"_{depth}"
+            if "kernel_size" in conf:
+                kernel_size = conf["kernel_size"]
+                log_dir += f"_{kernel_size}"
+            if "activation" in conf:
+                activation = conf["activation"]
+                log_dir += f"_{activation}"
+            if "downsampling" in conf:
+                downsampling = conf["downsampling"]
+                log_dir += f"_{downsampling}"
+            if "upsampling" in conf:
+                upsampling = conf["upsampling"]
+                log_dir += f"_{upsampling}"
+            if "dropout" in conf:
+                dropout = conf["dropout"]
+                log_dir += f"_{dropout}"
+            if "batch_norm" in conf:
+                batch_norm = conf["batch_norm"]
+                log_dir += f"_{batch_norm}"
+            if "out_channels" in conf:
+                out_channels = conf["out_channels"]
+                log_dir += f"_{out_channels}"
+                
 
+            if args.restart or not os.path.isdir(f"logs/sweep/{model_name}"):
                 # Configuration
-                if log_dir is not None:
-                    os.makedirs(log_dir, exist_ok=True)
+                os.makedirs(log_dir, exist_ok=True)
                 callbacks = [
                     Logger(log_dir, train_batch, val_batch)
                 ]
@@ -186,7 +186,7 @@ if __name__ == "__main__":
 
                 # Trainer
                 trainer = pl.Trainer(
-                    gpus="3,2",
+                    gpus="3,",
                     strategy="dp",
                     precision=16,
                     default_root_dir=log_dir,
@@ -196,7 +196,8 @@ if __name__ == "__main__":
                     gradient_clip_val=0.5,
                     gradient_clip_algorithm="value",
                     max_epochs=25,
-                    enable_checkpointing=False
+                    enable_checkpointing=False,
+                    log_every_n_steps=1
                 )
 
                 # Main
