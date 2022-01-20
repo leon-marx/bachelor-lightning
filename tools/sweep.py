@@ -93,7 +93,7 @@ if __name__ == "__main__":
     for model_name in configs:
         print(f"Starting loop over {model_name} configurations.")
         combinations = get_combinations(configs[model_name])
-        random.shuffle(combinations)
+        # random.shuffle(combinations)
         for conf in combinations:
             print(f"Configuration: {conf}")
             # Default values
