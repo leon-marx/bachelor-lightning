@@ -150,6 +150,7 @@ if __name__ == "__main__":
                 out_channels = conf["out_channels"]
                 log_dir += f"_{out_channels.replace(',', '-')}"
             if "loss_mode" in conf:
+                loss_mode = conf["loss_mode"]
                 log_dir += f"_{loss_mode}"
 
                 
