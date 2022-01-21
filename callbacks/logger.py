@@ -21,6 +21,7 @@ class Logger(Callback):
         self.train_loss = []
         self.val_loss = []
 
+        self.iov_flag = False
         self.images_on_val = images_on_val
     
     def on_save_checkpoint(self, trainer, pl_module, checkpoint):
@@ -37,9 +38,13 @@ class Logger(Callback):
 
         return super().on_train_batch_end(trainer, pl_module, outputs, batch, batch_idx, unused)
 
+    def on_epoch_end(self, trainer, pl_module):
+        self.iov_flag = True
+        return super().on_epoch_end(trainer, pl_module)
+
     def on_validation_batch_end(self, trainer, pl_module, outputs, batch, batch_idx, dataloader_idx):
         self.val_loss.append(outputs.item())
-        if self.images_on_val:
+        if self.images_on_val and self.iov_flag:
             os.makedirs(f"{self.output_dir}/version_{trainer.logger.version}/images", exist_ok=True)
             self.log_reconstructions(trainer, pl_module, tensorboard_log=True)
             self.log_losses(trainer)
