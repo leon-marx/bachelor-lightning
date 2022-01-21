@@ -155,7 +155,7 @@ if __name__ == "__main__":
                 # Configuration
                 os.makedirs(log_dir, exist_ok=True)
                 callbacks = [
-                    Logger(log_dir, train_batch, val_batch)
+                    Logger(log_dir, train_batch, val_batch, images_on_val=True)
                 ]
                 
                 print("Args:")
