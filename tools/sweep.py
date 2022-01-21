@@ -50,12 +50,6 @@ if __name__ == "__main__":
         #     "lamb": [0.01, 100],
         # },
         "AE_v3": {
-            "out_channels": [
-                "256,256,512,512,1024,1024",
-                "128,128,256,256,512,512",
-            ],
-            "latent_size": [128, 512],
-            "depth": [1, 2],
             "kernel_size": [3, 5],
             "activation": ["selu", "elu", "relu"],
             "loss_mode": ["l1", "l2"]
@@ -98,18 +92,18 @@ if __name__ == "__main__":
             print(f"Configuration: {conf}")
             # Default values
             log_dir = f"logs/sweep/{model_name}"
-            latent_size =  512
+            latent_size =  128
             lamb =  10
             lr =  1e-4
-            depth = 2
-            out_channels = "128,256,512,512,1024,1024"
+            depth = 1
+            out_channels = "128,128,256,256,512,512"
             kernel_size = 3
-            activation = "relu"
+            activation = "elu"
             downsampling = "stride"
             upsampling = "upsample"
             dropout = False
             batch_norm = True
-            loss_mode = "l2"
+            loss_mode = "l1"
 
 
             if "latent_size" in conf:
