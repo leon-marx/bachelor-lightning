@@ -93,7 +93,6 @@ if __name__ == "__main__":
     upsampling = args.upsampling
     dropout = args.dropout
     batch_norm = args.batch_norm
-    print(dropout, batch_norm)
     loss_mode = args.loss_mode
     if args.ckpt_path != "0":
         if args.model == "CVAE":
