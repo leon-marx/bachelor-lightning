@@ -37,6 +37,8 @@ if __name__ == "__main__":
     parser.add_argument("--max_epochs", type=int, default=25)
     parser.add_argument("--iov", type=bool, default=True)
     args = parser.parse_args()
+    args_restart = args.restart == "True"
+    args_iov = args.iov == "True"
     #################### EDIT THIS IN ORDER TO CHANGE THE SWEEP
     configs = {
         # "AE_v2": {
@@ -149,11 +151,11 @@ if __name__ == "__main__":
 
                 
 
-            if args.restart or not os.path.isdir(f"{log_dir}"):
+            if args_restart or not os.path.isdir(f"{log_dir}"):
                 # Configuration
                 os.makedirs(log_dir, exist_ok=True)
                 callbacks = [
-                    Logger(log_dir, train_batch, val_batch, images_on_val=args.iov)
+                    Logger(log_dir, train_batch, val_batch, images_on_val=args_iov)
                 ]
                 
                 print("Args:")

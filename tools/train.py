@@ -91,8 +91,8 @@ if __name__ == "__main__":
         activation = torch.nn.SELU()
     downsampling = args.downsampling
     upsampling = args.upsampling
-    dropout = args.dropout
-    batch_norm = args.batch_norm
+    dropout = args.dropout == "True"
+    batch_norm = args.batch_norm == "True"
     loss_mode = args.loss_mode
     if args.ckpt_path != "0":
         if args.model == "CVAE":
