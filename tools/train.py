@@ -91,8 +91,8 @@ if __name__ == "__main__":
         activation = torch.nn.SELU()
     downsampling = args.downsampling
     upsampling = args.upsampling
-    dropout = args.dropout == "True"
-    batch_norm = args.batch_norm == "True"
+    dropout = "True" in args.dropout
+    batch_norm = "True" in args.batch_norm
     print(batch_norm)
     loss_mode = args.loss_mode
     if args.ckpt_path != "0":
