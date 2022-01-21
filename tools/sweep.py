@@ -25,7 +25,8 @@ def get_combinations(arg_dict):
                     d = copy.deepcopy(dd)
                     d[key] = val
                     new_combs.append(d)
-        combinations = new_combs
+        if new_combs != []:
+            combinations = new_combs
     return combinations
 
 
@@ -52,7 +53,7 @@ if __name__ == "__main__":
                 "128,128,256,256,512,512",
             ],
             "latent_size": [128, 512],
-            "depth": [1, 2, 3],
+            "depth": 1,
             "kernel_size": 3,
             "activation": ["gelu", "selu", "elu"],
             "downsampling": "stride",
@@ -63,31 +64,31 @@ if __name__ == "__main__":
     }
     ####################
     # Configuration
-    pl.seed_everything(17, workers=True)
-    torch.backends.cudnn.deterministic = True
-    torch.backends.cudnn.benchmark = False
+    # pl.seed_everything(17, workers=True)
+    # torch.backends.cudnn.deterministic = True
+    # torch.backends.cudnn.benchmark = False
 
-    # Printing Configuration
-    print("Environment:")
-    print(f"    PyTorch: {torch.__version__}")
-    print(f"    CUDA: {torch.version.cuda}")
-    print(f"    CUDNN: {torch.backends.cudnn.version()}")
+    # # Printing Configuration
+    # print("Environment:")
+    # print(f"    PyTorch: {torch.__version__}")
+    # print(f"    CUDA: {torch.version.cuda}")
+    # print(f"    CUDNN: {torch.backends.cudnn.version()}")
 
-    # Dataset
-    domains = ["art_painting", "cartoon", "photo"]
-    contents = ["dog", "elephant", "giraffe", "guitar", "horse", "house", "person"]
-    batch_size = 8
-    dm = PACSDataModule(root="data/variants/PACS_small", domains=domains, contents=contents,
-                        batch_size=batch_size, num_workers=20)
-    log_dm = PACSDataModule(root="data/variants/PACS_small", domains=domains, contents=contents,
-                        batch_size=batch_size, num_workers=20, shuffle_all=True)
-    num_domains = len(domains)
-    num_contents = len(contents)
+    # # Dataset
+    # domains = ["art_painting", "cartoon", "photo"]
+    # contents = ["dog", "elephant", "giraffe", "guitar", "horse", "house", "person"]
+    # batch_size = 8
+    # dm = PACSDataModule(root="data/variants/PACS_small", domains=domains, contents=contents,
+    #                     batch_size=batch_size, num_workers=20)
+    # log_dm = PACSDataModule(root="data/variants/PACS_small", domains=domains, contents=contents,
+    #                     batch_size=batch_size, num_workers=20, shuffle_all=True)
+    # num_domains = len(domains)
+    # num_contents = len(contents)
 
-    # Callbacks
-    log_dm.setup()
-    train_batch = next(iter(log_dm.train_dataloader()))
-    val_batch = next(iter(log_dm.val_dataloader()))
+    # # Callbacks
+    # log_dm.setup()
+    # train_batch = next(iter(log_dm.train_dataloader()))
+    # val_batch = next(iter(log_dm.val_dataloader()))
 
     step = 0
     for model_name in configs:
