@@ -172,7 +172,8 @@ class AE_v3(pl.LightningModule):
         scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer,
                                                                factor=0.1,
                                                                patience=2,
-                                                               verbose=True
+                                                               verbose=True,
+                                                               eps=1e-16
                                                                )
         scheduler_dict = {
             "scheduler": scheduler,
