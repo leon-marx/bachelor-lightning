@@ -153,4 +153,5 @@ if __name__ == "__main__":
     # Main
     if args.model == "AE_v3":
         trainer.logger.log_hyperparams(model.hyper_param_dict)
+        print(model)
     trainer.fit(model, dm)

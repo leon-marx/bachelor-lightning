@@ -26,7 +26,7 @@ class Logger(Callback):
     
     def on_save_checkpoint(self, trainer, pl_module, checkpoint):
         os.makedirs(f"{self.output_dir}/version_{trainer.logger.version}/images", exist_ok=True)
-        self.log_reconstructions(trainer, pl_module)
+        self.log_reconstructions(trainer, pl_module, tensorboard_log=True)
         self.log_losses(trainer)
         self.log_grad_flow(trainer)
 
