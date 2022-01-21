@@ -2,7 +2,7 @@ import torch
 import pytorch_lightning as pl
 
 
-def weights_init(m):
+def selu_init(m):
     """
     LeCun Normal initialization for selu.
     """
@@ -71,7 +71,8 @@ class AE_v3(pl.LightningModule):
         )
 
         self.lr = lr
-        self.apply(weights_init)
+        if isinstance(activation, torch.nn.SELU):
+            self.apply(selu_init)
 
     def loss(self, images, reconstructions):
         """
@@ -488,10 +489,10 @@ if __name__ == "__main__":
     lr = 1e-4
     out_channels = [128, 256, 512, 512, 1024, 1024]
 
-    latent_size = [128, 1024]
-    depth = [1, 3]
-    kernel_size = [3, 7]
-    activation = [torch.nn.GELU(), torch.nn.LeakyReLU()]
+    latent_size = [128]
+    depth = [1]
+    kernel_size = [3]
+    activation = [torch.nn.SELU(), torch.nn.LeakyReLU()]
     downsampling = ["stride", "maxpool"]
     upsampling = ["stride", "upsample"]
     dropout = [True, False]
