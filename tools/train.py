@@ -86,6 +86,8 @@ if __name__ == "__main__":
         activation = torch.nn.LeakyReLU()
     if activation == "elu":
         activation = torch.nn.ELU()
+    if activation == "selu":
+        activation = torch.nn.SELU()
     downsampling = args.downsampling
     upsampling = args.upsampling
     dropout = args.dropout

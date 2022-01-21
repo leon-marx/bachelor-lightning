@@ -8,7 +8,7 @@ import numpy as np
 
 
 class Logger(Callback):
-    def __init__(self, output_dir, train_batch, val_batch):
+    def __init__(self, output_dir, train_batch, val_batch, images_on_val=False):
         super().__init__()
         self.output_dir = output_dir
 
@@ -20,6 +20,8 @@ class Logger(Callback):
 
         self.train_loss = []
         self.val_loss = []
+
+        self.images_on_val = images_on_val
     
     def on_save_checkpoint(self, trainer, pl_module, checkpoint):
         os.makedirs(f"{self.output_dir}/version_{trainer.logger.version}/images", exist_ok=True)
@@ -37,10 +39,15 @@ class Logger(Callback):
 
     def on_validation_batch_end(self, trainer, pl_module, outputs, batch, batch_idx, dataloader_idx):
         self.val_loss.append(outputs.item())
+        if self.images_on_val:
+            os.makedirs(f"{self.output_dir}/version_{trainer.logger.version}/images", exist_ok=True)
+            self.log_reconstructions(trainer, pl_module, tensorboard_log=True)
+            self.log_losses(trainer)
+            self.log_grad_flow(trainer)
 
         return super().on_validation_batch_end(trainer, pl_module, outputs, batch, batch_idx, dataloader_idx)
 
-    def log_reconstructions(self, trainer, pl_module):
+    def log_reconstructions(self, trainer, pl_module, tensorboard_log=False):
         with torch.no_grad():
             pl_module.eval()
 
@@ -57,6 +64,10 @@ class Logger(Callback):
             val_recs = pl_module.reconstruct(val_imgs, val_domains, val_contents)
             val_grid = torchvision.utils.make_grid(torch.stack((val_imgs, val_recs), dim=1).view(-1, 3, 224, 224))
             torchvision.utils.save_image(val_grid, f"{self.output_dir}/version_{trainer.logger.version}/images/val_reconstructions.png")
+
+            if tensorboard_log:
+                trainer.logger.experiment.add_image("train_reconstruction", train_grid)
+                trainer.logger.experiment.add_image("val_reconstruction", val_grid)
 
             pl_module.train()
 

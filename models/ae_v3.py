@@ -2,6 +2,22 @@ import torch
 import pytorch_lightning as pl
 
 
+def weights_init(m):
+    """
+    LeCun Normal initialization for selu.
+    """
+    if isinstance(m, torch.nn.Conv2d):
+        torch.nn.init.kaiming_normal_(m.weight, mode="fan_in", nonlinearity="linear")
+        torch.nn.init.zeros_(m.bias)
+    if isinstance(m, torch.nn.Linear):
+        torch.nn.init.kaiming_normal_(m.weight, mode="fan_in", nonlinearity="linear")
+        torch.nn.init.zeros_(m.bias)
+    if isinstance(m, torch.nn.ConvTranspose2d):
+        torch.nn.init.kaiming_normal_(m.weight, mode="fan_in", nonlinearity="linear")
+        torch.nn.init.zeros_(m.bias)
+
+
+
 class AE_v3(pl.LightningModule):
     def __init__(self, num_domains, num_contents, latent_size, lr, depth, out_channels, kernel_size, activation, downsampling, upsampling, dropout, batch_norm):
         super().__init__()
@@ -55,6 +71,7 @@ class AE_v3(pl.LightningModule):
         )
 
         self.lr = lr
+        self.apply(weights_init)
 
     def loss(self, images, reconstructions):
         """
@@ -253,6 +270,9 @@ class Encoder(torch.nn.Module):
 
     def block(self, depth, in_channels, out_channels, kernel_size, activation, downsampling="stride", dropout=False, batch_norm=False):
         seq_list = []
+        if isinstance(activation, torch.nn.SELU):
+            dropout = False
+            batch_norm = False
         for i in range(depth):
             seq = []
             if i == 0: # downsampling in first layer of block
@@ -397,6 +417,9 @@ class Decoder(torch.nn.Module):
 
     def block(self, depth, in_channels, out_channels, kernel_size, activation, upsampling="stride", dropout=False, batch_norm=False):
         seq_list = []
+        if isinstance(activation, torch.nn.SELU):
+            dropout = False
+            batch_norm = False
         for i in range(depth):
             seq = []
             if i == 0: # upsampling in first layer of block

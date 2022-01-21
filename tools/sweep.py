@@ -36,16 +36,16 @@ if __name__ == "__main__":
     args = parser.parse_args()
     #################### EDIT THIS IN ORDER TO CHANGE THE SWEEP
     configs = {
-        "AE_v2": {
-            "latent_size": [128, 512],
-        },
-        "AE": {
-            "latent_size": [128, 512],
-        },
-        "CVAE": {
-            "latent_size": [128, 512],
-            "lamb": [0.01, 100],
-        },
+        # "AE_v2": {
+        #     "latent_size": [128, 512],
+        # },
+        # "AE": {
+        #     "latent_size": [128, 512],
+        # },
+        # "CVAE": {
+        #     "latent_size": [128, 512],
+        #     "lamb": [0.01, 100],
+        # },
         "AE_v3": {
             "out_channels": [
                 "256,256,512,512,1024,1024",
@@ -53,12 +53,12 @@ if __name__ == "__main__":
             ],
             "latent_size": [128, 512],
             "depth": [1, 2, 3],
-            "kernel_size": [3, 5],
-            "activation": ["gelu", "lrelu"],
-            "downsampling": ["stride", "maxpool"],
-            "upsampling": ["stride", "upsample"],
-            "dropout": [True, False],
-            "batch_norm": [True, False],
+            "kernel_size": 3,
+            "activation": ["gelu", "selu", "elu"],
+            "downsampling": "stride",
+            "upsampling": "upsample",
+            "dropout": False,
+            "batch_norm": True,
         },
     }
     ####################
@@ -171,6 +171,8 @@ if __name__ == "__main__":
                     activation = torch.nn.LeakyReLU()
                 if activation == "elu":
                     activation = torch.nn.ELU()
+                if activation == "selu":
+                    activation = torch.nn.SELU()
                 if model_name == "CVAE":
                     model = CVAE(num_domains=num_domains, num_contents=num_contents,
                                 latent_size=latent_size, lamb=lamb, lr=lr)
@@ -204,6 +206,8 @@ if __name__ == "__main__":
                 )
 
                 # Main
+                if model_name == "AE_v3":
+                    trainer.logger.log_hyperparams(model.hyper_param_dict)
                 trainer.fit(model, dm)
                 print(f"Completed step {step}!")
             step += 1
