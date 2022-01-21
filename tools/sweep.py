@@ -63,7 +63,7 @@ if __name__ == "__main__":
         },
     }
     ####################
-    Configuration
+    # Configuration
     pl.seed_everything(17, workers=True)
     torch.backends.cudnn.deterministic = True
     torch.backends.cudnn.benchmark = False
