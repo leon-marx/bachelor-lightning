@@ -32,14 +32,14 @@ if __name__ == "__main__":
     parser.add_argument("--activation", type=str, default="relu")
     parser.add_argument("--downsampling", type=str, default="stride")
     parser.add_argument("--upsampling", type=str, default="stride")
-    parser.add_argument("--dropout", type=bool, default=False)
-    parser.add_argument("--batch_norm", type=bool, default=False)
+    parser.add_argument("--dropout", action="store_true", default=False)
+    parser.add_argument("--batch_norm", action="store_true", default=False)
     parser.add_argument("--loss_mode", type=str, default="l2")
     # Training
     parser.add_argument("--gpus", type=str, default=None)
     parser.add_argument("--output_dir", type=str, default=None)
     parser.add_argument("--max_epochs", type=int, default=1000)
-    parser.add_argument("--enable_checkpointing", type=bool, default=True)
+    parser.add_argument("--enable_checkpointing", action="store_true", default=True)
     parser.add_argument("--log_every_n_steps", type=int, default=50)
     
     args = parser.parse_args()
@@ -93,7 +93,7 @@ if __name__ == "__main__":
     upsampling = args.upsampling
     dropout = args.dropout
     batch_norm = args.batch_norm
-    print(batch_norm)
+    print(dropout, batch_norm)
     loss_mode = args.loss_mode
     if args.ckpt_path != "0":
         if args.model == "CVAE":
