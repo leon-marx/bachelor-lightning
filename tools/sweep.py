@@ -57,7 +57,7 @@ if __name__ == "__main__":
             "latent_size": [128, 512],
             "depth": [1, 2],
             "kernel_size": [3, 5],
-            "activation": ["selu", "elu"],
+            "activation": ["selu", "elu", "relu"],
             "loss_mode": ["l1", "l2"]
         },
     }
