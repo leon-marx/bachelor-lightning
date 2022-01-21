@@ -34,6 +34,8 @@ if __name__ == "__main__":
     parser = ArgumentParser()
     parser.add_argument("--restart", type=bool, default=False)
     parser.add_argument("--gpus", type=str, default="3,")
+    parser.add_argument("--max_epochs", type=int, default=25)
+    parser.add_argument("--iov", type=bool, default=True)
     args = parser.parse_args()
     #################### EDIT THIS IN ORDER TO CHANGE THE SWEEP
     configs = {
@@ -53,13 +55,10 @@ if __name__ == "__main__":
                 "128,128,256,256,512,512",
             ],
             "latent_size": [128, 512],
-            "depth": 1,
-            "kernel_size": 3,
-            "activation": ["gelu", "selu", "elu"],
-            "downsampling": "stride",
-            "upsampling": "upsample",
-            "dropout": False,
-            "batch_norm": True,
+            "depth": [1, 2],
+            "kernel_size": [3, 5],
+            "activation": ["selu", "elu"],
+            "loss_mode": ["l1", "l2"]
         },
     }
     ####################
@@ -107,9 +106,10 @@ if __name__ == "__main__":
             kernel_size = 3
             activation = "relu"
             downsampling = "stride"
-            upsampling = "stride"
+            upsampling = "upsample"
             dropout = False
-            batch_norm = False
+            batch_norm = True
+            loss_mode = "l2"
 
 
             if "latent_size" in conf:
@@ -149,13 +149,16 @@ if __name__ == "__main__":
             if "out_channels" in conf:
                 out_channels = conf["out_channels"]
                 log_dir += f"_{out_channels.replace(',', '-')}"
+            if "loss_mode" in conf:
+                log_dir += f"_{loss_mode}"
+
                 
 
             if args.restart or not os.path.isdir(f"{log_dir}"):
                 # Configuration
                 os.makedirs(log_dir, exist_ok=True)
                 callbacks = [
-                    Logger(log_dir, train_batch, val_batch, images_on_val=True)
+                    Logger(log_dir, train_batch, val_batch, images_on_val=args.iov)
                 ]
                 
                 print("Args:")
@@ -187,7 +190,7 @@ if __name__ == "__main__":
                     model = AE_v3(num_domains=num_domains, num_contents=num_contents, 
                                 latent_size=latent_size, lr=lr, depth=depth, out_channels=out_channels, 
                                 kernel_size=kernel_size, activation=activation, downsampling=downsampling, 
-                                upsampling=upsampling, dropout=dropout, batch_norm=batch_norm)
+                                upsampling=upsampling, dropout=dropout, batch_norm=batch_norm, loss_mode=loss_mode)
 
 
                 # Trainer
@@ -201,7 +204,7 @@ if __name__ == "__main__":
                     callbacks=callbacks,
                     gradient_clip_val=0.5,
                     gradient_clip_algorithm="value",
-                    max_epochs=25,
+                    max_epochs=args.max_epochs,
                     enable_checkpointing=False,
                     log_every_n_steps=1
                 )

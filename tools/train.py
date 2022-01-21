@@ -34,6 +34,7 @@ if __name__ == "__main__":
     parser.add_argument("--upsampling", type=str, default="stride")
     parser.add_argument("--dropout", type=bool, default=False)
     parser.add_argument("--batch_norm", type=bool, default=False)
+    parser.add_argument("--loss_mode", type=str, default="l2")
     # Training
     parser.add_argument("--gpus", type=str, default=None)
     parser.add_argument("--output_dir", type=str, default=None)
@@ -92,6 +93,7 @@ if __name__ == "__main__":
     upsampling = args.upsampling
     dropout = args.dropout
     batch_norm = args.batch_norm
+    loss_mode = args.loss_mode
     if args.ckpt_path != "0":
         if args.model == "CVAE":
             model = CVAE.load_from_checkpoint(args.ckpt_path, num_domains=num_domains, num_contents=num_contents,
@@ -106,7 +108,7 @@ if __name__ == "__main__":
             model = AE_v3.load_from_checkpoint(args.ckpt_path, num_domains=num_domains, num_contents=num_contents, 
                         latent_size=latent_size, lr=lr, depth=depth, out_channels=out_channels, 
                         kernel_size=kernel_size, activation=activation, downsampling=downsampling, 
-                        upsampling=upsampling, dropout=dropout, batch_norm=batch_norm)
+                        upsampling=upsampling, dropout=dropout, batch_norm=batch_norm, loss_mode=loss_mode)
     else:
         if args.model == "CVAE":
             model = CVAE(num_domains=num_domains, num_contents=num_contents,
@@ -121,7 +123,7 @@ if __name__ == "__main__":
             model = AE_v3(num_domains=num_domains, num_contents=num_contents, 
                         latent_size=latent_size, lr=lr, depth=depth, out_channels=out_channels, 
                         kernel_size=kernel_size, activation=activation, downsampling=downsampling, 
-                        upsampling=upsampling, dropout=dropout, batch_norm=batch_norm)
+                        upsampling=upsampling, dropout=dropout, batch_norm=batch_norm, loss_mode=loss_mode)
 
     # Callbacks
     log_dm.setup()

@@ -19,7 +19,7 @@ def selu_init(m):
 
 
 class AE_v3(pl.LightningModule):
-    def __init__(self, num_domains, num_contents, latent_size, lr, depth, out_channels, kernel_size, activation, downsampling, upsampling, dropout, batch_norm):
+    def __init__(self, num_domains, num_contents, latent_size, lr, depth, out_channels, kernel_size, activation, downsampling, upsampling, dropout, batch_norm, loss_mode):
         super().__init__()
 
         self.num_domains = num_domains
@@ -33,6 +33,7 @@ class AE_v3(pl.LightningModule):
         self.upsampling = upsampling
         self.dropout = dropout
         self.batch_norm = batch_norm
+        self.loss_mode = loss_mode
         self.hyper_param_dict = {
             "num_domains": self.num_domains,
             "num_contents": self.num_contents,
@@ -44,7 +45,8 @@ class AE_v3(pl.LightningModule):
             "downsampling": self.downsampling,
             "upsampling": self.upsampling,
             "dropout": self.dropout,
-            "batch_norm": self.batch_norm  ,
+            "batch_norm": self.batch_norm,
+            "loss_mode": self.loss_mode,
         }
 
         self.encoder = Encoder(num_domains=self.num_domains,
@@ -81,9 +83,13 @@ class AE_v3(pl.LightningModule):
         images: Tensor of shape (batch_size, channels, height, width)
         reconstructions: Tensor of shape (batch_size, channels, height, width)s
         """
-        loss = torch.nn.functional.mse_loss(
-            images, reconstructions, reduction="none")
-        return loss.sum(dim=[1, 2, 3]).mean(dim=[0])
+        if self.loss_mode == "l1":
+            loss = torch.abs(images - reconstructions)
+            return loss.sum(dim=[1, 2, 3]).mean(dim=[0])
+        if self.loss_mode == "l2":
+            loss = torch.nn.functional.mse_loss(
+                images, reconstructions, reduction="none")
+            return loss.sum(dim=[1, 2, 3]).mean(dim=[0])
 
     def forward(self, images, domains, contents):
         """
@@ -506,7 +512,7 @@ if __name__ == "__main__":
             low=0, high=num_contents, size=(batch_size,)), num_classes=num_contents),
         (f"pic_{i}" for i in range(batch_size))
     ]
-    counter = 0
+    counter = 30
     for _latent_size in latent_size:
         for _depth in depth:
             for _kernel_size in kernel_size:
@@ -530,7 +536,8 @@ if __name__ == "__main__":
                                             downsampling = _downsampling,
                                             upsampling = _upsampling,
                                             dropout = _dropout,
-                                            batch_norm = _batch_norm
+                                            batch_norm = _batch_norm,
+                                            loss_mode = "l1"
                                         )
                                         # print(model)
                                         train_loss = model.training_step(batch, batch_idx=0)
