@@ -91,14 +91,14 @@ class CVAE_v2(pl.LightningModule):
         """
         if self.loss_mode == "l1":
             loss = torch.abs(images - reconstructions)
-            return loss.sum(dim=[1, 2, 3]).mean(dim=[0])
+            return loss.mean(dim=[0, 1, 2, 3])
         if self.loss_mode == "l2":
             loss = torch.nn.functional.mse_loss(
                 images, reconstructions, reduction="none")
-            return loss.sum(dim=[1, 2, 3]).mean(dim=[0])
+            return loss.mean(dim=[0, 1, 2, 3])
         if self.loss_mode == "elbo":
-            kld = self.lamb * 0.5 * (enc_mu ** 2 + enc_logvar.exp() - enc_logvar - 1).sum(dim=1).mean(dim=0)
-            rec = torch.nn.functional.mse_loss(images, reconstructions, reduction="none").sum(dim=[1, 2, 3]).mean(dim=0)
+            kld = self.lamb * 0.5 * (enc_mu ** 2 + enc_logvar.exp() - enc_logvar - 1).mean(dim=[0, 1])
+            rec = torch.nn.functional.mse_loss(images, reconstructions, reduction="none").mean(dim=[0, 1, 2, 3])
             return kld + rec
 
 

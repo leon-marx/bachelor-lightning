@@ -85,11 +85,11 @@ class AE_v3(pl.LightningModule):
         """
         if self.loss_mode == "l1":
             loss = torch.abs(images - reconstructions)
-            return loss.sum(dim=[1, 2, 3]).mean(dim=[0])
+            return loss.mean(dim=[0, 1, 2, 3])
         if self.loss_mode == "l2":
             loss = torch.nn.functional.mse_loss(
                 images, reconstructions, reduction="none")
-            return loss.sum(dim=[1, 2, 3]).mean(dim=[0])
+            return loss.mean(dim=[0, 1, 2, 3])
 
     def forward(self, images, domains, contents):
         """
