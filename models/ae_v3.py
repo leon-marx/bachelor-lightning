@@ -122,9 +122,9 @@ class AE_v3(pl.LightningModule):
         reconstructions = self(images, domains, contents)
 
         loss = self.loss(images, reconstructions)
-        # self.log("train_loss", loss, batch_size=images.shape[0])
-        # self.log("lr", self.optimizers(
-        # ).param_groups[0]["lr"], prog_bar=True, batch_size=images.shape[0])
+        self.log("train_loss", loss, batch_size=images.shape[0])
+        self.log("lr", self.optimizers(
+        ).param_groups[0]["lr"], prog_bar=True, batch_size=images.shape[0])
         return loss
 
     def validation_step(self, batch, batch_idx):
