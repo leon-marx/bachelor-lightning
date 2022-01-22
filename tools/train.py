@@ -104,7 +104,7 @@ if __name__ == "__main__":
                         latent_size=latent_size, lr=lr, depth=depth, out_channels=out_channels, 
                         kernel_size=kernel_size, activation=activation, downsampling=downsampling, 
                         upsampling=upsampling, dropout=dropout, batch_norm=batch_norm, loss_mode=loss_mode,
-                        lamb=lamb)
+                        lamb=lamb, strict=False)
         if args.model == "AE":
             model = AE.load_from_checkpoint(args.ckpt_path, num_domains=num_domains, num_contents=num_contents,
                         latent_size=latent_size, lr=lr)
@@ -115,7 +115,7 @@ if __name__ == "__main__":
             model = AE_v3.load_from_checkpoint(args.ckpt_path, num_domains=num_domains, num_contents=num_contents, 
                         latent_size=latent_size, lr=lr, depth=depth, out_channels=out_channels, 
                         kernel_size=kernel_size, activation=activation, downsampling=downsampling, 
-                        upsampling=upsampling, dropout=dropout, batch_norm=batch_norm, loss_mode=loss_mode)
+                        upsampling=upsampling, dropout=dropout, batch_norm=batch_norm, loss_mode=loss_mode, strict=False)
     else:
         if args.model == "CVAE":
             model = CVAE(num_domains=num_domains, num_contents=num_contents,
@@ -157,7 +157,7 @@ if __name__ == "__main__":
                                             name=args.output_dir),
         callbacks=callbacks,
         gradient_clip_val=0.5,
-        gradient_clip_algorithm="norm",
+        gradient_clip_algorithm="value",
         max_epochs=args.max_epochs,
         enable_checkpointing=args.enable_checkpointing,
         log_every_n_steps=args.log_every_n_steps
