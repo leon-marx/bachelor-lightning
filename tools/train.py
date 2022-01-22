@@ -96,7 +96,7 @@ if __name__ == "__main__":
     dropout = args.dropout
     batch_norm = args.batch_norm
     loss_mode = args.loss_mode
-    bn_lat_block = args.bn_last_block
+    bn_last_block = args.bn_last_block
     if args.ckpt_path != "0":
         if args.model == "CVAE":
             model = CVAE.load_from_checkpoint(args.ckpt_path, num_domains=num_domains, num_contents=num_contents,
