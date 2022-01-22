@@ -418,7 +418,7 @@ class Decoder(torch.nn.Module):
                 activation=self.activation,
                 upsampling=self.upsampling,
                 dropout=self.dropout,
-                batch_norm=self.batch_norm
+                batch_norm=False
             ),  # (N, 3, 224, 224)
             torch.nn.Sigmoid()
         )
