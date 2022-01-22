@@ -2,10 +2,11 @@ import os
 import subprocess
 
 bashCommand = "tensorboard --logdir_spec "
-for run in os.listdir("logs/sweep"):
-    for log in os.listdir(f"logs/sweep/{run}/version_0"):
-        if "event" in log:
-            bashCommand += f"{run}:logs/sweep/{run}," 
+for run in os.listdir("logs"):
+    if "long_elu" in run:
+        for log in os.listdir(f"logs/{run}/version_0"):
+            if "event" in log:
+                bashCommand += f"{run}:logs/{run}," 
 
 bashCommand = bashCommand[:-1]
 print(bashCommand)
