@@ -432,12 +432,13 @@ class Decoder(torch.nn.Module):
                 activation=self.activation,
                 upsampling=self.upsampling,
                 dropout=self.dropout,
-                batch_norm=False
+                batch_norm=self.batch_norm,
+                last_block=True
             ),  # (N, 3, 224, 224)
             torch.nn.Sigmoid()
         )
 
-    def block(self, depth, in_channels, out_channels, kernel_size, activation, upsampling="stride", dropout=False, batch_norm=False):
+    def block(self, depth, in_channels, out_channels, kernel_size, activation, upsampling="stride", dropout=False, batch_norm=False, last_block=False):
         seq_list = []
         if isinstance(activation, torch.nn.SELU):
             dropout = False
@@ -449,38 +450,46 @@ class Decoder(torch.nn.Module):
                     seq.append(torch.nn.ConvTranspose2d(in_channels=in_channels, out_channels=out_channels, kernel_size=kernel_size,
                                         padding=int((kernel_size-1)/2), output_padding=1, stride=2, bias=not batch_norm))
                     if batch_norm:
-                        seq.append(torch.nn.BatchNorm2d(num_features=out_channels))
+                        if not (i == depth - 1 and last_block):
+                            seq.append(torch.nn.BatchNorm2d(num_features=out_channels))
                     seq.append(activation)
                     if dropout:
-                        seq.append(torch.nn.Dropout2d())
+                        if not (i == depth - 1 and last_block):
+                            seq.append(torch.nn.Dropout2d())
                     seq_list += seq
                 elif upsampling == "upsample":
                     seq.append(torch.nn.Conv2d(in_channels=in_channels, out_channels=out_channels, kernel_size=kernel_size,
                                         padding=int((kernel_size-1)/2), stride=1, bias=not batch_norm))
                     if batch_norm:
-                        seq.append(torch.nn.BatchNorm2d(num_features=out_channels))
+                        if not (i == depth - 1 and last_block):
+                            seq.append(torch.nn.BatchNorm2d(num_features=out_channels))
                     seq.append(activation)
                     seq.append(torch.nn.Upsample(scale_factor=2, mode="nearest"))
                     if dropout:
-                        seq.append(torch.nn.Dropout2d())
+                        if not (i == depth - 1 and last_block):
+                            seq.append(torch.nn.Dropout2d())
                     seq_list += seq
                 elif upsampling == "none":
                     seq.append(torch.nn.Conv2d(in_channels=in_channels, out_channels=out_channels, kernel_size=kernel_size,
                                         padding=int((kernel_size-1)/2), stride=1, bias=not batch_norm))
                     if batch_norm:
-                        seq.append(torch.nn.BatchNorm2d(num_features=out_channels))
+                        if not (i == depth - 1 and last_block):
+                            seq.append(torch.nn.BatchNorm2d(num_features=out_channels))
                     seq.append(activation)
                     if dropout:
-                        seq.append(torch.nn.Dropout2d())
+                        if not (i == depth - 1 and last_block):
+                            seq.append(torch.nn.Dropout2d())
                     seq_list += seq
             else:
                 seq.append(torch.nn.Conv2d(in_channels=out_channels, out_channels=out_channels, kernel_size=kernel_size,
                                     padding=int((kernel_size-1)/2), stride=1, bias=not batch_norm))
                 if batch_norm:
-                    seq.append(torch.nn.BatchNorm2d(num_features=out_channels))
+                    if not (i == depth - 1 and last_block):
+                        seq.append(torch.nn.BatchNorm2d(num_features=out_channels))
                 seq.append(activation)
                 if dropout:
-                    seq.append(torch.nn.Dropout2d())
+                    if not (i == depth - 1 and last_block):
+                        seq.append(torch.nn.Dropout2d())
                 seq_list += seq       
         return seq_list
 
