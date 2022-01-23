@@ -122,7 +122,7 @@ class Logger(Callback):
                     Line2D([0], [0], color="k", lw=4)], ['max-gradient', 'mean-gradient', 'zero-gradient'])
         plt.savefig(f"{self.output_dir}/version_{trainer.logger.version}/images/gradient_flow_zoomed.png")
         if tensorboard_log:
-            trainer.logger.experiment.add_figure("gradient_flow", fig, close=False)
+            trainer.logger.experiment.add_figure("gradient_flow_zoomed", fig, close=False)
         plt.close(fig)
 
     def gather_grad_flow_data(self, pl_module):
