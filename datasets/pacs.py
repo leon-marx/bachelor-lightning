@@ -34,16 +34,16 @@ class PACSDataset(Dataset):
     def get_transform(self, domains, normalize):
         if normalize:
             data_mean_dict = {
-                "art_painting": torch.Tensor([0, 0, 0]),
-                "cartoon": torch.Tensor([0, 0, 0]),
-                "photo": torch.Tensor([0, 0, 0]),
-                "sketch": torch.Tensor([0, 0, 0]),
+                "art_painting": torch.Tensor([0.5117, 0.4888, 0.4654]),
+                "cartoon": torch.Tensor([0.7263, 0.7117, 0.6890]),
+                "photo": torch.Tensor([0.4741, 0.4597, 0.4400]),
+                "sketch": torch.Tensor([0.8723, 0.8723, 0.8723]),
             }
             data_std_dict = {
-                "art_painting": torch.Tensor([0, 0, 0]),
-                "cartoon": torch.Tensor([0, 0, 0]),
-                "photo": torch.Tensor([0, 0, 0]),
-                "sketch": torch.Tensor([0, 0, 0]),
+                "art_painting": torch.Tensor([0.0203, 0.0248, 0.0271]),
+                "cartoon": torch.Tensor([0.0536, 0.0640, 0.0735]),
+                "photo": torch.Tensor([0.0324, 0.0312, 0.0360]),
+                "sketch": torch.Tensor([0.0321, 0.0321, 0.0321]),
             }
             mean = torch.zeros(size=(3,))
             std = torch.zeros(size=(3,))
