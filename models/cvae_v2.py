@@ -19,7 +19,7 @@ def selu_init(m):
 
 
 class CVAE_v2(pl.LightningModule):
-    def __init__(self, num_domains, num_contents, latent_size, lr, depth, out_channels, kernel_size, activation, downsampling, upsampling, dropout, batch_norm, loss_mode, lamb, bn_last_block=True):
+    def __init__(self, num_domains, num_contents, latent_size, lr, depth, out_channels, kernel_size, activation, downsampling, upsampling, dropout, batch_norm, loss_mode, lamb, no_bn_last=True):
         super().__init__()
 
         self.num_domains = num_domains
@@ -35,7 +35,7 @@ class CVAE_v2(pl.LightningModule):
         self.batch_norm = batch_norm
         self.loss_mode = loss_mode
         self.lamb = lamb
-        self.bn_last_block = bn_last_block
+        self.no_bn_last = no_bn_last
         self.hyper_param_dict = {
             "num_domains": self.num_domains,
             "num_contents": self.num_contents,
@@ -72,7 +72,7 @@ class CVAE_v2(pl.LightningModule):
                                upsampling=self.upsampling,
                                dropout=self.dropout,
                                batch_norm=self.batch_norm,
-                               bn_last_block=self.bn_last_block
+                               no_bn_last=self.no_bn_last
         )
 
         self.lr = lr
@@ -361,7 +361,7 @@ class Encoder(torch.nn.Module):
 
 
 class Decoder(torch.nn.Module):
-    def __init__(self, num_domains, num_contents, latent_size, depth, out_channels, kernel_size, activation, upsampling, dropout, batch_norm, bn_last_block):
+    def __init__(self, num_domains, num_contents, latent_size, depth, out_channels, kernel_size, activation, upsampling, dropout, batch_norm, no_bn_last):
         super().__init__()
         self.num_domains = num_domains
         self.num_contents = num_contents
@@ -373,7 +373,7 @@ class Decoder(torch.nn.Module):
         self.upsampling = upsampling
         self.dropout = dropout
         self.batch_norm = batch_norm
-        self.bn_last_block = bn_last_block
+        self.no_bn_last = no_bn_last
         self.linear = torch.nn.Linear(
             self.latent_size + self.num_domains + self.num_contents, 49 * self.out_channels[0])
         self.dec_conv_sequential = torch.nn.Sequential(
@@ -436,7 +436,7 @@ class Decoder(torch.nn.Module):
                 upsampling=self.upsampling,
                 dropout=self.dropout,
                 batch_norm=self.batch_norm,
-                last_block=self.bn_last_block
+                last_block=self.no_bn_last
             ),  # (N, 3, 224, 224)
             torch.nn.Sigmoid()
         )
