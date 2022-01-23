@@ -154,7 +154,7 @@ if __name__ == "__main__":
     trainer = pl.Trainer(
         gpus=args.gpus,
         strategy="dp",
-        # precision=16,
+        precision=16,
         default_root_dir=args.output_dir,
         logger=pl.loggers.TensorBoardLogger(save_dir=os.getcwd(),
                                             name=args.output_dir),
