@@ -146,15 +146,15 @@ if __name__ == "__main__":
     val_batch = next(iter(log_dm.val_dataloader()))
     callbacks = [
         Logger(args.output_dir, train_batch, val_batch, images_on_val=True),
-        pl.callbacks.ModelCheckpoint(monitor="val_loss")
-        # pl.callbacks.stochastic_weight_avg.StochasticWeightAveraging(swa_epoch_start=5)
+        pl.callbacks.ModelCheckpoint(monitor="val_loss"),
+        pl.callbacks.stochastic_weight_avg.StochasticWeightAveraging(swa_epoch_start=5)
     ]
 
     # Trainer
     trainer = pl.Trainer(
         gpus=args.gpus,
         strategy="dp",
-        precision=16,
+        # precision=16,
         default_root_dir=args.output_dir,
         logger=pl.loggers.TensorBoardLogger(save_dir=os.getcwd(),
                                             name=args.output_dir),

@@ -5,6 +5,7 @@ import torchvision
 import matplotlib.pyplot as plt
 from matplotlib.lines import Line2D
 import numpy as np
+import io
 
 
 class Logger(Callback):
@@ -28,7 +29,7 @@ class Logger(Callback):
         os.makedirs(f"{self.output_dir}/version_{trainer.logger.version}/images", exist_ok=True)
         self.log_reconstructions(trainer, pl_module, tensorboard_log=True)
         self.log_losses(trainer)
-        self.log_grad_flow(trainer)
+        self.log_grad_flow(trainer, tensorboard_log=True)
 
         return super().on_save_checkpoint(trainer, pl_module, checkpoint)
 
@@ -48,7 +49,7 @@ class Logger(Callback):
             os.makedirs(f"{self.output_dir}/version_{trainer.logger.version}/images", exist_ok=True)
             self.log_reconstructions(trainer, pl_module, tensorboard_log=True)
             self.log_losses(trainer)
-            self.log_grad_flow(trainer)
+            self.log_grad_flow(trainer, tensorboard_log=True)
 
         return super().on_validation_batch_end(trainer, pl_module, outputs, batch, batch_idx, dataloader_idx)
 
@@ -76,7 +77,7 @@ class Logger(Callback):
 
             pl_module.train()
 
-    def log_grad_flow(self, trainer):
+    def log_grad_flow(self, trainer, tensorboard_log=False):
         """
         Plots the gradients flowing through different layers in the net during training.
         Can be used for checking for possible gradient vanishing / exploding problems.
@@ -84,7 +85,7 @@ class Logger(Callback):
         Usage: Plug this function in Trainer class after loss.backwards() as 
         "plot_grad_flow(self.model.named_parameters())" to visualize the gradient flow
         """
-        plt.figure(figsize=(24, 16))
+        fig = plt.figure(figsize=(24, 16))
         for mg in self.max_grad_list:
             plt.bar(np.arange(len(mg)), mg, alpha=0.1, lw=1, color="c")
         for ag in self.ave_grad_list:
@@ -100,8 +101,10 @@ class Logger(Callback):
                     Line2D([0], [0], color="b", lw=4),
                     Line2D([0], [0], color="k", lw=4)], ['max-gradient', 'mean-gradient', 'zero-gradient'])
         plt.savefig(f"{self.output_dir}/version_{trainer.logger.version}/images/gradient_flow.png")
-        plt.close()
-        plt.figure(figsize=(24, 16))
+        if tensorboard_log:
+            trainer.logger.experiment.add_figure("gradient_flow", fig, close=False)
+        plt.close(fig)
+        fig = plt.figure(figsize=(24, 16))
         for mg in self.max_grad_list:
             plt.bar(np.arange(len(mg)), mg, alpha=0.1, lw=1, color="c")
         for ag in self.ave_grad_list:
@@ -118,7 +121,9 @@ class Logger(Callback):
                     Line2D([0], [0], color="b", lw=4),
                     Line2D([0], [0], color="k", lw=4)], ['max-gradient', 'mean-gradient', 'zero-gradient'])
         plt.savefig(f"{self.output_dir}/version_{trainer.logger.version}/images/gradient_flow_zoomed.png")
-        plt.close()
+        if tensorboard_log:
+            trainer.logger.experiment.add_figure("gradient_flow", fig, close=False)
+        plt.close(fig)
 
     def gather_grad_flow_data(self, pl_module):
         layers = []
