@@ -49,6 +49,8 @@ class CVAE_v2(pl.LightningModule):
             "dropout": self.dropout,
             "batch_norm": self.batch_norm,
             "loss_mode": self.loss_mode,
+            "lamb": self.lamb,
+            "no_bn_last": self.no_bn_last,
         }
 
         self.encoder = Encoder(num_domains=self.num_domains,
