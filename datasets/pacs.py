@@ -6,17 +6,19 @@ from torch.utils.data import Dataset, DataLoader
 from torchvision import transforms
 
 class PACSDataset(Dataset):
-    def __init__(self, root, mode, domains, contents):
+    def __init__(self, root, mode, domains, contents, normalize):
         """
         root: str, root folder where PACS is located
         mode: str, choose one: "train", "val" or "test"
         domains: list of str ["art_painting", "cartoon", "photo", "sketch"]
         contents: list of str ["dog", "elephant", "giraffe", "guitar", "horse", "house", "person"]
+        normalize: bool, if True, data is normalized to fit a normal gaussian (determined by train set only)
         """
         super().__init__()
         self.mode = mode
         self.domains = domains
         self.contents = contents
+        self.normalize = normalize
         self.domain_dict = {domain: torch.LongTensor([i]) for i, domain in enumerate(self.domains)}
         self.content_dict = {content: torch.LongTensor([i]) for i, content in enumerate(self.contents)}
         self.data_dir = f"{root}/PACS_{mode}"
@@ -27,13 +29,45 @@ class PACSDataset(Dataset):
                     if content in self.contents:
                         for file in os.listdir(f"{self.data_dir}/{domain}/{content}"):
                             self.data.append(f"{domain}/{content}/{file}")
-        self.transform = transforms.Compose([
-            transforms.RandomResizedCrop(224, scale=(0.7, 1.0)),
-            transforms.RandomHorizontalFlip(),
-            transforms.ColorJitter(0.3, 0.3, 0.3, 0.3),
-            transforms.RandomGrayscale(),
-            transforms.ToTensor(),
-        ])
+        self.transform = self.get_transform(self.domains, self.normalize)
+
+    def get_transform(self, domains, normalize):
+        if normalize:
+            data_mean_dict = {
+                "art_painting": torch.Tensor([0, 0, 0]),
+                "cartoon": torch.Tensor([0, 0, 0]),
+                "photo": torch.Tensor([0, 0, 0]),
+                "sketch": torch.Tensor([0, 0, 0]),
+            }
+            data_std_dict = {
+                "art_painting": torch.Tensor([0, 0, 0]),
+                "cartoon": torch.Tensor([0, 0, 0]),
+                "photo": torch.Tensor([0, 0, 0]),
+                "sketch": torch.Tensor([0, 0, 0]),
+            }
+            mean = torch.zeros(size=3)
+            std = torch.zeros(size=3)
+            for domain in self.domains:
+                mean += data_mean_dict[domain] / len(self.domains)
+                std += data_std_dict[domain] / len(self.domains)
+            transform = transforms.Compose([
+                transforms.RandomResizedCrop(224, scale=(0.7, 1.0)),
+                transforms.RandomHorizontalFlip(),
+                transforms.ColorJitter(0.3, 0.3, 0.3, 0.3),
+                transforms.RandomGrayscale(),
+                transforms.ToTensor(),
+                transforms.Normalize(
+                    mean=mean, std=std),
+            ])
+        else:
+            transform = transforms.Compose([
+                transforms.RandomResizedCrop(224, scale=(0.7, 1.0)),
+                transforms.RandomHorizontalFlip(),
+                transforms.ColorJitter(0.3, 0.3, 0.3, 0.3),
+                transforms.RandomGrayscale(),
+                transforms.ToTensor(),
+            ])
+        return transform
 
     def __len__(self):
         return len(self.data)
@@ -50,7 +84,7 @@ class PACSDataset(Dataset):
 
         
 class PACSDataModule(pl.LightningDataModule):
-    def __init__(self, root, domains, contents, batch_size, num_workers, shuffle_all=False):
+    def __init__(self, root, domains, contents, batch_size, num_workers, shuffle_all=False, normalize=True):
         """
         root: str, root folder where PACS is located
         domains: list of str ["art_painting", "cartoon", "photo", "sketch"]
@@ -58,6 +92,7 @@ class PACSDataModule(pl.LightningDataModule):
         batch_size: int, batch_size to use for the dataloaders
         num_workers: int, how many workers to use for the dataloader
         shuffle_all: bool, if True val and test dataloaders are shuffled as well
+        normalize: bool, if True, data is normalized to fit a normal gaussian (determined by train set only)
         """
         super().__init__()
         self.root = root
@@ -66,16 +101,17 @@ class PACSDataModule(pl.LightningDataModule):
         self.batch_size = batch_size
         self.num_workers = num_workers
         self.shuffle_all = shuffle_all
+        self.normalize = normalize
 
     def prepare_data(self):
         pass
 
     def setup(self, stage=None):
         if stage in (None, "fit"):
-            self.pacs_train = PACSDataset(root=self.root, mode="train", domains=self.domains, contents=self.contents)
-            self.pacs_val = PACSDataset(root=self.root, mode="val", domains=self.domains, contents=self.contents)
+            self.pacs_train = PACSDataset(root=self.root, mode="train", domains=self.domains, contents=self.contents, normalize=self.normalize)
+            self.pacs_val = PACSDataset(root=self.root, mode="val", domains=self.domains, contents=self.contents, normalize=self.normalize)
         if stage in (None, "test"):
-            self.pacs_test = PACSDataset(root=self.root, mode="test", domains=self.domains, contents=self.contents)
+            self.pacs_test = PACSDataset(root=self.root, mode="test", domains=self.domains, contents=self.contents, normalize=self.normalize)
 
     def train_dataloader(self):
         return DataLoader(self.pacs_train, batch_size=self.batch_size, shuffle=self.shuffle_all, num_workers=self.num_workers)

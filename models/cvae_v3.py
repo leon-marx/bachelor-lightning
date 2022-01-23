@@ -185,20 +185,7 @@ class CVAE_v2(pl.LightningModule):
 
     def configure_optimizers(self):
         optimizer = torch.optim.Adam(self.parameters(), lr=self.lr)
-        # scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer,
-        #                                                        factor=0.1 ** 0.5,
-        #                                                        patience=4,
-        #                                                        verbose=True,
-        #                                                        eps=1e-16
-        #                                                        )
-        # scheduler_dict = {
-        #     "scheduler": scheduler,
-        #     "monitor": "val_loss",
-        #     "frequency": 1
-        #     # If "monitor" references validation metrics, then "frequency" should be set to a
-        #     # multiple of "trainer.check_val_every_n_epoch".
-        # }
-        return optimizer # {"optimizer": optimizer, "lr_scheduler": scheduler_dict}
+        return optimizer
 
     def reconstruct(self, images, domains, contents):
         """
@@ -440,7 +427,7 @@ class Decoder(torch.nn.Module):
                 batch_norm=self.batch_norm,
                 last_block=self.no_bn_last
             ),  # (N, 3, 224, 224)
-            torch.nn.Sigmoid()
+            torch.nn.Tanh()
         )
 
     def block(self, depth, in_channels, out_channels, kernel_size, activation, upsampling="stride", dropout=False, batch_norm=False, last_block=False):
