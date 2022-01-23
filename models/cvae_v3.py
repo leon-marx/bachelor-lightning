@@ -18,7 +18,7 @@ def selu_init(m):
 
 
 
-class CVAE_v2(pl.LightningModule):
+class CVAE_v3(pl.LightningModule):
     def __init__(self, num_domains, num_contents, latent_size, lr, depth, out_channels, kernel_size, activation, downsampling, upsampling, dropout, batch_norm, loss_mode, lamb, no_bn_last=True):
         super().__init__()
 
@@ -530,7 +530,7 @@ if __name__ == "__main__":
             low=0, high=num_contents, size=(batch_size,)), num_classes=num_contents),
         (f"pic_{i}" for i in range(batch_size))
     ]
-    model = CVAE_v2(num_domains=num_domains, num_contents=num_contents,
+    model = CVAE_v3(num_domains=num_domains, num_contents=num_contents,
         latent_size=latent_size, lr=lr, depth=depth, 
         out_channels=out_channels, kernel_size=kernel_size, activation=activation,
         downsampling=downsampling, upsampling=upsampling, dropout=dropout,

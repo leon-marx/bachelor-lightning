@@ -8,6 +8,7 @@ import torch
 from datasets.pacs import PACSDataModule
 from models.cvae import CVAE
 from models.cvae_v2 import CVAE_v2
+from models.cvae_v3 import CVAE_v3
 from models.ae import AE
 from models.ae_v2 import AE_v2
 from models.ae_v3 import AE_v3
@@ -107,6 +108,12 @@ if __name__ == "__main__":
                         kernel_size=kernel_size, activation=activation, downsampling=downsampling, 
                         upsampling=upsampling, dropout=dropout, batch_norm=batch_norm, loss_mode=loss_mode,
                         lamb=lamb, no_bn_last=no_bn_last, strict=not no_bn_last)
+        if args.model == "CVAE_v3":
+            model = CVAE_v3.load_from_checkpoint(args.ckpt_path, num_domains=num_domains, num_contents=num_contents, 
+                        latent_size=latent_size, lr=lr, depth=depth, out_channels=out_channels, 
+                        kernel_size=kernel_size, activation=activation, downsampling=downsampling, 
+                        upsampling=upsampling, dropout=dropout, batch_norm=batch_norm, loss_mode=loss_mode,
+                        lamb=lamb, no_bn_last=no_bn_last, strict=not no_bn_last)
         if args.model == "AE":
             model = AE.load_from_checkpoint(args.ckpt_path, num_domains=num_domains, num_contents=num_contents,
                         latent_size=latent_size, lr=lr)
@@ -124,6 +131,12 @@ if __name__ == "__main__":
                         latent_size=latent_size, lamb=lamb, lr=lr)
         if args.model == "CVAE_v2":
             model = CVAE_v2(num_domains=num_domains, num_contents=num_contents, 
+                        latent_size=latent_size, lr=lr, depth=depth, out_channels=out_channels, 
+                        kernel_size=kernel_size, activation=activation, downsampling=downsampling, 
+                        upsampling=upsampling, dropout=dropout, batch_norm=batch_norm, loss_mode=loss_mode,
+                        lamb=lamb, no_bn_last=no_bn_last)
+        if args.model == "CVAE_v3":
+            model = CVAE_v3(num_domains=num_domains, num_contents=num_contents, 
                         latent_size=latent_size, lr=lr, depth=depth, out_channels=out_channels, 
                         kernel_size=kernel_size, activation=activation, downsampling=downsampling, 
                         upsampling=upsampling, dropout=dropout, batch_norm=batch_norm, loss_mode=loss_mode,
@@ -167,7 +180,7 @@ if __name__ == "__main__":
     )
 
     # Main
-    if args.model in ["AE_v3", "CVAE_v2"]:
+    if args.model in ["AE_v3", "CVAE_v2", "CVAE_v3"]:
         trainer.logger.log_hyperparams(model.hyper_param_dict)
         print(model)
     trainer.fit(model, dm)
