@@ -45,8 +45,8 @@ class PACSDataset(Dataset):
                 "photo": torch.Tensor([0, 0, 0]),
                 "sketch": torch.Tensor([0, 0, 0]),
             }
-            mean = torch.zeros(size=3)
-            std = torch.zeros(size=3)
+            mean = torch.zeros(size=(3,))
+            std = torch.zeros(size=(3,))
             for domain in self.domains:
                 mean += data_mean_dict[domain] / len(self.domains)
                 std += data_std_dict[domain] / len(self.domains)

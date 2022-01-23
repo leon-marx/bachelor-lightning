@@ -19,7 +19,8 @@ if __name__ == "__main__":
                     domains= [domain],
                     contents=["dog", "elephant", "giraffe", "guitar", "horse", "house", "person"],
                     batch_size=batch_size,
-                    num_workers=4)
+                    num_workers=20,
+                    normalize=False)
                 dm.setup()
                 total = torch.zeros(size=(3, 224, 224))
                 counter = 0.0
