@@ -29,21 +29,21 @@ class PACSDataset(Dataset):
                     if content in self.contents:
                         for file in os.listdir(f"{self.data_dir}/{domain}/{content}"):
                             self.data.append(f"{domain}/{content}/{file}")
-        self.transform = self.get_transform(self.domains, self.normalize)
+        self.transform = self.get_transform()
 
-    def get_transform(self, domains, normalize):
-        if normalize:
+    def get_transform(self):
+        if self.normalize:
             data_mean_dict = {
-                "art_painting": torch.Tensor([0.5117, 0.4888, 0.4654]),
-                "cartoon": torch.Tensor([0.7263, 0.7117, 0.6890]),
-                "photo": torch.Tensor([0.4741, 0.4597, 0.4400]),
-                "sketch": torch.Tensor([0.8723, 0.8723, 0.8723]),
+                "art_painting": torch.Tensor([0.5146, 0.4912, 0.4681]),
+                "cartoon": torch.Tensor([0.7261, 0.7121, 0.6892]),
+                "photo": torch.Tensor([0.4806, 0.4665, 0.4461]),
+                "sketch": torch.Tensor([0.8757, 0.8757, 0.8757]),
             }
             data_std_dict = {
-                "art_painting": torch.Tensor([0.0203, 0.0248, 0.0271]),
-                "cartoon": torch.Tensor([0.0536, 0.0640, 0.0735]),
-                "photo": torch.Tensor([0.0324, 0.0312, 0.0360]),
-                "sketch": torch.Tensor([0.0321, 0.0321, 0.0321]),
+                "art_painting": torch.Tensor([0.4929, 0.4809, 0.4643]),
+                "cartoon": torch.Tensor([0.6343, 0.6309, 0.6218]),
+                "photo": torch.Tensor([0.4709, 0.4617, 0.4504]),
+                "sketch": torch.Tensor([0.7123, 0.7123, 0.7123]),
             }
             mean = torch.zeros(size=(3,))
             std = torch.zeros(size=(3,))
@@ -114,7 +114,7 @@ class PACSDataModule(pl.LightningDataModule):
             self.pacs_test = PACSDataset(root=self.root, mode="test", domains=self.domains, contents=self.contents, normalize=self.normalize)
 
     def train_dataloader(self):
-        return DataLoader(self.pacs_train, batch_size=self.batch_size, shuffle=self.shuffle_all, num_workers=self.num_workers)
+        return DataLoader(self.pacs_train, batch_size=self.batch_size, shuffle=True, num_workers=self.num_workers)
     
     def val_dataloader(self):
         return DataLoader(self.pacs_val, batch_size=self.batch_size, shuffle=self.shuffle_all, num_workers=self.num_workers)
@@ -124,23 +124,26 @@ class PACSDataModule(pl.LightningDataModule):
     
 
 if __name__ == "__main__":
-    domains = ["art_painting", "cartoon", "photo", "sketch"]
+    domains = ["art_painting", "cartoon", "photo"]
     contents =  ["dog", "elephant", "giraffe", "guitar", "horse", "house", "person"]
     batch_size = 4
-    num_workers = 4
+    num_workers = 0
     root = "data"
     dm = PACSDataModule(root=root, domains=domains, contents=contents, batch_size=batch_size, num_workers=num_workers, normalize=True)
     dm.setup()
-    counter = 0
-    data = torch.zeros(size=(3, 224, 224))
+    import numpy as np
+    import matplotlib.pyplot as plt
+    def gauss(x):
+        return 1 / np.sqrt(2 * np.pi) * np.exp(-x ** 2 / 2)
+    xx = np.linspace(-4, 4, 100)
     for (img, domain, content, fname) in dm.train_dataloader():
         # print(img)
         # print(domain)
         # print(content)
         # print(fname)
-        data += img.sum(dim=0)
-        counter += batch_size
-        if counter >= 10:
-            break
-    data /= counter
-    torch.save(data, "debugging/data.pt")
+        # plt.hist(img.flatten().numpy(), density=True)
+        # plt.plot(xx, gauss(xx))
+        # plt.show()
+        # plt.close()
+        print(img.min(), img.max())
+    # torch.save(data, "debugging/data.pt")

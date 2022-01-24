@@ -13,7 +13,7 @@ if __name__ == "__main__":
     # domains = ["art_painting", "cartoon", "photo", "sketch"]
     gather_data = True
     batch_size = 1
-    N = 50
+    N = 500
 
     if gather_data:
         dm = PACSDataModule(
