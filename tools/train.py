@@ -8,6 +8,7 @@ from datasets.pacs import PACSDataModule
 from models.cvae import CVAE
 from models.cvae_v2 import CVAE_v2
 from models.cvae_v3 import CVAE_v3
+from models.cvae_v4 import CVAE_v4
 from models.ae import AE
 from models.ae_v2 import AE_v2
 from models.ae_v3 import AE_v3
@@ -37,6 +38,7 @@ if __name__ == "__main__":
     parser.add_argument("--batch_norm", action="store_true", default=False)
     parser.add_argument("--no_bn_last", action="store_true", default=False)
     parser.add_argument("--loss_mode", type=str, default="l2")
+    parser.add_argument("--level", type=int, default=None)
     # Training
     parser.add_argument("--gpus", type=str, default=None)
     parser.add_argument("--output_dir", type=str, default=None)
@@ -97,6 +99,11 @@ if __name__ == "__main__":
     batch_norm = args.batch_norm
     loss_mode = args.loss_mode
     no_bn_last = args.no_bn_last
+    level = args.level
+    if level is not None:
+        epochs_to_lvl = 50
+    else:
+        epochs_to_lvl = 10000
     if args.ckpt_path != "0":
         if args.model == "CVAE":
             model = CVAE.load_from_checkpoint(args.ckpt_path, num_domains=num_domains, num_contents=num_contents,
@@ -113,6 +120,12 @@ if __name__ == "__main__":
                         kernel_size=kernel_size, activation=activation, downsampling=downsampling, 
                         upsampling=upsampling, dropout=dropout, batch_norm=batch_norm, loss_mode=loss_mode,
                         lamb=lamb, no_bn_last=no_bn_last, strict=not no_bn_last)
+        if args.model == "CVAE_v4":
+            model = CVAE_v4.load_from_checkpoint(args.ckpt_path, num_domains=num_domains, num_contents=num_contents, 
+                        latent_size=latent_size, lr=lr, depth=depth, out_channels=out_channels, 
+                        kernel_size=kernel_size, activation=activation, downsampling=downsampling, 
+                        upsampling=upsampling, dropout=dropout, batch_norm=batch_norm, loss_mode=loss_mode,
+                        lamb=lamb, level=level, no_bn_last=no_bn_last, strict=not no_bn_last)
         if args.model == "AE":
             model = AE.load_from_checkpoint(args.ckpt_path, num_domains=num_domains, num_contents=num_contents,
                         latent_size=latent_size, lr=lr)
@@ -140,6 +153,12 @@ if __name__ == "__main__":
                         kernel_size=kernel_size, activation=activation, downsampling=downsampling, 
                         upsampling=upsampling, dropout=dropout, batch_norm=batch_norm, loss_mode=loss_mode,
                         lamb=lamb, no_bn_last=no_bn_last)
+        if args.model == "CVAE_v4":
+            model = CVAE_v4(num_domains=num_domains, num_contents=num_contents, 
+                        latent_size=latent_size, lr=lr, depth=depth, out_channels=out_channels, 
+                        kernel_size=kernel_size, activation=activation, downsampling=downsampling, 
+                        upsampling=upsampling, dropout=dropout, batch_norm=batch_norm, loss_mode=loss_mode,
+                        lamb=lamb, level=level, no_bn_last=no_bn_last, strict=not no_bn_last)
         if args.model == "AE":
             model = AE(num_domains=num_domains, num_contents=num_contents,
                         latent_size=latent_size, lr=lr)
@@ -173,13 +192,19 @@ if __name__ == "__main__":
         callbacks=callbacks,
         gradient_clip_val=1.0,
         gradient_clip_algorithm="norm",
-        max_epochs=args.max_epochs,
+        max_epochs=min(args.max_epochs, epochs_to_lvl),
         enable_checkpointing=args.enable_checkpointing,
         log_every_n_steps=args.log_every_n_steps
     )
 
     # Main
-    if args.model in ["AE_v3", "CVAE_v2", "CVAE_v3"]:
+    if args.model in ["AE_v3", "CVAE_v2", "CVAE_v3", "CVAE_v4"]:
         trainer.logger.log_hyperparams(model.hyper_param_dict)
         print(model)
     trainer.fit(model, dm)
+    if level is not None:
+        while level < 8:
+            level += 1
+            model.set_level(level)
+            print(f"Starting training on level: {level}")
+            trainer.fit(model, dm)
