@@ -412,7 +412,7 @@ class Encoder(torch.nn.Module):
             enc_logvar = self.get_logvar(torch.cat((x, domain_panels, content_panels), dim=1))
         else:
             enc_mu = x
-            enc_logvar = torch.zeros_like(x)
+            enc_logvar = torch.ones_like(x) * (- 1000)
 
         return enc_mu, enc_logvar
 
