@@ -134,3 +134,4 @@ if __name__ == "__main__":
         print(domain)
         print(content)
         print(fname)
+        print(img.max(), img.min())
