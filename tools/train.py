@@ -1,6 +1,5 @@
 from argparse import ArgumentParser
 import os
-from tkinter import Image
 import pytorch_lightning as pl
 import torch
 

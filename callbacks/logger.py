@@ -1,12 +1,10 @@
 import os
-from cv2 import mean
 from pytorch_lightning.callbacks import Callback
 import torch
 import torchvision
 import matplotlib.pyplot as plt
 from matplotlib.lines import Line2D
 import numpy as np
-import io
 
 
 class Logger(Callback):
