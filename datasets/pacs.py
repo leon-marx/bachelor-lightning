@@ -126,8 +126,10 @@ class PACSDataModule(pl.LightningDataModule):
 if __name__ == "__main__":
     domains = ["art_painting", "cartoon", "photo", "sketch"]
     contents =  ["dog", "elephant", "giraffe", "guitar", "horse", "house", "person"]
-    batch_size = 4
-    dm = PACSDataModule(domains=domains, contents=contents, batch_size=batch_size)
+    batch_size = 32
+    num_workers = 20
+    root = "data"
+    dm = PACSDataModule(root=root, domains=domains, contents=contents, batch_size=batch_size, num_workers=num_workers)
     dm.setup()
     for (img, domain, content, fname) in dm.train_dataloader():
         print(img)
