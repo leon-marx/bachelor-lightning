@@ -63,7 +63,7 @@ class Logger(Callback):
             train_domains = self.train_batch[1][:max(8, len(self.train_batch[0]))].to(pl_module.device)
             train_contents = self.train_batch[2][:max(8, len(self.train_batch[0]))].to(pl_module.device)
             train_recs = pl_module.reconstruct(train_imgs, train_domains, train_contents)
-            train_recs = torchvision.transforms.functional(train_recs, mean=(- self.mean / self.std), std=(1 / self.std))
+            train_recs = torchvision.transforms.functional.normalize(train_recs, mean=(- self.mean / self.std), std=(1 / self.std))
             train_grid = torchvision.utils.make_grid(torch.stack((train_imgs, train_recs), dim=1).view(-1, 3, 224, 224))
             torchvision.utils.save_image(train_grid, f"{self.output_dir}/version_{trainer.logger.version}/images/train_reconstructions.png")
 
@@ -71,7 +71,7 @@ class Logger(Callback):
             val_domains = self.val_batch[1][:max(8, len(self.val_batch[0]))].to(pl_module.device)
             val_contents = self.val_batch[2][:max(8, len(self.val_batch[0]))].to(pl_module.device)
             val_recs = pl_module.reconstruct(val_imgs, val_domains, val_contents)
-            val_recs = torchvision.transforms.functional(val_recs, mean=(- self.mean / self.std), std=(1 / self.std))
+            val_recs = torchvision.transforms.functional.normalize(val_recs, mean=(- self.mean / self.std), std=(1 / self.std))
             val_grid = torchvision.utils.make_grid(torch.stack((val_imgs, val_recs), dim=1).view(-1, 3, 224, 224))
             torchvision.utils.save_image(val_grid, f"{self.output_dir}/version_{trainer.logger.version}/images/val_reconstructions.png")
 
