@@ -39,6 +39,7 @@ if __name__ == "__main__":
     parser.add_argument("--no_bn_last", action="store_true", default=False)
     parser.add_argument("--loss_mode", type=str, default="l2")
     parser.add_argument("--level", type=int, default=None)
+    parser.add_argument("--end_level", type=int, default=8)
     # Training
     parser.add_argument("--gpus", type=str, default=None)
     parser.add_argument("--output_dir", type=str, default=None)
@@ -100,10 +101,7 @@ if __name__ == "__main__":
     loss_mode = args.loss_mode
     no_bn_last = args.no_bn_last
     level = args.level
-    if level is not None:
-        epochs_to_lvl = 50
-    else:
-        epochs_to_lvl = 10000
+    end_level = args.end_level
     if args.ckpt_path != "0":
         if args.model == "CVAE":
             model = CVAE.load_from_checkpoint(args.ckpt_path, num_domains=num_domains, num_contents=num_contents,
@@ -181,24 +179,53 @@ if __name__ == "__main__":
         pl.callbacks.stochastic_weight_avg.StochasticWeightAveraging(swa_epoch_start=5)
     ]
 
-    # Trainer
-    trainer = pl.Trainer(
-        gpus=args.gpus,
-        strategy="dp",
-        precision=16,
-        default_root_dir=args.output_dir,
-        logger=pl.loggers.TensorBoardLogger(save_dir=os.getcwd(),
-                                            name=args.output_dir),
-        callbacks=callbacks,
-        gradient_clip_val=1.0,
-        gradient_clip_algorithm="norm",
-        max_epochs=min(args.max_epochs, epochs_to_lvl),
-        enable_checkpointing=args.enable_checkpointing,
-        log_every_n_steps=args.log_every_n_steps
-    )
-
     # Main
-    if args.model in ["AE_v3", "CVAE_v2", "CVAE_v3", "CVAE_v4"]:
-        trainer.logger.log_hyperparams(model.hyper_param_dict)
-        print(model)
-    trainer.fit(model, dm)
+    if level is None:
+        # Trainer
+        trainer = pl.Trainer(
+            gpus=args.gpus,
+            strategy="dp",
+            precision=16,
+            default_root_dir=args.output_dir,
+            logger=pl.loggers.TensorBoardLogger(save_dir=os.getcwd(),
+                                                name=args.output_dir),
+            callbacks=callbacks,
+            gradient_clip_val=1.0,
+            gradient_clip_algorithm="norm",
+            max_epochs=args.max_epochs,
+            enable_checkpointing=args.enable_checkpointing,
+            log_every_n_steps=args.log_every_n_steps
+        )
+        if args.model in ["AE_v3", "CVAE_v2", "CVAE_v3", "CVAE_v4"]:
+            trainer.logger.log_hyperparams(model.hyper_param_dict)
+            print(model)
+        trainer.fit(model, dm)
+
+    else:
+        if args.model in ["AE_v3", "CVAE_v2", "CVAE_v3", "CVAE_v4"]:
+            print(model)
+    for lvl in range(level, end_level+1, 1):
+        try:
+            print(f"Starting training on level {lvl}!")
+            # Trainer
+            trainer = pl.Trainer(
+                gpus=args.gpus,
+                strategy="dp",
+                precision=16,
+                default_root_dir=args.output_dir,
+                logger=pl.loggers.TensorBoardLogger(save_dir=os.getcwd(),
+                                                    name=args.output_dir),
+                callbacks=callbacks,
+                gradient_clip_val=1.0,
+                gradient_clip_algorithm="norm",
+                max_epochs=50,
+                enable_checkpointing=args.enable_checkpointing,
+                log_every_n_steps=10
+            )
+            model.set_level(lvl)
+            trainer.logger.log_hyperparams(model.hyper_param_dict)
+            trainer.fit(model, dm)
+        except KeyboardInterrupt:
+            print("Interrupting training!")
+            break
+        
