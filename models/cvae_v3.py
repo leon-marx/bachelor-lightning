@@ -427,7 +427,6 @@ class Decoder(torch.nn.Module):
                 batch_norm=self.batch_norm,
                 last_block=self.no_bn_last
             ),  # (N, 3, 224, 224)
-            torch.nn.Tanh()
         )
 
     def block(self, depth, in_channels, out_channels, kernel_size, activation, upsampling="stride", dropout=False, batch_norm=False, last_block=False):
