@@ -206,7 +206,8 @@ if __name__ == "__main__":
             print(model)
     for lvl in range(level, end_level+1, 1):
         try:
-            print(f"Starting training on level {lvl}!")
+            print("")
+            print(f"Starting training on level {lvl}:")
             # Trainer
             trainer = pl.Trainer(
                 gpus=args.gpus,
