@@ -172,7 +172,7 @@ if __name__ == "__main__":
                                             name=args.output_dir),
         callbacks=callbacks,
         gradient_clip_val=0.5,
-        gradient_clip_algorithm="norm",
+        gradient_clip_algorithm="value",
         max_epochs=args.max_epochs,
         enable_checkpointing=args.enable_checkpointing,
         log_every_n_steps=args.log_every_n_steps
