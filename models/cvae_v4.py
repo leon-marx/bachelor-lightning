@@ -136,11 +136,11 @@ class CVAE_v4(pl.LightningModule):
         codes = enc_mu + torch.randn_like(enc_mu) * (0.5 * enc_logvar).exp()
         reconstructions = self.decoder(codes, domains, contents)
 
-        print(f"images: {images.shape}")
-        print(f"enc_mu: {enc_mu.shape}")
-        print(f"enc_logvar: {enc_logvar.shape}")
-        print(f"codes: {codes.shape}")
-        print(f"reconstructions: {reconstructions.shape}")
+        # print(f"images: {images.shape}")
+        # print(f"enc_mu: {enc_mu.shape}")
+        # print(f"enc_logvar: {enc_logvar.shape}")
+        # print(f"codes: {codes.shape}")
+        # print(f"reconstructions: {reconstructions.shape}")
 
         return enc_mu, enc_logvar, reconstructions
 

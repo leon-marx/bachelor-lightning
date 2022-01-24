@@ -203,8 +203,11 @@ if __name__ == "__main__":
         print(model)
     trainer.fit(model, dm)
     if level is not None:
-        while level < 8:
-            level += 1
-            model.set_level(level)
-            print(f"Starting training on level: {level}")
-            trainer.fit(model, dm)
+        try:
+            while level < 8:
+                level += 1
+                model.set_level(level)
+                print(f"Starting training on level: {level}")
+                trainer.fit(model, dm)
+        except KeyboardInterrupt:
+            print("Training interrupted!")
