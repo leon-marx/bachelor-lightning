@@ -29,27 +29,30 @@ class PACSDataset(Dataset):
                     if content in self.contents:
                         for file in os.listdir(f"{self.data_dir}/{domain}/{content}"):
                             self.data.append(f"{domain}/{content}/{file}")
+        self.set_statistics()
         self.transform = self.get_transform()
+
+    def set_statistics(self):
+        data_mean_dict = {
+            "art_painting": torch.Tensor([0.5146, 0.4912, 0.4681]),
+            "cartoon": torch.Tensor([0.7261, 0.7121, 0.6892]),
+            "photo": torch.Tensor([0.4806, 0.4665, 0.4461]),
+            "sketch": torch.Tensor([0.8757, 0.8757, 0.8757]),
+        }
+        data_std_dict = {
+            "art_painting": torch.Tensor([0.4929, 0.4809, 0.4643]),
+            "cartoon": torch.Tensor([0.6343, 0.6309, 0.6218]),
+            "photo": torch.Tensor([0.4709, 0.4617, 0.4504]),
+            "sketch": torch.Tensor([0.7123, 0.7123, 0.7123]),
+        }
+        self.mean = torch.zeros(size=(3,))
+        self.std = torch.zeros(size=(3,))
+        for domain in self.domains:
+            self.mean += data_mean_dict[domain] / len(self.domains)
+            self.std += data_std_dict[domain] / len(self.domains)
 
     def get_transform(self):
         if self.normalize:
-            data_mean_dict = {
-                "art_painting": torch.Tensor([0.5146, 0.4912, 0.4681]),
-                "cartoon": torch.Tensor([0.7261, 0.7121, 0.6892]),
-                "photo": torch.Tensor([0.4806, 0.4665, 0.4461]),
-                "sketch": torch.Tensor([0.8757, 0.8757, 0.8757]),
-            }
-            data_std_dict = {
-                "art_painting": torch.Tensor([0.4929, 0.4809, 0.4643]),
-                "cartoon": torch.Tensor([0.6343, 0.6309, 0.6218]),
-                "photo": torch.Tensor([0.4709, 0.4617, 0.4504]),
-                "sketch": torch.Tensor([0.7123, 0.7123, 0.7123]),
-            }
-            mean = torch.zeros(size=(3,))
-            std = torch.zeros(size=(3,))
-            for domain in self.domains:
-                mean += data_mean_dict[domain] / len(self.domains)
-                std += data_std_dict[domain] / len(self.domains)
             transform = transforms.Compose([
                 transforms.RandomResizedCrop(224, scale=(0.7, 1.0)),
                 transforms.RandomHorizontalFlip(),
@@ -57,7 +60,7 @@ class PACSDataset(Dataset):
                 transforms.RandomGrayscale(),
                 transforms.ToTensor(),
                 transforms.Normalize(
-                    mean=mean, std=std, inplace=True),
+                    mean=self.mean, std=self.std, inplace=True),
             ])
         else:
             transform = transforms.Compose([
