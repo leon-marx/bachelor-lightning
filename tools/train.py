@@ -169,18 +169,18 @@ if __name__ == "__main__":
                         kernel_size=kernel_size, activation=activation, downsampling=downsampling, 
                         upsampling=upsampling, dropout=dropout, batch_norm=batch_norm, loss_mode=loss_mode)
 
-    # Callbacks
+    # Main
     log_dm.setup()
     train_batch = next(iter(log_dm.train_dataloader()))
     val_batch = next(iter(log_dm.val_dataloader()))
-    callbacks = [
-        Logger(args.output_dir, train_batch, val_batch, images_on_val=True),
-        pl.callbacks.ModelCheckpoint(monitor="val_loss"),
-        pl.callbacks.stochastic_weight_avg.StochasticWeightAveraging(swa_epoch_start=5)
-    ]
-
-    # Main
+    
     if level is None:
+        # Callbacks
+        callbacks = [
+            Logger(args.output_dir, train_batch, val_batch, images_on_val=True),
+            pl.callbacks.ModelCheckpoint(monitor="val_loss"),
+            pl.callbacks.stochastic_weight_avg.StochasticWeightAveraging(swa_epoch_start=5)
+        ]
         # Trainer
         trainer = pl.Trainer(
             gpus=args.gpus,
@@ -208,6 +208,12 @@ if __name__ == "__main__":
         try:
             print("")
             print(f"Starting training on level {lvl}:")
+            # Callbacks
+            callbacks = [
+                Logger(args.output_dir, train_batch, val_batch, images_on_val=True),
+                pl.callbacks.ModelCheckpoint(monitor="val_loss"),
+                pl.callbacks.stochastic_weight_avg.StochasticWeightAveraging(swa_epoch_start=5)
+            ]
             # Trainer
             trainer = pl.Trainer(
                 gpus=args.gpus,
@@ -219,9 +225,9 @@ if __name__ == "__main__":
                 callbacks=callbacks,
                 gradient_clip_val=1.0,
                 gradient_clip_algorithm="norm",
-                max_epochs=50,
+                max_epochs=5, # 50
                 enable_checkpointing=args.enable_checkpointing,
-                log_every_n_steps=10
+                log_every_n_steps=1 # 10
             )
             model.set_level(lvl)
             trainer.logger.log_hyperparams(model.hyper_param_dict)
