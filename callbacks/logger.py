@@ -135,8 +135,12 @@ class Logger(Callback):
         for n, p in pl_module.named_parameters():
             if(p.requires_grad) and ("bias" not in n):
                 layers.append(n)
-                ave_grads.append(p.grad.abs().mean().cpu())
-                max_grads.append(p.grad.abs().max().cpu())
+                if p.grad is not None:
+                    ave_grads.append(p.grad.abs().mean().cpu())
+                    max_grads.append(p.grad.abs().max().cpu())
+                else:
+                    ave_grads.append(0)
+                    max_grads.append(0)
         self.layers = layers
         self.ave_grad_list.pop(0)
         self.ave_grad_list.append(ave_grads)
