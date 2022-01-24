@@ -132,8 +132,8 @@ if __name__ == "__main__":
     dm = PACSDataModule(root=root, domains=domains, contents=contents, batch_size=batch_size, num_workers=num_workers)
     dm.setup()
     for (img, domain, content, fname) in dm.train_dataloader():
-        print(img)
-        print(domain)
-        print(content)
-        print(fname)
+        # print(img)
+        # print(domain)
+        # print(content)
+        # print(fname)
         print(img.max(), img.min())
