@@ -20,7 +20,7 @@ if __name__ == "__main__":
                 num_workers=20,
                 normalize=False)
             test_dm.setup()
-            true_total = torch.zeros(size=(len(test_dm.train_dataloader() * N), 3, 224, 224))
+            true_total = torch.zeros(size=(len(test_dm.train_dataloader()) * N, 3, 224, 224))
             for i in range(N):
                 dm = PACSDataModule(
                     root="data", 
