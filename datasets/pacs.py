@@ -5,20 +5,27 @@ import torch
 from torch.utils.data import Dataset, DataLoader
 from torchvision import transforms
 
+
+class SetToTanhRange(object):
+    """
+    Shift torch.Tensor from [0, 1] to [-1, 1] range.
+    """
+    def __call__(self, sample):
+        return 2.0 * sample - 1.0
+
+
 class PACSDataset(Dataset):
-    def __init__(self, root, mode, domains, contents, normalize):
+    def __init__(self, root, mode, domains, contents):
         """
         root: str, root folder where PACS is located
         mode: str, choose one: "train", "val" or "test"
         domains: list of str ["art_painting", "cartoon", "photo", "sketch"]
         contents: list of str ["dog", "elephant", "giraffe", "guitar", "horse", "house", "person"]
-        normalize: bool, if True, data is normalized to fit a normal gaussian (determined by train set only)
         """
         super().__init__()
         self.mode = mode
         self.domains = domains
         self.contents = contents
-        self.normalize = normalize
         self.domain_dict = {domain: torch.LongTensor([i]) for i, domain in enumerate(self.domains)}
         self.content_dict = {content: torch.LongTensor([i]) for i, content in enumerate(self.contents)}
         self.data_dir = f"{root}/PACS_{mode}"
@@ -29,47 +36,17 @@ class PACSDataset(Dataset):
                     if content in self.contents:
                         for file in os.listdir(f"{self.data_dir}/{domain}/{content}"):
                             self.data.append(f"{domain}/{content}/{file}")
-        self.set_statistics()
         self.transform = self.get_transform()
 
-    def set_statistics(self):
-        data_mean_dict = {
-            "art_painting": torch.Tensor([0.5146, 0.4912, 0.4681]),
-            "cartoon": torch.Tensor([0.7261, 0.7121, 0.6892]),
-            "photo": torch.Tensor([0.4806, 0.4665, 0.4461]),
-            "sketch": torch.Tensor([0.8757, 0.8757, 0.8757]),
-        }
-        data_std_dict = {
-            "art_painting": torch.Tensor([0.4929, 0.4809, 0.4643]),
-            "cartoon": torch.Tensor([0.6343, 0.6309, 0.6218]),
-            "photo": torch.Tensor([0.4709, 0.4617, 0.4504]),
-            "sketch": torch.Tensor([0.7123, 0.7123, 0.7123]),
-        }
-        self.mean = torch.zeros(size=(3,))
-        self.std = torch.zeros(size=(3,))
-        for domain in self.domains:
-            self.mean += data_mean_dict[domain] / len(self.domains)
-            self.std += data_std_dict[domain] / len(self.domains)
-
     def get_transform(self):
-        if self.normalize:
-            transform = transforms.Compose([
-                transforms.RandomResizedCrop(224, scale=(0.7, 1.0)),
-                transforms.RandomHorizontalFlip(),
-                transforms.ColorJitter(0.3, 0.3, 0.3, 0.3),
-                transforms.RandomGrayscale(),
-                transforms.ToTensor(),
-                transforms.Normalize(
-                    mean=self.mean, std=self.std, inplace=True),
-            ])
-        else:
-            transform = transforms.Compose([
-                transforms.RandomResizedCrop(224, scale=(0.7, 1.0)),
-                transforms.RandomHorizontalFlip(),
-                transforms.ColorJitter(0.3, 0.3, 0.3, 0.3),
-                transforms.RandomGrayscale(),
-                transforms.ToTensor(),
-            ])
+        transform = transforms.Compose([
+            transforms.RandomResizedCrop(224, scale=(0.7, 1.0)),
+            transforms.RandomHorizontalFlip(),
+            transforms.ColorJitter(0.3, 0.3, 0.3, 0.3),
+            transforms.RandomGrayscale(),
+            transforms.ToTensor(),
+            SetToTanhRange(),
+        ])
         return transform
 
     def __len__(self):
@@ -87,7 +64,7 @@ class PACSDataset(Dataset):
 
         
 class PACSDataModule(pl.LightningDataModule):
-    def __init__(self, root, domains, contents, batch_size, num_workers, shuffle_all=False, normalize=True):
+    def __init__(self, root, domains, contents, batch_size, num_workers, shuffle_all=False):
         """
         root: str, root folder where PACS is located
         domains: list of str ["art_painting", "cartoon", "photo", "sketch"]
@@ -95,7 +72,6 @@ class PACSDataModule(pl.LightningDataModule):
         batch_size: int, batch_size to use for the dataloaders
         num_workers: int, how many workers to use for the dataloader
         shuffle_all: bool, if True val and test dataloaders are shuffled as well
-        normalize: bool, if True, data is normalized to fit a normal gaussian (determined by train set only)
         """
         super().__init__()
         self.root = root
@@ -104,17 +80,16 @@ class PACSDataModule(pl.LightningDataModule):
         self.batch_size = batch_size
         self.num_workers = num_workers
         self.shuffle_all = shuffle_all
-        self.normalize = normalize
 
     def prepare_data(self):
         pass
 
     def setup(self, stage=None):
         if stage in (None, "fit"):
-            self.pacs_train = PACSDataset(root=self.root, mode="train", domains=self.domains, contents=self.contents, normalize=self.normalize)
-            self.pacs_val = PACSDataset(root=self.root, mode="val", domains=self.domains, contents=self.contents, normalize=self.normalize)
+            self.pacs_train = PACSDataset(root=self.root, mode="train", domains=self.domains, contents=self.contents)
+            self.pacs_val = PACSDataset(root=self.root, mode="val", domains=self.domains, contents=self.contents)
         if stage in (None, "test"):
-            self.pacs_test = PACSDataset(root=self.root, mode="test", domains=self.domains, contents=self.contents, normalize=self.normalize)
+            self.pacs_test = PACSDataset(root=self.root, mode="test", domains=self.domains, contents=self.contents)
 
     def train_dataloader(self):
         return DataLoader(self.pacs_train, batch_size=self.batch_size, shuffle=True, num_workers=self.num_workers)

@@ -1,0 +1,13 @@
+
+        data_mean_dict = {
+            "art_painting": torch.Tensor([0.5146, 0.4912, 0.4681]),
+            "cartoon": torch.Tensor([0.7261, 0.7121, 0.6892]),
+            "photo": torch.Tensor([0.4806, 0.4665, 0.4461]),
+            "sketch": torch.Tensor([0.8757, 0.8757, 0.8757]),
+        }
+        data_std_dict = {
+            "art_painting": torch.Tensor([0.4929, 0.4809, 0.4643]),
+            "cartoon": torch.Tensor([0.6343, 0.6309, 0.6218]),
+            "photo": torch.Tensor([0.4709, 0.4617, 0.4504]),
+            "sketch": torch.Tensor([0.7123, 0.7123, 0.7123]),
+        }
