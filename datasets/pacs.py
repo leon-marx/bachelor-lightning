@@ -57,7 +57,7 @@ class PACSDataset(Dataset):
                 transforms.RandomGrayscale(),
                 transforms.ToTensor(),
                 transforms.Normalize(
-                    mean=mean, std=std),
+                    mean=mean, std=std, inplace=True),
             ])
         else:
             transform = transforms.Compose([
@@ -126,14 +126,21 @@ class PACSDataModule(pl.LightningDataModule):
 if __name__ == "__main__":
     domains = ["art_painting", "cartoon", "photo", "sketch"]
     contents =  ["dog", "elephant", "giraffe", "guitar", "horse", "house", "person"]
-    batch_size = 32
-    num_workers = 20
+    batch_size = 4
+    num_workers = 4
     root = "data"
-    dm = PACSDataModule(root=root, domains=domains, contents=contents, batch_size=batch_size, num_workers=num_workers)
+    dm = PACSDataModule(root=root, domains=domains, contents=contents, batch_size=batch_size, num_workers=num_workers, normalize=True)
     dm.setup()
+    counter = 0
+    data = torch.zeros(size=(3, 224, 224))
     for (img, domain, content, fname) in dm.train_dataloader():
         # print(img)
         # print(domain)
         # print(content)
         # print(fname)
-        print(img.max(), img.min())
+        data += img.sum(dim=0)
+        counter += batch_size
+        if counter >= 10:
+            break
+    data /= counter
+    torch.save(data, "debugging/data.pt")
