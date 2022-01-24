@@ -21,7 +21,7 @@ if __name__ == "__main__":
             domains= [args.domain],
             contents=["dog", "elephant", "giraffe", "guitar", "horse", "house", "person"],
             batch_size=batch_size,
-            num_workers=20,
+            num_workers=5,
             normalize=False)
         dm.setup()
 
