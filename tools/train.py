@@ -158,7 +158,7 @@ if __name__ == "__main__":
                         lr=lr, depth=depth, out_channels=out_channels, 
                         kernel_size=kernel_size, activation=activation, downsampling=downsampling, 
                         upsampling=upsampling, dropout=dropout, batch_norm=batch_norm, loss_mode=loss_mode,
-                        lamb=lamb, level=level, no_bn_last=no_bn_last, strict=not no_bn_last)
+                        lamb=lamb, level=level, no_bn_last=no_bn_last)
         if args.model == "AE":
             model = AE(num_domains=num_domains, num_contents=num_contents,
                         latent_size=latent_size, lr=lr)
