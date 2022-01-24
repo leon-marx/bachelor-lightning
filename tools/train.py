@@ -173,7 +173,7 @@ if __name__ == "__main__":
     log_dm.setup()
     train_batch = next(iter(log_dm.train_dataloader()))
     val_batch = next(iter(log_dm.val_dataloader()))
-    
+
     if level is None:
         # Callbacks
         callbacks = [
@@ -204,8 +204,8 @@ if __name__ == "__main__":
     else:
         if args.model in ["AE_v3", "CVAE_v2", "CVAE_v3", "CVAE_v4"]:
             print(model)
-    for lvl in range(level, end_level+1, 1):
-        try:
+    try:
+        for lvl in range(level, end_level+1, 1):
             print("")
             print(f"Starting training on level {lvl}:")
             # Callbacks
@@ -232,7 +232,6 @@ if __name__ == "__main__":
             model.set_level(lvl)
             trainer.logger.log_hyperparams(model.hyper_param_dict)
             trainer.fit(model, dm)
-        except KeyboardInterrupt:
-            print("Interrupting training!")
-            break
+    except KeyboardInterrupt:
+        print("Interrupting training!")
         
