@@ -12,24 +12,16 @@ if __name__ == "__main__":
 
     if gather_data:
         for domain in domains:
-            test_dm = PACSDataModule(
+            dm = PACSDataModule(
                 root="data", 
                 domains= [domain],
                 contents=["dog", "elephant", "giraffe", "guitar", "horse", "house", "person"],
                 batch_size=batch_size,
                 num_workers=20,
                 normalize=False)
-            test_dm.setup()
-            true_total = torch.zeros(size=(len(test_dm.train_dataloader()) * N, 3, 224, 224))
+            dm.setup()
+            true_total = torch.zeros(size=(len(dm.train_dataloader()) * N, 3, 224, 224))
             for i in tqdm(range(N)):
-                dm = PACSDataModule(
-                    root="data", 
-                    domains= [domain],
-                    contents=["dog", "elephant", "giraffe", "guitar", "horse", "house", "person"],
-                    batch_size=batch_size,
-                    num_workers=20,
-                    normalize=False)
-                dm.setup()
                 for j, batch in enumerate(tqdm(dm.train_dataloader(), leave=False)):
                     true_total[i * N + j] = batch[0]
             torch.save(true_total, f"logs/{domain}_statistics.pt")
