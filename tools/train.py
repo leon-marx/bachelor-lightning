@@ -174,7 +174,7 @@ if __name__ == "__main__":
     train_batch = next(iter(log_dm.train_dataloader()))
     val_batch = next(iter(log_dm.val_dataloader()))
 
-    if level is None:
+    if level is None or level not in [1, 2, 3, 4, 5, 6, 7, 8]:
         # Callbacks
         callbacks = [
             Logger(args.output_dir, train_batch, val_batch, images_on_val=True),
@@ -204,34 +204,34 @@ if __name__ == "__main__":
     else:
         if args.model in ["AE_v3", "CVAE_v2", "CVAE_v3", "CVAE_v4"]:
             print(model)
-    try:
-        for lvl in range(level, end_level+1, 1):
-            print("")
-            print(f"Starting training on level {lvl}:")
-            # Callbacks
-            callbacks = [
-                Logger(args.output_dir, train_batch, val_batch, images_on_val=True),
-                pl.callbacks.ModelCheckpoint(monitor="val_loss"),
-                pl.callbacks.stochastic_weight_avg.StochasticWeightAveraging(swa_epoch_start=5)
-            ]
-            # Trainer
-            trainer = pl.Trainer(
-                gpus=args.gpus,
-                strategy="dp",
-                precision=16,
-                default_root_dir=args.output_dir,
-                logger=pl.loggers.TensorBoardLogger(save_dir=os.getcwd(),
-                                                    name=args.output_dir),
-                callbacks=callbacks,
-                gradient_clip_val=1.0,
-                gradient_clip_algorithm="norm",
-                max_epochs=10, # 50
-                enable_checkpointing=args.enable_checkpointing,
-                log_every_n_steps=10 # 10
-            )
-            model.set_level(lvl)
-            trainer.logger.log_hyperparams(model.hyper_param_dict)
-            trainer.fit(model, dm)
-    except KeyboardInterrupt:
-        print("Interrupting training!")
+        try:
+            for lvl in range(level, end_level+1, 1):
+                print("")
+                print(f"Starting training on level {lvl}:")
+                # Callbacks
+                callbacks = [
+                    Logger(args.output_dir, train_batch, val_batch, images_on_val=True),
+                    pl.callbacks.ModelCheckpoint(monitor="val_loss"),
+                    pl.callbacks.stochastic_weight_avg.StochasticWeightAveraging(swa_epoch_start=5)
+                ]
+                # Trainer
+                trainer = pl.Trainer(
+                    gpus=args.gpus,
+                    strategy="dp",
+                    precision=16,
+                    default_root_dir=args.output_dir,
+                    logger=pl.loggers.TensorBoardLogger(save_dir=os.getcwd(),
+                                                        name=args.output_dir),
+                    callbacks=callbacks,
+                    gradient_clip_val=1.0,
+                    gradient_clip_algorithm="norm",
+                    max_epochs=10, # 50
+                    enable_checkpointing=args.enable_checkpointing,
+                    log_every_n_steps=10 # 10
+                )
+                model.set_level(lvl)
+                trainer.logger.log_hyperparams(model.hyper_param_dict)
+                trainer.fit(model, dm)
+        except KeyboardInterrupt:
+            print("Interrupting training!")
         

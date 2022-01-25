@@ -106,23 +106,30 @@ class CVAE_v4(pl.LightningModule):
             return kld + rec
 
     def set_level(self, level):
-        self.level = level
-        self.encoder.level = level
-        self.decoder.level = level
-        for param in self.parameters():
-            param.requires_grad = False
-        if self.level < 8:
-            for param in self.encoder.enc_conv_blocks[self.level-1].parameters():
+        if level <= 0:
+            self.level = 8
+            self.encoder.level = 8
+            self.decoder.level = 8
+            for param in self.parameters():
                 param.requires_grad = True
-            for param in self.decoder.dec_conv_blocks[-self.level].parameters():
-                param.requires_grad = True
-        if self.level == 8:
-            for param in self.encoder.get_mu.parameters():
-                param.requires_grad = True
-            for param in self.encoder.get_logvar.parameters():
-                param.requires_grad = True
-            for param in self.decoder.dec_conv_blocks[-self.level].parameters():
-                param.requires_grad = True
+        else:
+            self.level = level
+            self.encoder.level = level
+            self.decoder.level = level
+            for param in self.parameters():
+                param.requires_grad = False
+            if self.level < 8:
+                for param in self.encoder.enc_conv_blocks[self.level-1].parameters():
+                    param.requires_grad = True
+                for param in self.decoder.dec_conv_blocks[-self.level].parameters():
+                    param.requires_grad = True
+            if self.level == 8:
+                for param in self.encoder.get_mu.parameters():
+                    param.requires_grad = True
+                for param in self.encoder.get_logvar.parameters():
+                    param.requires_grad = True
+                for param in self.decoder.dec_conv_blocks[-self.level].parameters():
+                    param.requires_grad = True
 
     def forward(self, images, domains, contents):
         """
