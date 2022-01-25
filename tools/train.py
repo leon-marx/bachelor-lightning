@@ -225,9 +225,9 @@ if __name__ == "__main__":
                 callbacks=callbacks,
                 gradient_clip_val=1.0,
                 gradient_clip_algorithm="norm",
-                max_epochs=1, # 50
+                max_epochs=10, # 50
                 enable_checkpointing=args.enable_checkpointing,
-                log_every_n_steps=1 # 10
+                log_every_n_steps=10 # 10
             )
             model.set_level(lvl)
             trainer.logger.log_hyperparams(model.hyper_param_dict)
