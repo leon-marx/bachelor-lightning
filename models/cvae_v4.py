@@ -106,13 +106,7 @@ class CVAE_v4(pl.LightningModule):
             return kld + rec
 
     def set_level(self, level):
-        if level <= 0:
-            self.level = 8
-            self.encoder.level = 8
-            self.decoder.level = 8
-            for param in self.parameters():
-                param.requires_grad = True
-        elif level == 7:
+        if level == 7:
             self.decoder.dec_conv_blocks[1] = self.decoder.block(
                 depth=self.decoder.depth,
                 in_channels=self.decoder.out_channels[1] + self.decoder.num_domains + self.decoder.num_contents,
@@ -125,6 +119,12 @@ class CVAE_v4(pl.LightningModule):
                 output_padding=-1
             )
             selu_init(self.decoder.dec_conv_blocks[1])
+        if level <= 0:
+            self.level = 8
+            self.encoder.level = 8
+            self.decoder.level = 8
+            for param in self.parameters():
+                param.requires_grad = True
         else:
             self.level = level
             self.encoder.level = level
