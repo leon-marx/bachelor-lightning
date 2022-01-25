@@ -544,7 +544,7 @@ class Decoder(torch.nn.Module):
             seq = []
             if i == 0: # upsampling in first layer of block
                 if upsampling == "stride":
-                    seq.append(torch.nn.ConvTranspose2d(in_channels=in_channels, out_channels=out_channels, kernel_size=kernel_size,
+                    seq.append(torch.nn.ConvTranspose2d(in_channels=in_channels, out_channels=out_channels, kernel_size=4,
                                         padding=int((kernel_size-1)/2), output_padding=output_padding, stride=2, bias=not batch_norm))
                     if batch_norm:
                         if not (i == depth - 1 and last_block):
@@ -561,7 +561,10 @@ class Decoder(torch.nn.Module):
                         if not (i == depth - 1 and last_block):
                             seq.append(torch.nn.BatchNorm2d(num_features=out_channels))
                     seq.append(activation)
-                    seq.append(torch.nn.Upsample(scale_factor=2, mode="nearest"))
+                    if output_padding == -1:
+                        seq.append(torch.nn.Upsample(scale_factor=1.75, mode="nearest"))
+                    else:
+                        seq.append(torch.nn.Upsample(scale_factor=2, mode="nearest"))
                     if dropout:
                         if not (i == depth - 1 and last_block):
                             seq.append(torch.nn.Dropout2d())
