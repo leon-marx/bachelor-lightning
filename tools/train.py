@@ -175,6 +175,8 @@ if __name__ == "__main__":
     val_batch = next(iter(log_dm.val_dataloader()))
 
     if level is None or level not in [1, 2, 3, 4, 5, 6, 7, 8]:
+        if args.model in ["CVAE_v4"]:
+            model.set_level(0)
         # Callbacks
         callbacks = [
             Logger(args.output_dir, train_batch, val_batch, images_on_val=True),
