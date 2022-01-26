@@ -8,7 +8,7 @@ import numpy as np
 
 
 class Logger(Callback):
-    def __init__(self, output_dir, train_batch, val_batch, images_on_val=False):
+    def __init__(self, output_dir, train_batch, val_batch, domains, contents, images_on_val=False):
         super().__init__()
         self.output_dir = output_dir
 
@@ -21,12 +21,19 @@ class Logger(Callback):
         self.train_loss = []
         self.val_loss = []
 
+        self.domains = domains
+        self.domain_dict = {domain: torch.LongTensor([i]) for i, domain in enumerate(self.domains)}
+        self.contents = contents
+        self.content_dict = {content: torch.LongTensor([i]) for i, content in enumerate(self.contents)}
+
+
         self.iov_flag = False
         self.images_on_val = images_on_val
     
     def on_save_checkpoint(self, trainer, pl_module, checkpoint):
         os.makedirs(f"{self.output_dir}/version_{trainer.logger.version}/images", exist_ok=True)
         self.log_reconstructions(trainer, pl_module, tensorboard_log=True)
+        self.log_generated(self, trainer, pl_module, tensorboard_log=True)
         self.log_losses(trainer)
         self.log_grad_flow(trainer, tensorboard_log=True)
 
@@ -47,6 +54,7 @@ class Logger(Callback):
         if self.images_on_val and self.iov_flag and batch_idx==20:
             os.makedirs(f"{self.output_dir}/version_{trainer.logger.version}/images", exist_ok=True)
             self.log_reconstructions(trainer, pl_module, tensorboard_log=True)
+            self.log_generated(self, trainer, pl_module, tensorboard_log=True)
             self.log_losses(trainer)
             self.log_grad_flow(trainer, tensorboard_log=True)
 
@@ -56,9 +64,9 @@ class Logger(Callback):
         with torch.no_grad():
             pl_module.eval()
 
-            train_imgs = self.train_batch[0][:max(8, len(self.train_batch[0]))].to(pl_module.device)
-            train_domains = self.train_batch[1][:max(8, len(self.train_batch[0]))].to(pl_module.device)
-            train_contents = self.train_batch[2][:max(8, len(self.train_batch[0]))].to(pl_module.device)
+            train_imgs = self.train_batch[0].to(pl_module.device)
+            train_domains = self.train_batch[1].to(pl_module.device)
+            train_contents = self.train_batch[2].to(pl_module.device)
             train_recs = pl_module.reconstruct(train_imgs, train_domains, train_contents)
             train_imgs = (train_imgs + 1.0) / 2.0
             train_recs = (train_recs + 1.0) / 2.0
@@ -158,3 +166,21 @@ class Logger(Callback):
         plt.title("validation loss", size=18)
         plt.savefig(f"{self.output_dir}/version_{trainer.logger.version}/images/val_loss.png")
         plt.close()
+
+    def log_generated(self, trainer, pl_module, tensorboard_log=False):
+        with torch.no_grad():
+            pl_module.eval()
+            for domain_name in self.domains:
+                for content_name in self.contents:
+                    domains = torch.stack((torch.nn.functional.one_hot(self.domain_dict[domain_name], num_classes=len(self.domains))), dim=0)
+                    contents = torch.stack((torch.nn.functional.one_hot(self.content_dict[content_name], num_classes=len(self.contents))), dim=0)
+                    codes = torch.randn(size=(self.train_batch[0].shape[0], pl_module.latent_size)).to(pl_module.device)
+                    reconstructions = pl_module.decoder(codes, domains, contents)
+                    reconstructions = (reconstructions + 1.0) / 2.0
+                    gen_grid = torchvision.utils.make_grid(reconstructions)
+                    torchvision.utils.save_image(gen_grid, f"{self.output_dir}/version_{trainer.logger.version}/images/generated_{domain_name}_{content_name}.png")
+
+                    if tensorboard_log:
+                        trainer.logger.experiment.add_image(f"generated_{domain_name}_{content_name}", gen_grid)
+
+            pl_module.train()

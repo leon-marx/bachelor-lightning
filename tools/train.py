@@ -22,6 +22,7 @@ if __name__ == "__main__":
     parser.add_argument("--datadir", type=str, default="data")
     parser.add_argument("--batch_size", type=int, default=None)
     parser.add_argument("--num_workers", type=int, default=20)
+    parser.add_argument("--domains", type=str, default="PAC")
     # Model
     parser.add_argument("--model", type=str, default=None)
     parser.add_argument("--latent_size", type=int, default=512)
@@ -66,7 +67,13 @@ if __name__ == "__main__":
         print(f"    {k}: {v}")
     
     # Dataset
-    domains = ["art_painting", "cartoon", "photo"]
+    domain_dict = {
+        "A": "art_painting",
+        "C": "cartoon",
+        "P": "photo",
+        "S": "sketch",
+    }
+    domains = sorted([domain_dict[k] for k in args.domains])
     contents = ["dog", "elephant", "giraffe", "guitar", "horse", "house", "person"]
     batch_size = args.batch_size
     dm = PACSDataModule(root=args.datadir, domains=domains, contents=contents,
@@ -212,7 +219,7 @@ if __name__ == "__main__":
                 print(f"Starting training on level {lvl}:")
                 # Callbacks
                 callbacks = [
-                    Logger(args.output_dir, train_batch, val_batch, images_on_val=True),
+                    Logger(args.output_dir, train_batch, val_batch, domains, contents, images_on_val=True),
                     pl.callbacks.ModelCheckpoint(monitor="val_loss"),
                     pl.callbacks.stochastic_weight_avg.StochasticWeightAveraging(swa_epoch_start=5)
                 ]
