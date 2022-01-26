@@ -33,7 +33,7 @@ class Logger(Callback):
     def on_save_checkpoint(self, trainer, pl_module, checkpoint):
         os.makedirs(f"{self.output_dir}/version_{trainer.logger.version}/images", exist_ok=True)
         self.log_reconstructions(trainer, pl_module, tensorboard_log=True)
-        self.log_generated(self, trainer, pl_module, tensorboard_log=True)
+        self.log_generated(trainer, pl_module, tensorboard_log=True)
         self.log_losses(trainer)
         self.log_grad_flow(trainer, tensorboard_log=True)
 
@@ -54,7 +54,7 @@ class Logger(Callback):
         if self.images_on_val and self.iov_flag and batch_idx==20:
             os.makedirs(f"{self.output_dir}/version_{trainer.logger.version}/images", exist_ok=True)
             self.log_reconstructions(trainer, pl_module, tensorboard_log=True)
-            self.log_generated(self, trainer, pl_module, tensorboard_log=True)
+            self.log_generated(trainer, pl_module, tensorboard_log=True)
             self.log_losses(trainer)
             self.log_grad_flow(trainer, tensorboard_log=True)
 
