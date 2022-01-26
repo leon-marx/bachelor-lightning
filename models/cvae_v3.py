@@ -81,7 +81,7 @@ class CVAE_v3(pl.LightningModule):
         if isinstance(activation, torch.nn.SELU):
             self.apply(selu_init)
 
-    def loss(self, images, enc_mu, enc_logvar, reconstructions):
+    def loss(self, images, enc_mu, enc_logvar, reconstructions, split_loss=False):
         """
         Calculates the loss. Choose from l1, l2 and elbo
 
@@ -92,6 +92,7 @@ class CVAE_v3(pl.LightningModule):
         enc_mu: Tensor of shape (batch_size, latent_size)
         enc_logvar: Tensor of shape (batch_size, latent_size)
         reconstructions: Tensor of shape (batch_size, channels, height, width)
+        split_loss: bool, if True, returns kld and rec losses separately
         """
         if self.loss_mode == "l1":
             loss = torch.abs(images - reconstructions)
@@ -103,7 +104,10 @@ class CVAE_v3(pl.LightningModule):
         if self.loss_mode == "elbo":
             kld = self.lamb * 0.5 * (enc_mu ** 2 + enc_logvar.exp() - enc_logvar - 1).mean(dim=[0, 1])
             rec = torch.nn.functional.mse_loss(images, reconstructions, reduction="none").mean(dim=[0, 1, 2, 3])
-            return kld + rec
+            if split_loss:
+                return kld + rec, kld.item(), rec.item()
+            else:
+                return kld + rec
 
 
     def forward(self, images, domains, contents):
@@ -137,8 +141,10 @@ class CVAE_v3(pl.LightningModule):
 
         enc_mu, enc_logvar, reconstructions = self(images, domains, contents)
 
-        loss = self.loss(images, enc_mu, enc_logvar, reconstructions)
+        loss, kld_value, rec_value = self.loss(images, enc_mu, enc_logvar, reconstructions, split_loss=True)
         self.log("train_loss", loss, batch_size=images.shape[0])
+        self.log("kld", kld_value, prog_bar=True, batch_size=images.shape[0])
+        self.log("rec", rec_value, prog_bar=True, batch_size=images.shape[0])
         self.log("lr", self.optimizers(
         ).param_groups[0]["lr"], prog_bar=True, batch_size=images.shape[0])
         return loss
