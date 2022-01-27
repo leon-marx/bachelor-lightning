@@ -11,6 +11,7 @@ from models.cvae_v3 import CVAE_v3
 from models.ae import AE
 from models.ae_v2 import AE_v2
 from models.ae_v3 import AE_v3
+from models.dccvae import DCCVAE
 from callbacks.logger import Logger
 
 
@@ -25,6 +26,7 @@ if __name__ == "__main__":
     # Model
     parser.add_argument("--model", type=str, default=None)
     parser.add_argument("--latent_size", type=int, default=512)
+    parser.add_argument("--feature_size", type=int, default=32)
     parser.add_argument("--lamb", type=float, default=1.0)
     parser.add_argument("--lr", type=float, default=1e-04)
     parser.add_argument("--ckpt_path", type=str, default="0")
@@ -85,6 +87,7 @@ if __name__ == "__main__":
     num_domains = len(domains)
     num_contents = len(contents)
     latent_size = args.latent_size
+    feature_size = args.feature_size
     lamb = args.lamb
     lr = args.lr
     depth = args.depth
@@ -130,6 +133,9 @@ if __name__ == "__main__":
                         latent_size=latent_size, lr=lr, depth=depth, out_channels=out_channels, 
                         kernel_size=kernel_size, activation=activation, downsampling=downsampling, 
                         upsampling=upsampling, dropout=dropout, batch_norm=batch_norm, loss_mode=loss_mode, strict=not no_bn_last)
+        if args.model == "DCCVAE":
+            model = DCCVAE.load_from_checkpoint(args.ckpt_path, num_domains=num_domains, num_contents=num_contents, lr=lr,
+                   latent_size=latent_size, feature_size=feature_size, loss_mode=loss_mode, lamb=lamb)
     else:
         if args.model == "CVAE":
             model = CVAE(num_domains=num_domains, num_contents=num_contents,
@@ -157,6 +163,9 @@ if __name__ == "__main__":
                         latent_size=latent_size, lr=lr, depth=depth, out_channels=out_channels, 
                         kernel_size=kernel_size, activation=activation, downsampling=downsampling, 
                         upsampling=upsampling, dropout=dropout, batch_norm=batch_norm, loss_mode=loss_mode)
+        if args.model == "DCCVAE":
+            model = DCCVAE(num_domains=num_domains, num_contents=num_contents, lr=lr,
+                   latent_size=latent_size, feature_size=feature_size, loss_mode=loss_mode, lamb=lamb)
     
     # Callbacks
     callbacks = [
