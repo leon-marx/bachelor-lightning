@@ -107,8 +107,8 @@ class DCCVAE(pl.LightningModule):
         self.log("train_loss", loss, batch_size=images.shape[0])
         self.log("kld", kld_value, prog_bar=True, batch_size=images.shape[0])
         self.log("rec", rec_value, prog_bar=True, batch_size=images.shape[0])
-        self.log("lr", self.optimizers(
-        ).param_groups[0]["lr"], prog_bar=True, batch_size=images.shape[0])
+        # self.log("lr", self.optimizers(
+        # ).param_groups[0]["lr"], prog_bar=True, batch_size=images.shape[0])
         return loss
 
     def validation_step(self, batch, batch_idx):
