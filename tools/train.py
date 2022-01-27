@@ -8,7 +8,6 @@ from datasets.pacs import PACSDataModule
 from models.cvae import CVAE
 from models.cvae_v2 import CVAE_v2
 from models.cvae_v3 import CVAE_v3
-from models.cvae_v4 import CVAE_v4
 from models.ae import AE
 from models.ae_v2 import AE_v2
 from models.ae_v3 import AE_v3
@@ -38,9 +37,7 @@ if __name__ == "__main__":
     parser.add_argument("--dropout", action="store_true", default=False)
     parser.add_argument("--batch_norm", action="store_true", default=False)
     parser.add_argument("--no_bn_last", action="store_true", default=False)
-    parser.add_argument("--loss_mode", type=str, default="l2")
-    parser.add_argument("--level", type=int, default=None)
-    parser.add_argument("--end_level", type=int, default=8)
+    parser.add_argument("--loss_mode", type=str, default="elbo")
     # Training
     parser.add_argument("--gpus", type=str, default=None)
     parser.add_argument("--output_dir", type=str, default=None)
@@ -80,6 +77,9 @@ if __name__ == "__main__":
                         batch_size=batch_size, num_workers=args.num_workers)
     log_dm = PACSDataModule(root=args.datadir, domains=domains, contents=contents,
                         batch_size=batch_size, num_workers=args.num_workers, shuffle_all=True)
+    log_dm.setup()
+    train_batch = next(iter(log_dm.train_dataloader()))
+    val_batch = next(iter(log_dm.val_dataloader()))
 
     # Model
     num_domains = len(domains)
@@ -90,25 +90,19 @@ if __name__ == "__main__":
     depth = args.depth
     out_channels = list(map(int, args.out_channels.split(",")))
     kernel_size = args.kernel_size
-    activation = args.activation
-    if activation == "relu":
-        activation = torch.nn.ReLU()
-    if activation == "gelu":
-        activation = torch.nn.GELU()
-    if activation == "lrelu":
-        activation = torch.nn.LeakyReLU()
-    if activation == "elu":
-        activation = torch.nn.ELU()
-    if activation == "selu":
-        activation = torch.nn.SELU()
+    activation = {
+        "relu": torch.nn.ReLU(),
+        "gelu": torch.nn.GELU(),
+        "lrelu": torch.nn.LeakyReLU(),
+        "elu": torch.nn.ELU(),
+        "selu": torch.nn.SELU(),
+    }[args.activation]
     downsampling = args.downsampling
     upsampling = args.upsampling
     dropout = args.dropout
     batch_norm = args.batch_norm
     loss_mode = args.loss_mode
     no_bn_last = args.no_bn_last
-    level = args.level
-    end_level = args.end_level
     if args.ckpt_path != "0":
         if args.model == "CVAE":
             model = CVAE.load_from_checkpoint(args.ckpt_path, num_domains=num_domains, num_contents=num_contents,
@@ -125,12 +119,6 @@ if __name__ == "__main__":
                         kernel_size=kernel_size, activation=activation, downsampling=downsampling, 
                         upsampling=upsampling, dropout=dropout, batch_norm=batch_norm, loss_mode=loss_mode,
                         lamb=lamb, no_bn_last=no_bn_last, strict=not no_bn_last)
-        if args.model == "CVAE_v4":
-            model = CVAE_v4.load_from_checkpoint(args.ckpt_path, num_domains=num_domains, num_contents=num_contents, 
-                        lr=lr, depth=depth, out_channels=out_channels, 
-                        kernel_size=kernel_size, activation=activation, downsampling=downsampling, 
-                        upsampling=upsampling, dropout=dropout, batch_norm=batch_norm, loss_mode=loss_mode,
-                        lamb=lamb, level=level, no_bn_last=no_bn_last, strict=not no_bn_last)
         if args.model == "AE":
             model = AE.load_from_checkpoint(args.ckpt_path, num_domains=num_domains, num_contents=num_contents,
                         latent_size=latent_size, lr=lr)
@@ -158,12 +146,6 @@ if __name__ == "__main__":
                         kernel_size=kernel_size, activation=activation, downsampling=downsampling, 
                         upsampling=upsampling, dropout=dropout, batch_norm=batch_norm, loss_mode=loss_mode,
                         lamb=lamb, no_bn_last=no_bn_last)
-        if args.model == "CVAE_v4":
-            model = CVAE_v4(num_domains=num_domains, num_contents=num_contents, 
-                        lr=lr, depth=depth, out_channels=out_channels, 
-                        kernel_size=kernel_size, activation=activation, downsampling=downsampling, 
-                        upsampling=upsampling, dropout=dropout, batch_norm=batch_norm, loss_mode=loss_mode,
-                        lamb=lamb, level=level, no_bn_last=no_bn_last)
         if args.model == "AE":
             model = AE(num_domains=num_domains, num_contents=num_contents,
                         latent_size=latent_size, lr=lr)
@@ -175,72 +157,32 @@ if __name__ == "__main__":
                         latent_size=latent_size, lr=lr, depth=depth, out_channels=out_channels, 
                         kernel_size=kernel_size, activation=activation, downsampling=downsampling, 
                         upsampling=upsampling, dropout=dropout, batch_norm=batch_norm, loss_mode=loss_mode)
+    
+    # Callbacks
+    callbacks = [
+        Logger(args.output_dir, train_batch, val_batch, domains, contents, images_on_val=True),
+        pl.callbacks.ModelCheckpoint(monitor="val_loss"),
+        pl.callbacks.stochastic_weight_avg.StochasticWeightAveraging(swa_epoch_start=5)
+    ]
+
+    # Trainer
+    trainer = pl.Trainer(
+        gpus=args.gpus,
+        strategy="dp",
+        precision=16,
+        default_root_dir=args.output_dir,
+        logger=pl.loggers.TensorBoardLogger(save_dir=os.getcwd(),
+                                            name=args.output_dir),
+        callbacks=callbacks,
+        gradient_clip_val=1.0,
+        gradient_clip_algorithm="norm",
+        max_epochs=args.max_epochs,
+        enable_checkpointing=args.enable_checkpointing,
+        log_every_n_steps=args.log_every_n_steps
+    )
 
     # Main
-    log_dm.setup()
-    train_batch = next(iter(log_dm.train_dataloader()))
-    val_batch = next(iter(log_dm.val_dataloader()))
-
-    if level is None or level not in [1, 2, 3, 4, 5, 6, 7, 8]:
-        if args.model in ["CVAE_v4"]:
-            model.set_level(0)
-        # Callbacks
-        callbacks = [
-            Logger(args.output_dir, train_batch, val_batch, domains, contents, images_on_val=True),
-            pl.callbacks.ModelCheckpoint(monitor="val_loss"),
-            pl.callbacks.stochastic_weight_avg.StochasticWeightAveraging(swa_epoch_start=5)
-        ]
-        # Trainer
-        trainer = pl.Trainer(
-            gpus=args.gpus,
-            strategy="dp",
-            precision=16,
-            default_root_dir=args.output_dir,
-            logger=pl.loggers.TensorBoardLogger(save_dir=os.getcwd(),
-                                                name=args.output_dir),
-            callbacks=callbacks,
-            gradient_clip_val=1.0,
-            gradient_clip_algorithm="norm",
-            max_epochs=args.max_epochs,
-            enable_checkpointing=args.enable_checkpointing,
-            log_every_n_steps=args.log_every_n_steps
-        )
-        if args.model in ["AE_v3", "CVAE_v2", "CVAE_v3", "CVAE_v4"]:
-            trainer.logger.log_hyperparams(model.hyper_param_dict)
-            print(model)
-        trainer.fit(model, dm)
-
-    else:
-        if args.model in ["AE_v3", "CVAE_v2", "CVAE_v3", "CVAE_v4"]:
-            print(model)
-        try:
-            for lvl in range(level, end_level+1, 1):
-                print("")
-                print(f"Starting training on level {lvl}:")
-                # Callbacks
-                callbacks = [
-                    Logger(args.output_dir, train_batch, val_batch, domains, contents, images_on_val=True),
-                    pl.callbacks.ModelCheckpoint(monitor="val_loss"),
-                    pl.callbacks.stochastic_weight_avg.StochasticWeightAveraging(swa_epoch_start=5)
-                ]
-                # Trainer
-                trainer = pl.Trainer(
-                    gpus=args.gpus,
-                    strategy="dp",
-                    precision=16,
-                    default_root_dir=args.output_dir,
-                    logger=pl.loggers.TensorBoardLogger(save_dir=os.getcwd(),
-                                                        name=args.output_dir),
-                    callbacks=callbacks,
-                    gradient_clip_val=1.0,
-                    gradient_clip_algorithm="norm",
-                    max_epochs=10, # 50
-                    enable_checkpointing=args.enable_checkpointing,
-                    log_every_n_steps=10 # 10
-                )
-                model.set_level(lvl)
-                trainer.logger.log_hyperparams(model.hyper_param_dict)
-                trainer.fit(model, dm)
-        except KeyboardInterrupt:
-            print("Interrupting training!")
-        
+    if args.model in ["AE_v3", "CVAE_v2", "CVAE_v3"]:
+        trainer.logger.log_hyperparams(model.hyper_param_dict)
+        print(model)
+    trainer.fit(model, dm)

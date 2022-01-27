@@ -17,7 +17,6 @@ def selu_init(m):
         torch.nn.init.zeros_(m.bias)
 
 
-
 class CVAE_v3(pl.LightningModule):
     def __init__(self, num_domains, num_contents, latent_size, lr, depth, out_channels, kernel_size, activation, downsampling, upsampling, dropout, batch_norm, loss_mode, lamb, no_bn_last=True):
         super().__init__()
@@ -85,9 +84,6 @@ class CVAE_v3(pl.LightningModule):
         """
         Calculates the loss. Choose from l1, l2 and elbo
 
-        images: Tensor of shape (batch_size, channels, height, width)
-        Calculates the ELBO Loss (negative ELBO).
-        
         images: Tensor of shape (batch_size, channels, height, width)
         enc_mu: Tensor of shape (batch_size, latent_size)
         enc_logvar: Tensor of shape (batch_size, latent_size)
