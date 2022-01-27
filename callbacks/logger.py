@@ -174,8 +174,8 @@ class Logger(Callback):
             for domain_name in self.domains:
                 for content_name in ["dog"]:
                 # for content_name in self.contents:
-                    domains = torch.nn.functional.one_hot(self.domain_dict[domain_name], num_classes=len(self.domains)).repeat(self.train_batch[0].shape[0], 1).to(pl_module.device)
-                    contents = torch.nn.functional.one_hot(self.content_dict[content_name], num_classes=len(self.contents)).repeat(self.train_batch[0].shape[0], 1).to(pl_module.device)
+                    domains = torch.nn.functional.one_hot(self.domain_dict[domain_name], num_classes=len(self.domains)).repeat(codes.shape[0], 1).to(pl_module.device)
+                    contents = torch.nn.functional.one_hot(self.content_dict[content_name], num_classes=len(self.contents)).repeat(codes.shape[0], 1).to(pl_module.device)
                     reconstructions = pl_module.decoder(codes, domains, contents)
                     reconstructions = (reconstructions + 1.0) / 2.0
                     gen_grid = torchvision.utils.make_grid(reconstructions)
