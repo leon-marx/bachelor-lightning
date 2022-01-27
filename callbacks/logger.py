@@ -170,7 +170,7 @@ class Logger(Callback):
     def log_generated(self, trainer, pl_module, tensorboard_log=False):
         with torch.no_grad():
             pl_module.eval()
-            codes = torch.randn(size=(self.train_batch[0].shape[0], pl_module.latent_size)).to(pl_module.device)
+            codes = torch.randn(size=(min(self.train_batch[0].shape[0], 8), pl_module.latent_size)).to(pl_module.device)
             for domain_name in self.domains:
                 for content_name in ["dog"]:
                 # for content_name in self.contents:
