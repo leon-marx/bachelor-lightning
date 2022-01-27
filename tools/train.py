@@ -5,6 +5,7 @@ import torch
 
 # Own Modules
 from datasets.pacs import PACSDataModule
+from datasets.pacs_balanced import BalancedPACSDataModule
 from models.cvae import CVAE
 from models.cvae_v2 import CVAE_v2
 from models.cvae_v3 import CVAE_v3
@@ -24,6 +25,7 @@ if __name__ == "__main__":
     parser.add_argument("--batch_size", type=int, default=None)
     parser.add_argument("--num_workers", type=int, default=20)
     parser.add_argument("--domains", type=str, default="PAC")
+    parser.add_argument("--balanced_data", action="store_true", default=False)
     # Model
     parser.add_argument("--model", type=str, default=None)
     parser.add_argument("--latent_size", type=int, default=512)
@@ -79,10 +81,16 @@ if __name__ == "__main__":
     domains = sorted([domain_dict[k] for k in args.domains])
     contents = ["dog", "elephant", "giraffe", "guitar", "horse", "house", "person"]
     batch_size = args.batch_size
-    dm = PACSDataModule(root=args.datadir, domains=domains, contents=contents,
-                        batch_size=batch_size, num_workers=args.num_workers)
-    log_dm = PACSDataModule(root=args.datadir, domains=domains, contents=contents,
-                        batch_size=batch_size, num_workers=args.num_workers, shuffle_all=True)
+    if args.balanced_data:
+        dm = BalancedPACSDataModule(root=args.datadir, domains=domains, contents=contents,
+                            batch_size=batch_size, num_workers=args.num_workers)
+        log_dm = BalancedPACSDataModule(root=args.datadir, domains=domains, contents=contents,
+                            batch_size=batch_size, num_workers=args.num_workers, shuffle_all=True)
+    else:
+        dm = PACSDataModule(root=args.datadir, domains=domains, contents=contents,
+                            batch_size=batch_size, num_workers=args.num_workers)
+        log_dm = PACSDataModule(root=args.datadir, domains=domains, contents=contents,
+                            batch_size=batch_size, num_workers=args.num_workers, shuffle_all=True)
     log_dm.setup()
     train_batch = next(iter(log_dm.train_dataloader()))
     val_batch = next(iter(log_dm.val_dataloader()))
