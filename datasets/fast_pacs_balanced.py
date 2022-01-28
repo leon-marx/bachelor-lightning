@@ -2,10 +2,10 @@ import os
 from PIL import Image
 import pytorch_lightning as pl
 import torch
-from torch.utils.data import Dataset, DataLoader
+from torch.utils.data import Dataset
 
 from ffcv.loader import Loader, OrderOption
-from ffcv.fields.decoders import NDArrayDecoder, RGBImageDecoder
+from ffcv.fields.decoders import NDArrayDecoder, RandomResizedCropRGBImageDecoder
 from ffcv import transforms
 
 
@@ -106,7 +106,7 @@ class BalancedPACSDataModule(pl.LightningDataModule):
         }
         self.pipeline = {
             "images": [
-                RGBImageDecoder(),
+                RandomResizedCropRGBImageDecoder(224, scale=(0.7, 1.0), ratio=(0.995, 1.005)),
                 transforms.RandomResizedCrop(224, scale=(0.7, 1.0)),
                 transforms.RandomHorizontalFlip(),
                 transforms.ColorJitter(0.3, 0.3, 0.3, 0.3),
