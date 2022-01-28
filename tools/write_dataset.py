@@ -33,7 +33,7 @@ if __name__ == "__main__":
         # Tune options to optimize dataset size, throughput at train-time
         "images": RGBImageField(),
         "domains": NDArrayField(),
-        "contents": NDArrayField()
+        "contents": NDArrayField(dtype=np.int_, shape=(len(contents),))
     }, num_workers=20)
 
     # Write dataset
