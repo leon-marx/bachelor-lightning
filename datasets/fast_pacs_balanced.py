@@ -6,9 +6,9 @@ import torch
 from torch.utils.data import Dataset
 from torchvision import transforms as TT
 
-from ffcv.loader import Loader, OrderOption
-from ffcv.fields.decoders import NDArrayDecoder, RandomResizedCropRGBImageDecoder
-from ffcv import transforms as FT
+# from ffcv.loader import Loader, OrderOption
+# from ffcv.fields.decoders import NDArrayDecoder, RandomResizedCropRGBImageDecoder
+# from ffcv import transforms as FT
 
 
 class SetToTanhRange(torch.nn.Module):
