@@ -69,7 +69,6 @@ class PACSDataset(Dataset):
             img_path = f"{self.data_dir}/{self.data[domain][idx]}"
             # image = read_image(img_path)
             with Image.open(img_path) as image:
-                image = self.transform(image)
                 domain_name, content_name, _ = self.data[domain][idx].split("/")
                 domain = torch.nn.functional.one_hot(self.domain_dict[domain_name], num_classes=len(self.domains)).view(-1)
                 content = torch.nn.functional.one_hot(self.content_dict[content_name], num_classes=len(self.contents)).view(-1)
