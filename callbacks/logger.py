@@ -51,7 +51,7 @@ class Logger(Callback):
 
     def on_validation_batch_end(self, trainer, pl_module, outputs, batch, batch_idx, dataloader_idx):
         self.val_loss.append(outputs.item())
-        if self.images_on_val and self.iov_flag and batch_idx==20:
+        if self.images_on_val and self.iov_flag and batch_idx==0:
             os.makedirs(f"{self.output_dir}/version_{trainer.logger.version}/images", exist_ok=True)
             self.log_reconstructions(trainer, pl_module, tensorboard_log=True)
             self.log_generated(trainer, pl_module, tensorboard_log=True)
