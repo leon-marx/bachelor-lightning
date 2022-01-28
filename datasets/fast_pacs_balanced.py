@@ -60,11 +60,12 @@ class PACSDataset(Dataset):
     def __len__(self):
         return max([len(self.data[domain]) for domain in self.domains])
 
-    def __getitem__(self, idx):
+    def __getitem__(self, real_idx):
         images = []
         domains = []
         contents = []
         for domain in self.domains:
+            idx = real_idx
             if idx >= len(self.data[domain]):
                 idx = torch.randint(low=0, high=len(self.data[domain]), size=(1,)).item()
             img_path = f"{self.data_dir}/{self.data[domain][idx]}"
@@ -147,7 +148,7 @@ if __name__ == "__main__":
     num_workers = 20
     root = "data"
     ds = PACSDataset(root, "train", domains, contents)
-    ds.__getitem__(0)
+    ds.__getitem__(10000)
     # dm = BalancedPACSDataModule(root=root, domains=domains, contents=contents, batch_size=batch_size, num_workers=num_workers)
     # dm.setup()
     # # import numpy as np

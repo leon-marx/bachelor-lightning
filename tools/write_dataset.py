@@ -34,7 +34,7 @@ if __name__ == "__main__":
         "images": NDArrayField(dtype=np.dtype("int_"), shape=(3, 3, 227, 227)),
         "domains": NDArrayField(dtype=np.dtype("int_"), shape=(3, len(domains))),
         "contents": NDArrayField(dtype=np.dtype("int_"), shape=(3, len(contents)))
-    }, num_workers=20)
+    }, num_workers=0)
 
     # Write dataset
     writer.from_indexed_dataset(my_dataset)
