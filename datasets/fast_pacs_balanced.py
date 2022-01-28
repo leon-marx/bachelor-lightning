@@ -107,7 +107,6 @@ class BalancedPACSDataModule(pl.LightningDataModule):
         self.pipeline = {
             "images": [
                 RandomResizedCropRGBImageDecoder(224, scale=(0.7, 1.0), ratio=(0.995, 1.005)),
-                transforms.RandomResizedCrop(224, scale=(0.7, 1.0)),
                 transforms.RandomHorizontalFlip(),
                 transforms.ColorJitter(0.3, 0.3, 0.3, 0.3),
                 transforms.RandomGrayscale(),
