@@ -198,13 +198,13 @@ class trVAE(pl.LightningModule):
         """
         with torch.no_grad():
             self.eval()
-            domain = self.encoder.encode_domain(domains.float())
+            domain = self.decoder.encode_domain(domains.float())
             x = torch.cat((codes, domain), dim=1)
-            mmd = self.encoder.get_mmd(x)
-            preconv = self.encoder.pre_conv(mmd)
-            preconv = self.encoder.reshape(preconv)
-            reconstructions = self.encoder.dec_conv_sequential(preconv)
-            reconstructions = self.encoder.final_conv(reconstructions)
+            mmd = self.decoder.get_mmd(x)
+            preconv = self.decoder.pre_conv(mmd)
+            preconv = self.decoder.reshape(preconv)
+            reconstructions = self.decoder.dec_conv_sequential(preconv)
+            reconstructions = self.decoder.final_conv(reconstructions)
             self.train()
             return reconstructions
 
