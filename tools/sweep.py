@@ -59,23 +59,20 @@ if __name__ == "__main__":
         #     "loss_mode": ["l1", "l2"]
         # },
         "DCCVAE": {
-            "latent_size": [128, 512, 1024],
-            "feature_size": [32, 64, 128],
-            "lr": [1e-3, 1e-4, 1e-5],
+            "latent_size": [128, 512],
+            "feature_size": [32, 64],
             "lamb": [1e-5, 1e-4, 1e-3, 1e-2, 1e-1, 1.0, 1e+1],
         },
         "trVAE": {
-            "latent_size": [128, 512, 1024],
+            "latent_size": [128, 512],
             "feature_size": [32, 64],
             "mmd_size": [512, 1024],
-            "dropout_rate": [0.0, 0.3, 0.5],
-            "lr": [1e-3, 1e-4, 1e-5],
+            "dropout_rate": [0.0, 0.5],
             "lamb": [1e-5, 1e-4, 1e-3, 1e-2, 1e-1, 1.0, 1e+1],
             "beta": [1e-5, 1e-4, 1e-3, 1e-2, 1e-1, 1.0, 1e+1],
             },
         "MMD_CVAE": {
             "latent_size": [128, 512],
-            "lr": [1e-3, 1e-4, 1e-5],
             "lamb": [1e-5, 1e-4, 1e-3, 1e-2, 1e-1, 1.0, 1e+1],
             "beta": [1e-5, 1e-4, 1e-3, 1e-2, 1e-1, 1.0, 1e+1],
             "out_channels": [
