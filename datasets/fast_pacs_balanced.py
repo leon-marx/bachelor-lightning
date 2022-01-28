@@ -113,10 +113,10 @@ class BalancedPACSDataModule(pl.LightningDataModule):
                 TT.RandomGrayscale(),
                 FT.ToTensor(),
                 SetToTanhRange(),
-                Sort()
+                Sort(len(self.domains))
             ],
-            "domains": [NDArrayDecoder(), Sort(), FT.ToTensor()],
-            "contents": [NDArrayDecoder(), Sort(), FT.ToTensor()]
+            "domains": [NDArrayDecoder(), Sort(len(self.domains)), FT.ToTensor()],
+            "contents": [NDArrayDecoder(), Sort(len(self.domains)), FT.ToTensor()]
         }
 
     def prepare_data(self):
