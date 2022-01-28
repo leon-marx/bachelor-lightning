@@ -115,156 +115,159 @@ if __name__ == "__main__":
     val_batch = next(iter(log_dm.val_dataloader()))
 
     step = 0
-    for model_name in configs:
-        print(f"Starting loop over {model_name} configurations.")
-        combinations = get_combinations(configs[model_name])
-        # random.shuffle(combinations)
-        for conf in combinations:
-            print(f"Configuration: {conf}")
-            # Default values
-            log_dir = f"logs/sweep/{model_name}"
-            latent_size =  512
-            lamb =  1.0
-            lr =  1e-4
-            depth = 1
-            out_channels = "128,128,256,256,512,512"
-            kernel_size = 3
-            activation = "elu"
-            downsampling = "stride"
-            upsampling = "upsample"
-            dropout = False
-            batch_norm = False
-            loss_mode = "elbo"
-            feature_size = 32
-            mmd_size = 512
-            beta = 1.0
-            dropout_rate = 0.0
-            no_bn_last = False
+    try:
+        for model_name in configs:
+            print(f"Starting loop over {model_name} configurations.")
+            combinations = get_combinations(configs[model_name])
+            # random.shuffle(combinations)
+            for conf in combinations:
+                print(f"Configuration: {conf}")
+                # Default values
+                log_dir = f"logs/sweep/{model_name}"
+                latent_size =  512
+                lamb =  1.0
+                lr =  1e-4
+                depth = 1
+                out_channels = "128,128,256,256,512,512"
+                kernel_size = 3
+                activation = "elu"
+                downsampling = "stride"
+                upsampling = "upsample"
+                dropout = False
+                batch_norm = False
+                loss_mode = "elbo"
+                feature_size = 32
+                mmd_size = 512
+                beta = 1.0
+                dropout_rate = 0.0
+                no_bn_last = False
 
 
-            if "latent_size" in conf:
-                latent_size = conf["latent_size"]
-                log_dir += f"_{latent_size}"
-            if "feature_size" in conf:
-                feature_size = conf["feature_size"]
-                log_dir += f"_{feature_size}"
-            if "mmd_size" in conf:
-                feature_size = conf["mmd_size"]
-                log_dir += f"_{mmd_size}"
-            if "lamb" in conf:
-                lamb = conf["lamb"]
-                lamb_string = "{:e}".format(lamb)
-                lamb_string = lamb_string.replace(".", "-")
-                log_dir += f"_{lamb_string}"
-            if "beta" in conf:
-                beta = conf["beta"]
-                beta_string = "{:e}".format(beta)
-                beta_string = beta_string.replace(".", "-")
-                log_dir += f"_{beta_string}"
-            if "dropout_rate" in conf:
-                dropout_rate = conf["dropout_rate"]
-                dropout_rate_string = "{:e}".format(dropout_rate)
-                dropout_rate_string = dropout_rate_string.replace(".", "-")
-                log_dir += f"_{dropout_rate_string}"
-            if "lr" in conf:
-                lr = conf["lr"]
-                lr_string = "{:e}".format(lr)
-                lr_string = lr_string.replace(".", "-")
-                log_dir += f"_{lr_string}"
-            if "depth" in conf:
-                depth = conf["depth"]
-                log_dir += f"_{depth}"
-            if "kernel_size" in conf:
-                kernel_size = conf["kernel_size"]
-                log_dir += f"_{kernel_size}"
-            if "activation" in conf:
-                activation = conf["activation"]
-                log_dir += f"_{activation}"
-            if "downsampling" in conf:
-                downsampling = conf["downsampling"]
-                log_dir += f"_{downsampling}"
-            if "upsampling" in conf:
-                upsampling = conf["upsampling"]
-                log_dir += f"_{upsampling}"
-            if "dropout" in conf:
-                dropout = conf["dropout"]
-                log_dir += f"_{dropout}"
-            if "batch_norm" in conf:
-                batch_norm = conf["batch_norm"]
-                log_dir += f"_{batch_norm}"
-            if "out_channels" in conf:
-                out_channels = conf["out_channels"]
-                log_dir += f"_{out_channels.replace(',', '-')}"
-            if "loss_mode" in conf:
-                loss_mode = conf["loss_mode"]
-                log_dir += f"_{loss_mode}"
+                if "latent_size" in conf:
+                    latent_size = conf["latent_size"]
+                    log_dir += f"_{latent_size}"
+                if "feature_size" in conf:
+                    feature_size = conf["feature_size"]
+                    log_dir += f"_{feature_size}"
+                if "mmd_size" in conf:
+                    feature_size = conf["mmd_size"]
+                    log_dir += f"_{mmd_size}"
+                if "lamb" in conf:
+                    lamb = conf["lamb"]
+                    lamb_string = "{:e}".format(lamb)
+                    lamb_string = lamb_string.replace(".", "-")
+                    log_dir += f"_{lamb_string}"
+                if "beta" in conf:
+                    beta = conf["beta"]
+                    beta_string = "{:e}".format(beta)
+                    beta_string = beta_string.replace(".", "-")
+                    log_dir += f"_{beta_string}"
+                if "dropout_rate" in conf:
+                    dropout_rate = conf["dropout_rate"]
+                    dropout_rate_string = "{:e}".format(dropout_rate)
+                    dropout_rate_string = dropout_rate_string.replace(".", "-")
+                    log_dir += f"_{dropout_rate_string}"
+                if "lr" in conf:
+                    lr = conf["lr"]
+                    lr_string = "{:e}".format(lr)
+                    lr_string = lr_string.replace(".", "-")
+                    log_dir += f"_{lr_string}"
+                if "depth" in conf:
+                    depth = conf["depth"]
+                    log_dir += f"_{depth}"
+                if "kernel_size" in conf:
+                    kernel_size = conf["kernel_size"]
+                    log_dir += f"_{kernel_size}"
+                if "activation" in conf:
+                    activation = conf["activation"]
+                    log_dir += f"_{activation}"
+                if "downsampling" in conf:
+                    downsampling = conf["downsampling"]
+                    log_dir += f"_{downsampling}"
+                if "upsampling" in conf:
+                    upsampling = conf["upsampling"]
+                    log_dir += f"_{upsampling}"
+                if "dropout" in conf:
+                    dropout = conf["dropout"]
+                    log_dir += f"_{dropout}"
+                if "batch_norm" in conf:
+                    batch_norm = conf["batch_norm"]
+                    log_dir += f"_{batch_norm}"
+                if "out_channels" in conf:
+                    out_channels = conf["out_channels"]
+                    log_dir += f"_{out_channels.replace(',', '-')}"
+                if "loss_mode" in conf:
+                    loss_mode = conf["loss_mode"]
+                    log_dir += f"_{loss_mode}"
 
-                
+                    
 
-            if args.restart or not os.path.isdir(f"{log_dir}"):
-                # Configuration
-                os.makedirs(log_dir, exist_ok=True)
-                callbacks = [
-                    Logger(log_dir, train_batch, val_batch, domains, contents, images_on_val=args.iov)
-                ]
-                
-                print("Args:")
-                for k, v in sorted(conf.items()):
-                    print(f"    {k}: {v}")
+                if args.restart or not os.path.isdir(f"{log_dir}"):
+                    # Configuration
+                    os.makedirs(log_dir, exist_ok=True)
+                    callbacks = [
+                        Logger(log_dir, train_batch, val_batch, domains, contents, images_on_val=args.iov)
+                    ]
+                    
+                    print("Args:")
+                    for k, v in sorted(conf.items()):
+                        print(f"    {k}: {v}")
 
-                # Model
-                out_channels = list(map(int, out_channels.split(",")))
-                if activation == "relu":
-                    activation = torch.nn.ReLU()
-                if activation == "gelu":
-                    activation = torch.nn.GELU()
-                if activation == "lrelu":
-                    activation = torch.nn.LeakyReLU()
-                if activation == "elu":
-                    activation = torch.nn.ELU()
-                if activation == "selu":
-                    activation = torch.nn.SELU()
-                if model_name == "CVAE":
-                    model = CVAE(num_domains=num_domains, num_contents=num_contents,
-                                latent_size=latent_size, lamb=lamb, lr=lr)
-                if model_name == "AE":
-                    model = AE(num_domains=num_domains, num_contents=num_contents,
-                                latent_size=latent_size, lr=lr)
-                if model_name == "AE_v2":
-                    model = AE_v2(num_domains=num_domains, num_contents=num_contents,
-                                latent_size=latent_size, lr=lr)
-                if model_name == "AE_v3":
-                    model = AE_v3(num_domains=num_domains, num_contents=num_contents, 
-                                latent_size=latent_size, lr=lr, depth=depth, out_channels=out_channels, 
-                                kernel_size=kernel_size, activation=activation, downsampling=downsampling, 
-                                upsampling=upsampling, dropout=dropout, batch_norm=batch_norm, loss_mode=loss_mode)
-                if model_name == "DCCVAE":
-                    model = DCCVAE(num_domains=num_domains, num_contents=num_contents, lr=lr,
-                                latent_size=latent_size, feature_size=feature_size, loss_mode=loss_mode, lamb=lamb)
-                if model_name == "trVAE":
-                    model = trVAE(num_domains=num_domains, num_contents=num_contents, latent_size=latent_size,
-                                feature_size=feature_size, mmd_size=mmd_size, dropout_rate=dropout_rate,
-                                lr=lr, lamb=lamb, beta=beta)
+                    # Model
+                    out_channels = list(map(int, out_channels.split(",")))
+                    if activation == "relu":
+                        activation = torch.nn.ReLU()
+                    if activation == "gelu":
+                        activation = torch.nn.GELU()
+                    if activation == "lrelu":
+                        activation = torch.nn.LeakyReLU()
+                    if activation == "elu":
+                        activation = torch.nn.ELU()
+                    if activation == "selu":
+                        activation = torch.nn.SELU()
+                    if model_name == "CVAE":
+                        model = CVAE(num_domains=num_domains, num_contents=num_contents,
+                                    latent_size=latent_size, lamb=lamb, lr=lr)
+                    if model_name == "AE":
+                        model = AE(num_domains=num_domains, num_contents=num_contents,
+                                    latent_size=latent_size, lr=lr)
+                    if model_name == "AE_v2":
+                        model = AE_v2(num_domains=num_domains, num_contents=num_contents,
+                                    latent_size=latent_size, lr=lr)
+                    if model_name == "AE_v3":
+                        model = AE_v3(num_domains=num_domains, num_contents=num_contents, 
+                                    latent_size=latent_size, lr=lr, depth=depth, out_channels=out_channels, 
+                                    kernel_size=kernel_size, activation=activation, downsampling=downsampling, 
+                                    upsampling=upsampling, dropout=dropout, batch_norm=batch_norm, loss_mode=loss_mode)
+                    if model_name == "DCCVAE":
+                        model = DCCVAE(num_domains=num_domains, num_contents=num_contents, lr=lr,
+                                    latent_size=latent_size, feature_size=feature_size, loss_mode=loss_mode, lamb=lamb)
+                    if model_name == "trVAE":
+                        model = trVAE(num_domains=num_domains, num_contents=num_contents, latent_size=latent_size,
+                                    feature_size=feature_size, mmd_size=mmd_size, dropout_rate=dropout_rate,
+                                    lr=lr, lamb=lamb, beta=beta)
 
 
-                # Trainer
-                trainer = pl.Trainer(
-                    gpus=args.gpus,
-                    strategy="dp",
-                    precision=16,
-                    default_root_dir=log_dir,
-                    logger=pl.loggers.TensorBoardLogger(save_dir=os.getcwd(),
-                                                        name=log_dir),
-                    callbacks=callbacks,
-                    gradient_clip_val=0.5,
-                    gradient_clip_algorithm="value",
-                    max_epochs=args.max_epochs,
-                    enable_checkpointing=False,
-                    log_every_n_steps=5
-                )
+                    # Trainer
+                    trainer = pl.Trainer(
+                        gpus=args.gpus,
+                        strategy="dp",
+                        precision=16,
+                        default_root_dir=log_dir,
+                        logger=pl.loggers.TensorBoardLogger(save_dir=os.getcwd(),
+                                                            name=log_dir),
+                        callbacks=callbacks,
+                        gradient_clip_val=0.5,
+                        gradient_clip_algorithm="value",
+                        max_epochs=args.max_epochs,
+                        enable_checkpointing=False,
+                        log_every_n_steps=5
+                    )
 
-                # Main
-                trainer.logger.log_hyperparams(model.hyper_param_dict)
-                trainer.fit(model, dm)
-                print(f"Completed step {step}!")
-            step += 1
+                    # Main
+                    trainer.logger.log_hyperparams(model.hyper_param_dict)
+                    trainer.fit(model, dm)
+                    print(f"Completed step {step}!")
+                step += 1
+    except KeyboardInterrupt:
+        print("Interrupted the sweep!")
