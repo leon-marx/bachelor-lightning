@@ -32,8 +32,8 @@ if __name__ == "__main__":
     writer = DatasetWriter(write_path, {
         # Tune options to optimize dataset size, throughput at train-time
         "images": RGBImageField(),
-        "domains": NDArrayField(dtype=np.int_, shape=(len(domains),)),
-        "contents": NDArrayField(dtype=np.int_, shape=(len(contents),))
+        "domains": NDArrayField(dtype=np.dtype("int_"), shape=(len(domains),)),
+        "contents": NDArrayField(dtype=np.dtype("int_"), shape=(len(contents),))
     }, num_workers=20)
 
     # Write dataset
