@@ -15,6 +15,7 @@ from models.ae_v2 import AE_v2
 from models.ae_v3 import AE_v3
 from models.dccvae import DCCVAE
 from models.trvae import trVAE
+from models.mmd_cvae import MMD_CVAE
 from callbacks.logger import Logger
 
 
@@ -57,7 +58,7 @@ if __name__ == "__main__":
         #     "activation": ["selu", "elu", "relu"],
         #     "loss_mode": ["l1", "l2"]
         # },
-        "DC_CVAE": {
+        "DCCVAE": {
             "latent_size": [128, 512, 1024],
             "feature_size": [32, 64, 128],
             "lr": [1e-3, 1e-4, 1e-5],
@@ -71,6 +72,18 @@ if __name__ == "__main__":
             "lr": [1e-3, 1e-4, 1e-5],
             "lamb": [1e-5, 1e-4, 1e-3, 1e-2, 1e-1, 1.0, 1e+1],
             "beta": [1e-5, 1e-4, 1e-3, 1e-2, 1e-1, 1.0, 1e+1],
+            },
+        "MMD_CVAE": {
+            "latent_size": [128, 512],
+            "lr": [1e-3, 1e-4, 1e-5],
+            "lamb": [1e-5, 1e-4, 1e-3, 1e-2, 1e-1, 1.0, 1e+1],
+            "beta": [1e-5, 1e-4, 1e-3, 1e-2, 1e-1, 1.0, 1e+1],
+            "out_channels": [
+                "128,128,256,256,512,512",
+                "256,256,512,512,1024,1024"
+            ],
+            "loss_mode": ["mmd"],
+            "depth": [1, 2]
             },
     }
     ####################
@@ -110,7 +123,7 @@ if __name__ == "__main__":
             print(f"Configuration: {conf}")
             # Default values
             log_dir = f"logs/sweep/{model_name}"
-            latent_size =  128
+            latent_size =  512
             lamb =  1.0
             lr =  1e-4
             depth = 1
@@ -120,12 +133,13 @@ if __name__ == "__main__":
             downsampling = "stride"
             upsampling = "upsample"
             dropout = False
-            batch_norm = True
-            loss_mode = "l1"
+            batch_norm = False
+            loss_mode = "elbo"
             feature_size = 32
             mmd_size = 512
             beta = 1.0
             dropout_rate = 0.0
+            no_bn_last = False
 
 
             if "latent_size" in conf:

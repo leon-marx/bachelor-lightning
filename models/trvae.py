@@ -63,7 +63,7 @@ class trVAE(pl.LightningModule):
         enc_logvar: Tensor of shape (batch_size * num_domains, latent_size)
         reconstructions: Tensor of shape (batch_size * num_domains, channels, height, width)
         split_loss: bool, if True, returns kld and rec losses separately
-        y: Tensor of shape (batch_size * num_domains, mmd_size)
+        y_mmd: Tensor of shape (batch_size * num_domains, mmd_size)
         """
         rec = torch.nn.functional.mse_loss(images, reconstructions, reduction="none").mean(dim=[0, 1, 2, 3])
         kld = self.lamb * 0.5 * (enc_mu ** 2 + enc_logvar.exp() - enc_logvar - 1).mean(dim=[0, 1])
