@@ -77,7 +77,7 @@ class PACSDataset(Dataset):
         filenames = []
         for domain in self.domains:
             if idx >= len(self.data[domain]):
-                idx = np.random.randint(low=0, high=len(self.data[domain]))
+                idx = torch.randint(low=0, high=len(self.data[domain]), size=(1,)).item()
             img_path = f"{self.data_dir}/{self.data[domain][idx]}"
             # image = read_image(img_path)
             with Image.open(img_path) as image:
