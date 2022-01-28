@@ -12,7 +12,7 @@ from ffcv import transforms as FT
 
 class SetToTanhRange(torch.nn.Module):
     def __init__(self):
-        self.super().__init__()
+        super().__init__()
 
     def forward(self, x):
         return 2.0 * x - 1.0
@@ -20,7 +20,7 @@ class SetToTanhRange(torch.nn.Module):
 
 class Sort(torch.nn.Module):
     def __init__(self, num_domains):
-        self.super().__init__()
+        super().__init__()
         self.num_domains = num_domains
 
     def forward(self, x):
