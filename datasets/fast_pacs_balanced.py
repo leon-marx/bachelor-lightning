@@ -130,13 +130,13 @@ class BalancedPACSDataModule(pl.LightningDataModule):
             self.pacs_test = PACSDataset(root=self.root, mode="test", domains=self.domains, contents=self.contents)
 
     def train_dataloader(self):
-        return Loader(self.train_path, batch_size=self.batch_size, num_workers=self.num_workers, order=self.order_dict[True], pipeline=self.pipeline)
+        return Loader(self.train_path, batch_size=self.batch_size, num_workers=self.num_workers, order=self.order_dict[True], pipelines=self.pipeline)
     
     def val_dataloader(self):
-        return Loader(self.val_path, batch_size=self.batch_size, num_workers=self.num_workers, order=self.order_dict[self.shuffle_all], pipeline=self.pipeline)
+        return Loader(self.val_path, batch_size=self.batch_size, num_workers=self.num_workers, order=self.order_dict[self.shuffle_all], pipelines=self.pipeline)
     
     def test_dataloader(self):
-        return Loader(self.test_path, batch_size=self.batch_size, num_workers=self.num_workers, order=self.order_dict[self.shuffle_all], pipeline=self.pipeline)
+        return Loader(self.test_path, batch_size=self.batch_size, num_workers=self.num_workers, order=self.order_dict[self.shuffle_all], pipelines=self.pipeline)
     
 
 if __name__ == "__main__":
