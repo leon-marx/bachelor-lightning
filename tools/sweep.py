@@ -39,7 +39,7 @@ if __name__ == "__main__":
     parser.add_argument("--restart", action="store_true", default=False)
     parser.add_argument("--gpus", type=str, default="3,")
     parser.add_argument("--max_epochs", type=int, default=25)
-    parser.add_argument("--iov", action="store_true", default=True)
+    parser.add_argument("--iov", type=int, default=1)
     args = parser.parse_args()
     #################### EDIT THIS IN ORDER TO CHANGE THE SWEEP
     configs = {
@@ -206,7 +206,7 @@ if __name__ == "__main__":
                     # Configuration
                     os.makedirs(log_dir, exist_ok=True)
                     callbacks = [
-                        Logger(log_dir, train_batch, val_batch, domains, contents, images_on_val=args.iov)
+                        Logger(log_dir, train_batch, val_batch, domains, contents, images_on_val=(args.iov == 1))
                     ]
                     
                     print("Args:")
