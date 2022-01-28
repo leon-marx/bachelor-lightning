@@ -149,7 +149,7 @@ if __name__ == "__main__":
                             feature_size = conf["feature_size"]
                             log_dir += f"_{feature_size}"
                         if "mmd_size" in conf:
-                            feature_size = conf["mmd_size"]
+                            mmd_size = conf["mmd_size"]
                             log_dir += f"_{mmd_size}"
                         if "lamb" in conf:
                             lamb = conf["lamb"]
