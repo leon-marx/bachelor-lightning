@@ -149,22 +149,22 @@ if __name__ == "__main__":
     root = "data"
     ds = PACSDataset(root, "train", domains, contents)
     ds.__getitem__(0)
-    dm = BalancedPACSDataModule(root=root, domains=domains, contents=contents, batch_size=batch_size, num_workers=num_workers)
-    dm.setup()
-    # import numpy as np
-    # import matplotlib.pyplot as plt
-    # def gauss(x):
-    #     return 1 / np.sqrt(2 * np.pi) * np.exp(-x ** 2 / 2)
-    # xx = np.linspace(-4, 4, 100)
-    for (img, domain, content) in dm.train_dataloader():
-        print(img.shape)
-        print(domain.shape)
-        print(content.shape)
-        print(domain)
-        # print(fname)
-        # plt.hist(img.flatten().numpy(), density=True)
-        # plt.plot(xx, gauss(xx))
-        # plt.show()
-        # plt.close()
-        print(img.min(), img.max())
-    # torch.save(data, "debugging/data.pt")
+    # dm = BalancedPACSDataModule(root=root, domains=domains, contents=contents, batch_size=batch_size, num_workers=num_workers)
+    # dm.setup()
+    # # import numpy as np
+    # # import matplotlib.pyplot as plt
+    # # def gauss(x):
+    # #     return 1 / np.sqrt(2 * np.pi) * np.exp(-x ** 2 / 2)
+    # # xx = np.linspace(-4, 4, 100)
+    # for (img, domain, content) in dm.train_dataloader():
+    #     print(img.shape)
+    #     print(domain.shape)
+    #     print(content.shape)
+    #     print(domain)
+    #     # print(fname)
+    #     # plt.hist(img.flatten().numpy(), density=True)
+    #     # plt.plot(xx, gauss(xx))
+    #     # plt.show()
+    #     # plt.close()
+    #     print(img.min(), img.max())
+    # # torch.save(data, "debugging/data.pt")
