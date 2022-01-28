@@ -202,6 +202,18 @@ class CVAE_v3(pl.LightningModule):
 
         return reconstructions
 
+    def generate(self, codes, domains, contents):
+        """
+        Generate images from Gaussian distributed codes.
+        """
+        with torch.no_grad():
+            self.eval()
+            x = torch.cat((codes, domains, contents), dim=1)
+            x = self.decoder.linear(x)
+            x = self.decoder.reshape(x)
+            reconstructions = self.decoder.dec_conv_sequential(x)
+            self.train()
+            return reconstructions
 
 class Encoder(torch.nn.Module):
     def __init__(self, num_domains, num_contents, latent_size, depth, out_channels, kernel_size, activation, downsampling, dropout, batch_norm):

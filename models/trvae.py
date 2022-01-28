@@ -192,6 +192,21 @@ class trVAE(pl.LightningModule):
 
         return reconstructions
 
+    def generate(self, codes, domains, contents):
+        """
+        Generate images from Gaussian distributed codes.
+        """
+        with torch.no_grad():
+            self.eval()
+            domain = self.encoder.encode_domain(domains.float())
+            x = torch.cat((codes, domain), dim=1)
+            mmd = self.encoder.get_mmd(x)
+            preconv = self.encoder.pre_conv(mmd)
+            preconv = self.encoder.reshape(preconv)
+            reconstructions = self.encoder.dec_conv_sequential(preconv)
+            reconstructions = self.encoder.final_conv(reconstructions)
+            self.train()
+            return reconstructions
 
 class Encoder(torch.nn.Module):
     def __init__(self, num_domains, num_contents, latent_size, feature_size, mmd_size, dropout_rate):

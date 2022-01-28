@@ -176,7 +176,7 @@ class Logger(Callback):
                 # for content_name in self.contents:
                     domains = torch.nn.functional.one_hot(self.domain_dict[domain_name], num_classes=len(self.domains)).repeat(codes.shape[0], 1).to(pl_module.device)
                     contents = torch.nn.functional.one_hot(self.content_dict[content_name], num_classes=len(self.contents)).repeat(codes.shape[0], 1).to(pl_module.device)
-                    reconstructions = pl_module.decoder(codes, domains, contents)
+                    reconstructions = pl_module.generate(codes, domains, contents)
                     reconstructions = (reconstructions + 1.0) / 2.0
                     gen_grid = torchvision.utils.make_grid(reconstructions)
                     torchvision.utils.save_image(gen_grid, f"{self.output_dir}/version_{trainer.logger.version}/images/generated_{domain_name}_{content_name}.png")
