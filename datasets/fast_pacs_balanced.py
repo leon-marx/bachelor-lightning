@@ -1,4 +1,5 @@
 import os
+from tkinter import Pack
 from PIL import Image
 import pytorch_lightning as pl
 import torch
@@ -146,6 +147,8 @@ if __name__ == "__main__":
     batch_size = 4
     num_workers = 20
     root = "data"
+    ds = PACSDataset(root, "train", domains, contents)
+    ds.__getitem__(0)
     dm = BalancedPACSDataModule(root=root, domains=domains, contents=contents, batch_size=batch_size, num_workers=num_workers)
     dm.setup()
     # import numpy as np
