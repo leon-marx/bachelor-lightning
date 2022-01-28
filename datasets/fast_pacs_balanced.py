@@ -75,7 +75,8 @@ class PACSDataset(Dataset):
                 images.append(image)
                 domains.append(domain)
                 contents.append(content)
-        return images, domains, contents
+        print(torch.stack(images), torch.stack(domains), torch.stack(contents))
+        return torch.stack(images), torch.stack(domains), torch.stack(contents)
 
         
 class BalancedPACSDataModule(pl.LightningDataModule):
