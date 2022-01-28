@@ -127,7 +127,7 @@ class BalancedPACSDataModule(pl.LightningDataModule):
                 TT.ColorJitter(0.3, 0.3, 0.3, 0.3),
                 TT.RandomGrayscale(),
                 FT.ToTensor(),
-                RandomResizedCrop(self.num_domains, size=224, scale=(0.7, 1.0)),
+                RandomResizedCrop(len(self.domains), size=224, scale=(0.7, 1.0)),
                 SetToTanhRange(),
                 Sort(len(self.domains))
             ],
