@@ -89,8 +89,8 @@ class trVAE(pl.LightningModule):
         else:
             return kld + rec + mmd
 
-    def log(self, name, value, *args, **kwargs):
-        print(f"{name}: {value}")
+    # def log(self, name, value, *args, **kwargs):
+    #     print(f"{name}: {value}")
 
     def forward(self, images, domains, contents):
         """
