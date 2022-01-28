@@ -224,10 +224,10 @@ if __name__ == "__main__":
                                 latent_size=latent_size, lr=lr, depth=depth, out_channels=out_channels, 
                                 kernel_size=kernel_size, activation=activation, downsampling=downsampling, 
                                 upsampling=upsampling, dropout=dropout, batch_norm=batch_norm, loss_mode=loss_mode)
-                if args.model == "DCCVAE":
+                if model_name == "DCCVAE":
                     model = DCCVAE(num_domains=num_domains, num_contents=num_contents, lr=lr,
                                 latent_size=latent_size, feature_size=feature_size, loss_mode=loss_mode, lamb=lamb)
-                if args.model == "trVAE":
+                if model_name == "trVAE":
                     model = trVAE(num_domains=num_domains, num_contents=num_contents, latent_size=latent_size,
                                 feature_size=feature_size, mmd_size=mmd_size, dropout_rate=dropout_rate,
                                 lr=lr, lamb=lamb, beta=beta)
