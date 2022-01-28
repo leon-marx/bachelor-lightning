@@ -3,10 +3,11 @@ from PIL import Image
 import pytorch_lightning as pl
 import torch
 from torch.utils.data import Dataset
+from torchvision import transforms as TT
 
 from ffcv.loader import Loader, OrderOption
 from ffcv.fields.decoders import NDArrayDecoder, RandomResizedCropRGBImageDecoder
-from ffcv import transforms
+from ffcv import transforms as FT
 
 
 class SetToTanhRange(torch.nn.Module):
@@ -107,15 +108,15 @@ class BalancedPACSDataModule(pl.LightningDataModule):
         self.pipeline = {
             "images": [
                 RandomResizedCropRGBImageDecoder(224, scale=(0.7, 1.0), ratio=(0.995, 1.005)),
-                transforms.RandomHorizontalFlip(),
-                transforms.ColorJitter(0.3, 0.3, 0.3, 0.3),
-                transforms.RandomGrayscale(),
-                transforms.ToTensor(),
+                FT.RandomHorizontalFlip(),
+                TT.ColorJitter(0.3, 0.3, 0.3, 0.3),
+                TT.RandomGrayscale(),
+                FT.ToTensor(),
                 SetToTanhRange(),
                 Sort()
             ],
-            "domains": [NDArrayDecoder(), Sort(), transforms.ToTensor()],
-            "contents": [NDArrayDecoder(), Sort(), transforms.ToTensor()]
+            "domains": [NDArrayDecoder(), Sort(), FT.ToTensor()],
+            "contents": [NDArrayDecoder(), Sort(), FT.ToTensor()]
         }
 
     def prepare_data(self):
