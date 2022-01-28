@@ -50,6 +50,7 @@ class PACSDataset(Dataset):
         self.data_dir = f"{root}/PACS_{mode}"
         self.data = {domain: [] for domain in self.domains}
         self.to_tensor = TT.ToTensor()
+        self.to_img = TT.ToPILImage()
         for domain in os.listdir(f"{self.data_dir}"):
             if domain in self.domains:
                 for content in os.listdir(f"{self.data_dir}/{domain}"):
@@ -76,8 +77,7 @@ class PACSDataset(Dataset):
                 images.append(self.to_tensor(image))
                 domains.append(domain)
                 contents.append(content)
-        print(torch.stack(images), torch.stack(domains), torch.stack(contents))
-        return torch.stack(images), torch.stack(domains), torch.stack(contents)
+        return self.to_img(torch.stack(images)), torch.stack(domains), torch.stack(contents)
 
         
 class BalancedPACSDataModule(pl.LightningDataModule):
