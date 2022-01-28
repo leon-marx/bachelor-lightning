@@ -45,9 +45,5 @@ def mmd_loss(y):
     return term_00 + term_11 - 2 * term_01
 
 if __name__ == "__main__":
-    import itertools
-    import numpy as np
     a = torch.arange(4 * 3 * 16 * 16).view(4, 3, 16, 16)
     b = a * 10
-    c = itertools.product(a, b)
-    print(torch.Tensor(np.array(c)))
