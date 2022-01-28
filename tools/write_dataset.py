@@ -31,7 +31,7 @@ if __name__ == "__main__":
     # Pass a type for each data field
     writer = DatasetWriter(write_path, {
         # Tune options to optimize dataset size, throughput at train-time
-        "images": RGBImageField(),
+        "images": NDArrayField(dtype=np.dtype("int_"), shape=(3, 3, 224, 224)),
         "domains": NDArrayField(dtype=np.dtype("int_"), shape=(len(domains),)),
         "contents": NDArrayField(dtype=np.dtype("int_"), shape=(len(contents),))
     }, num_workers=20)
