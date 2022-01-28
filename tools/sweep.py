@@ -205,8 +205,7 @@ if __name__ == "__main__":
                 )
 
                 # Main
-                if model_name == "AE_v3":
-                    trainer.logger.log_hyperparams(model.hyper_param_dict)
+                trainer.logger.log_hyperparams(model.hyper_param_dict)
                 trainer.fit(model, dm)
                 print(f"Completed step {step}!")
             step += 1

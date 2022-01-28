@@ -65,8 +65,8 @@ class trVAE(pl.LightningModule):
         split_loss: bool, if True, returns kld and rec losses separately
         y: Tensor of shape (batch_size * num_domains, mmd_size)
         """
-        rec = torch.nn.functional.mse_loss(images, reconstructions, reduction="none").sum(dim=[0, 1, 2, 3])
-        kld = 0.5 * (enc_mu ** 2 + enc_logvar.exp() - enc_logvar - 1).sum(dim=[0, 1])
+        rec = torch.nn.functional.mse_loss(images, reconstructions, reduction="none").mean(dim=[0, 1, 2, 3])
+        kld = self.lamb * 0.5 * (enc_mu ** 2 + enc_logvar.exp() - enc_logvar - 1).mean(dim=[0, 1])
         mmd = 0
 
         n = int(y_mmd.shape[0] / self.num_domains)
@@ -74,25 +74,23 @@ class trVAE(pl.LightningModule):
         sigmas = [1e-6, 1e-5, 1e-4, 1e-3, 1e-2, 1e-1, 1, 5, 10, 15, 20, 25, 30, 35, 100, 1e3, 1e4, 1e5, 1e6]
         for i in range(len(labeled_y)):
             for j in range(i+1):
-                combinations = []
-                for item_1 in labeled_y[i]:
-                    for item_2 in labeled_y[j]:
-                        combinations.append([item_1, item_2])
                 k = 0
-                for comb in combinations:
-                    e = torch.exp(-(comb[0] - comb[1]) ** 2).sum()
-                    for sigma in sigmas:
-                        k += e ** sigma
+                for x1 in labeled_y[i]:
+                    for x2 in labeled_y[j]:
+                        e = torch.exp(-(x1 - x2) ** 2).mean()
+                        for sigma in sigmas:
+                            k += e ** sigma * self.beta
                 if i == j:
-                    mmd += k
+                    mmd += k / n ** 2
                 else:
-                    mmd -= 2 * k
-        kld *= self.lamb
-        mmd *= self.beta
+                    mmd -= 2 * k / n ** 2
         if split_loss:
             return kld + rec + mmd, kld.item(), rec.item(), mmd.item()
         else:
             return kld + rec + mmd
+
+    def log(self, name, value, *args, **kwargs):
+        print(f"{name}: {value}")
 
     def forward(self, images, domains, contents):
         """
