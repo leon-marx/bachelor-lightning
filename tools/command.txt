@@ -1,3 +1,17 @@
-x = self.reshape(x)
-        reconstructions = self.dec_conv_sequential(x)
-        return reconstructions
+python -m tools.train\
+    --batch_size 4\
+    --model trVAE\
+    --latent_size 1024\
+    --lr 1e-4\
+    --feature_size 64\
+    --gpus 3,\
+    --output_dir logs/trvae\
+    --mmd_size 512\
+    --ckpt_path 0\
+    --lamb 0.1\
+    --datadir data/variants/PACS_small\
+    --domains PAC\
+    --log_every_n_steps 25\
+    --beta 0.1\
+    --dropout_rate 0.2\
+    --balanced_data
