@@ -206,8 +206,10 @@ if __name__ == "__main__":
                     if args.restart or not os.path.isdir(f"{log_dir}"):
                         # Configuration
                         os.makedirs(log_dir, exist_ok=True)
+                        iov = args.iov == 1
+                        print(f"Images on val: {iov}")
                         callbacks = [
-                            Logger(log_dir, train_batch, val_batch, domains, contents, images_on_val=(args.iov == 1))
+                            Logger(log_dir, train_batch, val_batch, domains, contents, images_on_val=iov)
                         ]
                         
                         print("Args:")
