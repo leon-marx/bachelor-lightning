@@ -49,6 +49,7 @@ class PACSDataset(Dataset):
         self.content_dict = {content: torch.LongTensor([i]) for i, content in enumerate(self.contents)}
         self.data_dir = f"{root}/PACS_{mode}"
         self.data = {domain: [] for domain in self.domains}
+        self.to_tensor = TT.ToTensor()
         for domain in os.listdir(f"{self.data_dir}"):
             if domain in self.domains:
                 for content in os.listdir(f"{self.data_dir}/{domain}"):
@@ -72,7 +73,7 @@ class PACSDataset(Dataset):
                 domain_name, content_name, _ = self.data[domain][idx].split("/")
                 domain = torch.nn.functional.one_hot(self.domain_dict[domain_name], num_classes=len(self.domains)).view(-1)
                 content = torch.nn.functional.one_hot(self.content_dict[content_name], num_classes=len(self.contents)).view(-1)
-                images.append(TT.functional.ToTensor(image))
+                images.append(self.to_tensor(image))
                 domains.append(domain)
                 contents.append(content)
         print(torch.stack(images), torch.stack(domains), torch.stack(contents))
