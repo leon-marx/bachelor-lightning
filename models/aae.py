@@ -35,7 +35,7 @@ class AAE(pl.LightningModule):
         self.lamb = lamb
         self.no_bn_last = no_bn_last
         self.get_mse_loss = torch.nn.MSELoss(reduction="mean")
-        self.get_bce_loss = torch.nn.BCELoss(reduction="mean")
+        self.get_bce_loss = torch.nn.BCEWithLogitsLoss(reduction="mean")
         self.hyper_param_dict = {
             "num_domains": self.num_domains,
             "num_contents": self.num_contents,
@@ -580,7 +580,6 @@ class Discriminator(torch.nn.Module):
                 self.activation,
                 torch.nn.Dropout(),
                 torch.nn.Linear(in_features=1024, out_features=2),
-                torch.nn.Sigmoid(),
             )
         else:
                 self.sequential = torch.nn.Sequential(
@@ -591,7 +590,6 @@ class Discriminator(torch.nn.Module):
                     torch.nn.Linear(in_features=2048, out_features=1024),
                     self.activation,
                     torch.nn.Linear(in_features=1024, out_features=1),
-                    torch.nn.Sigmoid(),
                 )
     def forward(self, codes):
         """
