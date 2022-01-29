@@ -1,6 +1,7 @@
 from argparse import ArgumentParser
 import os
 from tkinter import Image
+from xml.etree.ElementPath import prepare_child
 import pytorch_lightning as pl
 import torch
 import copy
@@ -120,6 +121,12 @@ if __name__ == "__main__":
     log_dm.setup()
     train_batch = next(iter(log_dm.train_dataloader()))
     val_batch = next(iter(log_dm.val_dataloader()))
+
+    def get_precision(model_name):
+        if model_name == "AEE":
+            return 32
+        else:
+            return 16
 
     step = 0
     try:
@@ -276,7 +283,7 @@ if __name__ == "__main__":
                             trainer = pl.Trainer(
                                 gpus=args.gpus,
                                 strategy="dp",
-                                precision=16,
+                                precision=get_precision(model_name),
                                 default_root_dir=log_dir,
                                 logger=pl.loggers.TensorBoardLogger(save_dir=os.getcwd(),
                                                                     name=log_dir),

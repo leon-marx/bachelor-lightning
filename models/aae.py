@@ -34,6 +34,8 @@ class AAE(pl.LightningModule):
         self.batch_norm = batch_norm
         self.lamb = lamb
         self.no_bn_last = no_bn_last
+        self.get_mse_loss = torch.nn.MSELoss(reduction="mean")
+        self.get_bce_loss = torch.nn.BCELoss(reduction="mean")
         self.hyper_param_dict = {
             "num_domains": self.num_domains,
             "num_contents": self.num_contents,
@@ -93,7 +95,7 @@ class AAE(pl.LightningModule):
         reconstructions: Tensor of shape (batch_size, channels, height, width)
         split_loss: bool, if True, returns kld and rec losses separately
         """
-        loss = torch.nn.functional.mse_loss(images, reconstructions, reduction="none").mean(dim=[0, 1, 2, 3])
+        loss = self.get_mse_loss(images, reconstructions)
         if split_loss:
             return loss, loss.item()
         else:
@@ -103,11 +105,11 @@ class AAE(pl.LightningModule):
         """
         Calculates the discriminator loss.
 
-        y: Tensor of shape (batch_size, latent_size)
-        y_hat: Tensor of shape (batch_size, latent_size)
-        split_loss: bool, if True, returns kld and rec losses separately
+        y: Tensor of shape (batch_size)
+        y_hat: Tensor of shape (batch_size)
+        split_loss: bool, if True, also returns the value
         """
-        loss = torch.nn.functional.binary_cross_entropy(y, y_hat)
+        loss = self.get_bce_loss(y, y_hat)
         if split_loss:
             return loss, loss.item()
         else:
@@ -161,6 +163,7 @@ class AAE(pl.LightningModule):
             fake_pred = self.discriminator(codes.detach())
             fake_truth = torch.ones_like(fake_pred).to(self.device) * 0.1
             fake_loss, fake_value = self.disc_loss(fake_pred, fake_truth, split_loss=True)
+
 
             loss = real_loss + fake_loss
             self.log("real", real_value, batch_size=images.shape[0], prog_bar=True)
