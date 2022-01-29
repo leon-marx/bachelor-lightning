@@ -182,9 +182,9 @@ class AAE(pl.LightningModule):
         domains = batch[1]
         contents = batch[2]
 
-        enc_mu, enc_logvar, reconstructions = self(images, domains, contents)
+        codes, reconstructions = self(images, domains, contents)
 
-        loss = self.loss(images, enc_mu, enc_logvar, reconstructions)
+        loss = self.vae_loss(images, reconstructions)
         self.log("val_loss", loss, batch_size=images.shape[0])
         return loss
 
@@ -203,9 +203,9 @@ class AAE(pl.LightningModule):
         domains = batch[1]
         contents = batch[2]
 
-        enc_mu, enc_logvar, reconstructions = self(images, domains, contents)
+        codes, reconstructions = self(images, domains, contents)
 
-        return self.loss(images, enc_mu, enc_logvar, reconstructions)
+        return self.vae_loss(images, reconstructions)
 
     def configure_optimizers(self):
         opt_ae = torch.optim.Adam(params=list(self.encoder.parameters()) + list(self.decoder.parameters()), lr=self.lr, betas=(0.5, 0.999))
@@ -220,8 +220,8 @@ class AAE(pl.LightningModule):
         domains: Tensor of shape (batch_size, num_domains)
         contents: Tensor of shape (batch_size, num_contents)
         """
-        enc_mu, enc_logvar = self.encoder(images, domains, contents)
-        reconstructions = self.decoder(enc_mu, domains, contents)
+        codes = self.encoder(images, domains, contents)
+        reconstructions = self.decoder(codes, domains, contents)
 
         return reconstructions
 
@@ -232,9 +232,7 @@ class AAE(pl.LightningModule):
         with torch.no_grad():
             self.eval()
             x = torch.cat((codes, domains, contents), dim=1)
-            x = self.decoder.linear(x)
-            x = self.decoder.reshape(x)
-            reconstructions = self.decoder.dec_conv_sequential(x)
+            reconstructions = self.decoder(x)
             self.train()
             return reconstructions
 
