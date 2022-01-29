@@ -237,7 +237,7 @@ class AAE(pl.LightningModule):
         with torch.no_grad():
             self.eval()
             x = torch.cat((codes, domains, contents), dim=1)
-            reconstructions = self.decoder(x)
+            reconstructions = self.decoder(x, domains, contents)
             self.train()
             return reconstructions
 
