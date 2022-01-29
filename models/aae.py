@@ -148,6 +148,7 @@ class AAE(pl.LightningModule):
         # Reconstruction Phase
         if optimizer_idx == 0:
             loss , value = self.vae_loss(images, reconstructions, split_loss=True)
+            self.log("rec_train_loss", loss, batch_size=images.shape[0])
             self.log("rec", value, batch_size=images.shape[0], prog_bar=True)
             return loss
 
@@ -166,6 +167,7 @@ class AAE(pl.LightningModule):
 
 
             loss = real_loss + fake_loss
+            self.log("disc_train_loss", loss, batch_size=images.shape[0])
             self.log("real", real_value, batch_size=images.shape[0], prog_bar=True)
             self.log("fake", fake_value, batch_size=images.shape[0], prog_bar=True)
             return loss
