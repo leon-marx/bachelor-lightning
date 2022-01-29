@@ -121,11 +121,10 @@ class AAE(pl.LightningModule):
         domains: Tensor of shape (batch_size, num_domains)
         contents: Tensor of shape (batch_size, num_contents)
         """
-        enc_mu, enc_logvar = self.encoder(images, domains, contents)
-        codes = enc_mu + torch.randn_like(enc_mu) * (0.5 * enc_logvar).exp()
+        codes = self.encoder(images, domains, contents)
         reconstructions = self.decoder(codes, domains, contents)
 
-        return enc_mu, enc_logvar, reconstructions
+        return codes, reconstructions
 
     def training_step(self, batch, batch_idx, optimizer_idx):
         """
@@ -153,12 +152,15 @@ class AAE(pl.LightningModule):
         # Regularization Phase
         if optimizer_idx == 1:
             # Train Discriminator
-            real_latent_noise = torch.randn_like(codes).to(self.device)
-            real_truth = torch.ones_like(codes).to(self.device) * 0.9
-            real_loss, real_value = self.disc_loss(self.discriminator(real_latent_noise), real_truth, split_loss=True)
+            real_latent_noise = torch.randn_like(codes).to(self.device)#
+
+            real_pred = self.discriminator(real_latent_noise)
+            real_truth = torch.ones_like(real_pred).to(self.device) * 0.9
+            real_loss, real_value = self.disc_loss(real_truth, real_truth, split_loss=True)
             
-            fake_truth = torch.ones_like(codes).to(self.device) * 0.1
-            fake_loss, fake_value = self.disc_loss(self.discriminator(codes.detach()), fake_truth, split_loss=True)
+            fake_pred = self.discriminator(codes.detach())
+            fake_truth = torch.ones_like(fake_pred).to(self.device) * 0.1
+            fake_loss, fake_value = self.disc_loss(fake_pred, fake_truth, split_loss=True)
 
             loss = real_loss + fake_loss
             self.log("real", real_value, batch_size=images.shape[0], prog_bar=True)
@@ -319,11 +321,11 @@ class Encoder(torch.nn.Module):
                 downsampling=self.downsampling,
                 dropout=self.dropout,
                 batch_norm=self.batch_norm
-            ),  # (N, [6], 3, 3)
+            ),  # (N, [6], 4, 4)
         )
         self.flatten = torch.nn.Flatten()
         self.get_code = torch.nn.Sequential(
-            torch.nn.Linear(9 * self.out_channels[6], self.latent_size),
+            torch.nn.Linear(16 * self.out_channels[6], self.latent_size),
             self.activation,
         )
 
@@ -390,10 +392,9 @@ class Encoder(torch.nn.Module):
         x = torch.cat((images, domain_panels, content_panels), dim=1)
         x = self.enc_conv_sequential(x)
         x = self.flatten(x)
-        enc_mu = self.get_mu(x)
-        enc_logvar = self.get_logvar(x)
+        codes= self.get_code(x)
 
-        return enc_mu, enc_logvar
+        return codes
 
 class Decoder(torch.nn.Module):
     def __init__(self, num_domains, num_contents, latent_size, depth, out_channels, kernel_size, activation, upsampling, dropout, batch_norm, no_bn_last):
@@ -410,9 +411,10 @@ class Decoder(torch.nn.Module):
         self.batch_norm = batch_norm
         self.no_bn_last = no_bn_last
         self.linear = torch.nn.Sequential(
-            torch.nn.Linear(self.latent_size + self.num_domains + self.num_contents, 9 * self.out_channels[0]),
+            torch.nn.Linear(self.latent_size + self.num_domains + self.num_contents, 16 * self.out_channels[0]),
             self.activation,
         )
+        self.reshape = lambda x: x.view(-1, self.out_channels[0], 4, 4)
         self.dec_conv_sequential = torch.nn.Sequential(
             *self.block(
                 depth=self.depth,
@@ -423,7 +425,7 @@ class Decoder(torch.nn.Module):
                 upsampling="none",
                 dropout=self.dropout,
                 batch_norm=self.batch_norm
-            ),  # (N, [1], 3, 3)
+            ),  # (N, [1], 4, 4)
             *self.block(
                 depth=self.depth,
                 in_channels=self.out_channels[1],
@@ -513,7 +515,10 @@ class Decoder(torch.nn.Module):
                         if not (i == depth - 1 and last_block):
                             seq.append(torch.nn.BatchNorm2d(num_features=out_channels))
                     seq.append(activation)
-                    seq.append(torch.nn.Upsample(scale_factor=2, mode="nearest"))
+                    if out_channels == self.out_channels[2]:
+                        seq.append(torch.nn.Upsample(size=7, mode="nearest"))
+                    else:
+                        seq.append(torch.nn.Upsample(scale_factor=2, mode="nearest"))
                     if dropout:
                         if not (i == depth - 1 and last_block):
                             seq.append(torch.nn.Dropout2d())
@@ -542,9 +547,6 @@ class Decoder(torch.nn.Module):
                 seq_list += seq       
         return seq_list
 
-    def reshape(self, x):
-        return x.view(-1, self.out_channels[0], 7, 7)
-
     def forward(self, codes, domains, contents):
         """
         Calculates reconstructions of the given latent-space encodings. 
@@ -561,6 +563,7 @@ class Decoder(torch.nn.Module):
 
 class Discriminator(torch.nn.Module):
     def __init__(self, latent_size, activation, dropout):
+        super().__init__()
         self.latent_size = latent_size
         self.activation = activation
         self.dropout = dropout
@@ -603,7 +606,7 @@ if __name__ == "__main__":
     num_contents = 7
     
     lr = 1e-4
-    out_channels = [128, 256, 512, 512, 1024, 1024]
+    out_channels = [128, 256, 512, 512, 1024, 1024, 2048]
 
     latent_size = 128
     depth = 1
@@ -628,4 +631,8 @@ if __name__ == "__main__":
         out_channels=out_channels, kernel_size=kernel_size, activation=activation,
         downsampling=downsampling, upsampling=upsampling, dropout=dropout,
         batch_norm=batch_norm, lamb=lamb)
+    ae_loss = model.training_step(batch, 0, 0)
+    print(f"ae_loss: {ae_loss}")
+    disc_loss = model.training_step(batch, 0, 1)
+    print(f"disc_loss: {disc_loss}")
     print("Done!")
