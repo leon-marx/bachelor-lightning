@@ -16,6 +16,7 @@ from models.ae_v3 import AE_v3
 from models.dccvae import DCCVAE
 from models.trvae import trVAE
 from models.mmd_cvae import MMD_CVAE
+from models.aae import AAE
 from callbacks.logger import Logger
 
 
@@ -62,13 +63,13 @@ if __name__ == "__main__":
         #     "feature_size": [32, 64],
         #     "lamb": [1e-5, 1e-4, 1e-3, 1e-2, 1e-1, 1.0, 1e+1],
         # },
-        "trVAE": {
-            "feature_size": [32, 64],
-            "mmd_size": [512, 1024],
-            "dropout_rate": [0.0, 0.5],
-            "lamb": [1e-5, 1e-3, 1e-1, 1.0, 1e+1],
-            "beta": [1e-5, 1e-3, 1e-1, 1.0, 1e+1],
-            },
+        # "trVAE": {
+        #     "feature_size": [32, 64],
+        #     "mmd_size": [512, 1024],
+        #     "dropout_rate": [0.0, 0.5],
+        #     "lamb": [1e-5, 1e-3, 1e-1, 1.0, 1e+1],
+        #     "beta": [1e-5, 1e-3, 1e-1, 1.0, 1e+1],
+        #     },
         "MMD_CVAE": {
             "lamb": [1e-5, 1e-3, 1e-1, 1.0, 1e+1],
             "beta": [1e-5, 1e-3, 1e-1, 1.0, 1e+1],
@@ -77,7 +78,18 @@ if __name__ == "__main__":
                 "256,256,512,512,1024,1024"
             ],
             "loss_mode": ["mmd"],
-            "depth": [1, 2]
+            "depth": [1, 2],
+            "activation": ["selu", "elu"]
+            },
+        "AAE": {
+            "lamb": [1e-5, 1e-3, 1e-1, 1.0, 1e+1],
+            "beta": [1e-5, 1e-3, 1e-1, 1.0, 1e+1],
+            "out_channels": [
+                "128,128,256,256,512,512",
+                "256,256,512,512,1024,1024"
+            ],
+            "depth": [1, 2],
+            "activation": ["selu", "elu"]
             },
     }
     ####################
@@ -244,6 +256,19 @@ if __name__ == "__main__":
                                 model = trVAE(num_domains=num_domains, num_contents=num_contents, latent_size=latent_size,
                                             feature_size=feature_size, mmd_size=mmd_size, dropout_rate=dropout_rate,
                                             lr=lr, lamb=lamb, beta=beta)
+                            if model_name == "MMD_CVAE":
+                                model = MMD_CVAE(
+                                            num_domains=num_domains, num_contents=num_contents,
+                                            latent_size=latent_size, lr=lr, depth=depth, 
+                                            out_channels=out_channels, kernel_size=kernel_size, activation=activation,
+                                            downsampling=downsampling, upsampling=upsampling, dropout=dropout,
+                                            batch_norm=batch_norm, loss_mode=loss_mode, lamb=lamb, beta=beta)
+                            if model_name == "AAE":
+                                model = AAE(num_domains=num_domains, num_contents=num_contents,
+                                            latent_size=latent_size, lr=lr, depth=depth, 
+                                            out_channels=out_channels, kernel_size=kernel_size, activation=activation,
+                                            downsampling=downsampling, upsampling=upsampling, dropout=dropout,
+                                            batch_norm=batch_norm, lamb=lamb)
 
 
                             # Trainer

@@ -18,7 +18,7 @@ def selu_init(m):
 
 
 class AAE(pl.LightningModule):
-    def __init__(self, num_domains, num_contents, latent_size, lr, depth, out_channels, kernel_size, activation, downsampling, upsampling, dropout, batch_norm, loss_mode, lamb, no_bn_last=True):
+    def __init__(self, num_domains, num_contents, latent_size, lr, depth, out_channels, kernel_size, activation, downsampling, upsampling, dropout, batch_norm, lamb, no_bn_last=True):
         super().__init__()
 
         self.num_domains = num_domains
@@ -32,7 +32,6 @@ class AAE(pl.LightningModule):
         self.upsampling = upsampling
         self.dropout = dropout
         self.batch_norm = batch_norm
-        self.loss_mode = loss_mode
         self.lamb = lamb
         self.no_bn_last = no_bn_last
         self.hyper_param_dict = {
@@ -47,7 +46,6 @@ class AAE(pl.LightningModule):
             "upsampling": self.upsampling,
             "dropout": self.dropout,
             "batch_norm": self.batch_norm,
-            "loss_mode": self.loss_mode,
             "lamb": self.lamb,
             "no_bn_last": self.no_bn_last,
         }
@@ -89,16 +87,13 @@ class AAE(pl.LightningModule):
 
     def vae_loss(self, images, reconstructions, split_loss=False):
         """
-        Calculates the loss. Choose from l1 and l2.
+        Calculates the l2 loss..
 
         images: Tensor of shape (batch_size, channels, height, width)
         reconstructions: Tensor of shape (batch_size, channels, height, width)
         split_loss: bool, if True, returns kld and rec losses separately
         """
-        if self.loss_mode == "l1":
-            loss = torch.abs(images - reconstructions).mean(dim=[0, 1, 2, 3])
-        if self.loss_mode == "l2":
-            loss = torch.nn.functional.mse_loss(images, reconstructions, reduction="none").mean(dim=[0, 1, 2, 3])
+        loss = torch.nn.functional.mse_loss(images, reconstructions, reduction="none").mean(dim=[0, 1, 2, 3])
         if split_loss:
             return loss, loss.item()
         else:
@@ -116,7 +111,7 @@ class AAE(pl.LightningModule):
         if split_loss:
             return loss, loss.item()
         else:
-            return lossS
+            return loss
 
     def forward(self, images, domains, contents):
         """
@@ -132,7 +127,7 @@ class AAE(pl.LightningModule):
 
         return enc_mu, enc_logvar, reconstructions
 
-    def training_step(self, batch, batch_idx):
+    def training_step(self, batch, batch_idx, optimizer_idx):
         """
         Calculates the chosen Loss.
 
@@ -148,17 +143,27 @@ class AAE(pl.LightningModule):
         contents = batch[2]
 
         codes, reconstructions = self(images, domains, contents)
-        z = torch.randn_like(codes).to(codes.device)
-        real_logits = self.discriminator(z)
-        fake_logits = self.discriminator(codes)
 
-        vae_loss, vae_value = self.vae_loss(images, reconstructions, split_loss=True)
-        disc_loss, disc_value = self.disc_loss(real_logits, fake_logits)
-        self.log("train_loss", loss, batch_size=images.shape[0])
-        self.log("vae", vae_value, prog_bar=True, batch_size=images.shape[0])
-        # self.log("lr", self.optimizers(
-        # ).param_groups[0]["lr"], prog_bar=True, batch_size=images.shape[0])
-        return loss
+        # Reconstruction Phase
+        if optimizer_idx == 0:
+            loss , value = self.vae_loss(images, reconstructions, split_loss=True)
+            self.log("rec", value, batch_size=images.shape[0], prog_bar=True)
+            return loss
+
+        # Regularization Phase
+        if optimizer_idx == 1:
+            # Train Discriminator
+            real_latent_noise = torch.randn_like(codes).to(self.device)
+            real_truth = torch.ones_like(codes).to(self.device) * 0.9
+            real_loss, real_value = self.disc_loss(self.discriminator(real_latent_noise), real_truth, split_loss=True)
+            
+            fake_truth = torch.ones_like(codes).to(self.device) * 0.1
+            fake_loss, fake_value = self.disc_loss(self.discriminator(codes.detach()), fake_truth, split_loss=True)
+
+            loss = real_loss + fake_loss
+            self.log("real", real_value, batch_size=images.shape[0], prog_bar=True)
+            self.log("fake", fake_value, batch_size=images.shape[0], prog_bar=True)
+            return loss
 
     def validation_step(self, batch, batch_idx):
         """
@@ -201,8 +206,9 @@ class AAE(pl.LightningModule):
         return self.loss(images, enc_mu, enc_logvar, reconstructions)
 
     def configure_optimizers(self):
-        optimizer = torch.optim.Adam(self.parameters(), lr=self.lr)
-        return optimizer
+        opt_ae = torch.optim.Adam(params=[self.encoder.parameters(), self.decoder.parameters()], lr=self.lr, betas=(0.5, 0.999))
+        opt_d = torch.optim.Adam(self.discriminator.parameters(), lr=self.lr, betas=(0.5, 0.999))
+        return [opt_ae, opt_d], []
 
     def reconstruct(self, images, domains, contents):
         """
@@ -580,7 +586,7 @@ class Discriminator(torch.nn.Module):
                     self.activation,
                     torch.nn.Linear(in_features=2048, out_features=1024),
                     self.activation,
-                    torch.nn.Linear(in_features=1024, out_features=2),
+                    torch.nn.Linear(in_features=1024, out_features=1),
                     torch.nn.Sigmoid(),
                 )
     def forward(self, codes):
@@ -607,7 +613,6 @@ if __name__ == "__main__":
     upsampling = "upsample"
     dropout = False
     batch_norm = True
-    loss_mode = "elbo"
     lamb = 10
 
     batch = [
@@ -622,5 +627,5 @@ if __name__ == "__main__":
         latent_size=latent_size, lr=lr, depth=depth, 
         out_channels=out_channels, kernel_size=kernel_size, activation=activation,
         downsampling=downsampling, upsampling=upsampling, dropout=dropout,
-        batch_norm=batch_norm, loss_mode=loss_mode, lamb=lamb)
+        batch_norm=batch_norm, lamb=lamb)
     print("Done!")
