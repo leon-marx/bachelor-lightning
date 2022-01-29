@@ -208,7 +208,7 @@ class AAE(pl.LightningModule):
         return self.loss(images, enc_mu, enc_logvar, reconstructions)
 
     def configure_optimizers(self):
-        opt_ae = torch.optim.Adam(params=[self.encoder.parameters(), self.decoder.parameters()], lr=self.lr, betas=(0.5, 0.999))
+        opt_ae = torch.optim.Adam(params=list(self.encoder.parameters()) + list(self.decoder.parameters()), lr=self.lr, betas=(0.5, 0.999))
         opt_d = torch.optim.Adam(self.discriminator.parameters(), lr=self.lr, betas=(0.5, 0.999))
         return [opt_ae, opt_d], []
 
