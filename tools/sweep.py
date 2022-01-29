@@ -37,6 +37,7 @@ def get_combinations(arg_dict):
 
 if __name__ == "__main__":
     parser = ArgumentParser()
+    parser.add_argument("--models", type=str, default=None)
     parser.add_argument("--restart", action="store_true", default=False)
     parser.add_argument("--gpus", type=str, default="3,")
     parser.add_argument("--max_epochs", type=int, default=25)
@@ -44,32 +45,32 @@ if __name__ == "__main__":
     args = parser.parse_args()
     #################### EDIT THIS IN ORDER TO CHANGE THE SWEEP
     configs = {
-        # "AE_v2": {
-        #     "latent_size": [128, 512],
-        # },
-        # "AE": {
-        #     "latent_size": [128, 512],
-        # },
-        # "CVAE": {
-        #     "latent_size": [128, 512],
-        #     "lamb": [0.01, 100],
-        # },
-        # "AE_v3": {
-        #     "kernel_size": [3, 5],
-        #     "activation": ["selu", "elu", "relu"],
-        #     "loss_mode": ["l1", "l2"]
-        # },
-        # "DCCVAE": {
-        #     "feature_size": [32, 64],
-        #     "lamb": [1e-5, 1e-4, 1e-3, 1e-2, 1e-1, 1.0, 1e+1],
-        # },
-        # "trVAE": {
-        #     "feature_size": [32, 64],
-        #     "mmd_size": [512, 1024],
-        #     "dropout_rate": [0.0, 0.5],
-        #     "lamb": [1e-5, 1e-3, 1e-1, 1.0, 1e+1],
-        #     "beta": [1e-5, 1e-3, 1e-1, 1.0, 1e+1],
-        #     },
+        "AE_v2": {
+            "latent_size": [128, 512],
+        },
+        "AE": {
+            "latent_size": [128, 512],
+        },
+        "CVAE": {
+            "latent_size": [128, 512],
+            "lamb": [0.01, 100],
+        },
+        "AE_v3": {
+            "kernel_size": [3, 5],
+            "activation": ["selu", "elu", "relu"],
+            "loss_mode": ["l1", "l2"]
+        },
+        "DCCVAE": {
+            "feature_size": [32, 64],
+            "lamb": [1e-5, 1e-4, 1e-3, 1e-2, 1e-1, 1.0, 1e+1],
+        },
+        "trVAE": {
+            "feature_size": [32, 64],
+            "mmd_size": [512, 1024],
+            "dropout_rate": [0.0, 0.5],
+            "lamb": [1e-5, 1e-3, 1e-1, 1.0, 1e+1],
+            "beta": [1e-5, 1e-3, 1e-1, 1.0, 1e+1],
+            },
         "MMD_CVAE": {
             "lamb": [1e-5, 1e-3, 1e-1, 1.0, 1e+1],
             "beta": [1e-5, 1e-3, 1e-1, 1.0, 1e+1],
@@ -122,7 +123,7 @@ if __name__ == "__main__":
 
     step = 0
     try:
-        for model_name in configs:
+        for model_name in args.models.split(","):
             try:
                 print(f"Starting loop over {model_name} configurations.")
                 combinations = get_combinations(configs[model_name])
