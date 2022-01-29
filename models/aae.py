@@ -559,6 +559,8 @@ class Decoder(torch.nn.Module):
         contents: Tensor of shape (batch_size, num_contents)
         """
         x = torch.cat((codes, domains, contents), dim=1)
+        print(x.shape)
+        print(self.linear)
         x = self.linear(x)
         x = self.reshape(x)
         reconstructions = self.dec_conv_sequential(x)
