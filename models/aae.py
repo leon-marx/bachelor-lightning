@@ -18,7 +18,7 @@ def selu_init(m):
 
 
 class AAE(pl.LightningModule):
-    def __init__(self, num_domains, num_contents, latent_size, lr, depth, out_channels, kernel_size, activation, downsampling, upsampling, dropout, batch_norm, lamb, no_bn_last=True):
+    def __init__(self, num_domains, num_contents, latent_size, lr, depth, out_channels, kernel_size, activation, downsampling, upsampling, dropout, batch_norm, no_bn_last=True):
         super().__init__()
 
         self.num_domains = num_domains
@@ -32,7 +32,6 @@ class AAE(pl.LightningModule):
         self.upsampling = upsampling
         self.dropout = dropout
         self.batch_norm = batch_norm
-        self.lamb = lamb
         self.no_bn_last = no_bn_last
         self.get_mse_loss = torch.nn.MSELoss(reduction="mean")
         self.get_bce_loss = torch.nn.BCEWithLogitsLoss(reduction="mean")
@@ -48,7 +47,6 @@ class AAE(pl.LightningModule):
             "upsampling": self.upsampling,
             "dropout": self.dropout,
             "batch_norm": self.batch_norm,
-            "lamb": self.lamb,
             "no_bn_last": self.no_bn_last,
         }
 
@@ -101,15 +99,15 @@ class AAE(pl.LightningModule):
         else:
             return loss
    
-    def disc_loss(self, y, y_hat, split_loss=False):
+    def disc_loss(self, pred, truth, split_loss=False):
         """
         Calculates the discriminator loss.
 
-        y: Tensor of shape (batch_size)
-        y_hat: Tensor of shape (batch_size)
+        pred: Tensor of shape (batch_size)
+        truth: Tensor of shape (batch_size)
         split_loss: bool, if True, also returns the value
         """
-        loss = self.get_bce_loss(y, y_hat)
+        loss = self.get_bce_loss(pred, truth)
         if split_loss:
             return loss, loss.item()
         else:
@@ -159,11 +157,11 @@ class AAE(pl.LightningModule):
 
             real_pred = self.discriminator(real_latent_noise)
             real_truth = torch.ones_like(real_pred).to(self.device) * 0.9
-            real_loss, real_value = self.disc_loss(real_truth, real_truth, split_loss=True)
+            real_loss, real_value = self.disc_loss(real_pred, real_truth, split_loss=True)
             
             fake_pred = self.discriminator(codes.detach())
             fake_truth = torch.ones_like(fake_pred).to(self.device) * 0.1
-            fake_loss, fake_value = self.disc_loss(fake_pred, fake_truth, split_loss=True)
+            fake_loss, fake_value = self.disc_loss(real_pred, fake_truth, split_loss=True)
 
 
             loss = real_loss + fake_loss
@@ -616,7 +614,6 @@ if __name__ == "__main__":
     upsampling = "upsample"
     dropout = False
     batch_norm = True
-    lamb = 10
 
     batch = [
         torch.randn(size=(batch_size, 3, 224, 224)),
@@ -630,7 +627,7 @@ if __name__ == "__main__":
         latent_size=latent_size, lr=lr, depth=depth, 
         out_channels=out_channels, kernel_size=kernel_size, activation=activation,
         downsampling=downsampling, upsampling=upsampling, dropout=dropout,
-        batch_norm=batch_norm, lamb=lamb)
+        batch_norm=batch_norm)
     ae_loss = model.training_step(batch, 0, 0)
     print(f"ae_loss: {ae_loss}")
     disc_loss = model.training_step(batch, 0, 1)

@@ -84,7 +84,6 @@ if __name__ == "__main__":
             "activation": ["selu", "elu"]
             },
         "AAE": {
-            "lamb": [1e-5, 1e-3, 1e-1, 1.0, 1e+1],
             "beta": [1e-5, 1e-3, 1e-1, 1.0, 1e+1],
             "out_channels": [
                 "128,128,256,256,512,512,1024",
