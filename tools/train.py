@@ -207,8 +207,9 @@ if __name__ == "__main__":
     callbacks = [
         Logger(args.output_dir, train_batch, val_batch, domains, contents, images_on_val=True),
         pl.callbacks.ModelCheckpoint(monitor="val_loss"),
-        pl.callbacks.stochastic_weight_avg.StochasticWeightAveraging(swa_epoch_start=5)
     ]
+    if args.model != "AAE":
+        callbacks.append(pl.callbacks.stochastic_weight_avg.StochasticWeightAveraging(swa_epoch_start=5))
 
     # Trainer
     trainer = pl.Trainer(
