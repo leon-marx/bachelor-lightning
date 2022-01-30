@@ -172,7 +172,7 @@ class AAE(pl.LightningModule):
         # Train Encoder for confusion
         if optimizer_idx == 2:
             
-            confusion_pred = self.discriminator(codes.detach())
+            confusion_pred = self.discriminator(codes)
             confusion_truth = torch.ones_like(confusion_pred).to(self.device) * 0.9
             loss, value = self.disc_loss(confusion_pred, confusion_truth, split_loss=True)
 
