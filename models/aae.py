@@ -143,17 +143,16 @@ class AAE(pl.LightningModule):
 
         codes, reconstructions = self(images, domains, contents)
 
-        # Reconstruction Phase
+        # Train CVAE for reconstruction
         if optimizer_idx == 0:
             loss , value = self.vae_loss(images, reconstructions, split_loss=True)
             self.log("rec_train_loss", loss, batch_size=images.shape[0])
             self.log("rec", value, batch_size=images.shape[0], prog_bar=True)
             return loss
 
-        # Regularization Phase
+        # Train Discriminator for regularization
         if optimizer_idx == 1:
-            # Train Discriminator
-            real_latent_noise = torch.randn_like(codes).to(self.device)#
+            real_latent_noise = torch.randn_like(codes).to(self.device)
 
             real_pred = self.discriminator(real_latent_noise)
             real_truth = torch.ones_like(real_pred).to(self.device) * 0.9
@@ -161,13 +160,24 @@ class AAE(pl.LightningModule):
             
             fake_pred = self.discriminator(codes.detach())
             fake_truth = torch.ones_like(fake_pred).to(self.device) * 0.1
-            fake_loss, fake_value = self.disc_loss(real_pred, fake_truth, split_loss=True)
+            fake_loss, fake_value = self.disc_loss(fake_pred, fake_truth, split_loss=True)
 
 
             loss = real_loss + fake_loss
             self.log("disc_train_loss", loss, batch_size=images.shape[0])
             self.log("real", real_value, batch_size=images.shape[0], prog_bar=True)
             self.log("fake", fake_value, batch_size=images.shape[0], prog_bar=True)
+            return loss
+
+        # Train Encoder for confusion
+        if optimizer_idx == 2:
+            
+            confusion_pred = self.discriminator(codes.detach())
+            confusion_truth = torch.ones_like(confusion_pred).to(self.device) * 0.9
+            loss, value = self.disc_loss(confusion_pred, confusion_truth, split_loss=True)
+
+            self.log("enc_train_loss", loss, batch_size=images.shape[0])
+            self.log("conf", value, batch_size=images.shape[0], prog_bar=True)
             return loss
 
     def validation_step(self, batch, batch_idx):
@@ -213,7 +223,8 @@ class AAE(pl.LightningModule):
     def configure_optimizers(self):
         opt_ae = torch.optim.Adam(params=list(self.encoder.parameters()) + list(self.decoder.parameters()), lr=self.lr, betas=(0.5, 0.999))
         opt_d = torch.optim.Adam(self.discriminator.parameters(), lr=self.lr, betas=(0.5, 0.999))
-        return [opt_ae, opt_d], []
+        opt_e = torch.optim.Adam(self.encoder.parameters(), lr=self.lr, betas=(0.5, 0.999))
+        return [opt_ae, opt_d, opt_e], []
 
     def reconstruct(self, images, domains, contents):
         """
