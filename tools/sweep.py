@@ -84,7 +84,7 @@ if __name__ == "__main__":
             "activation": ["selu", "elu"]
             },
         "AAE": {
-            "beta": [1e-5, 1e-3, 1e-1, 1.0, 1e+1],
+            "beta": [1e-5, 1e-4, 1e-3, 1e-2, 1e-1, 1.0, 1e+1],
             "out_channels": [
                 "128,128,256,256,512,512,1024",
                 "256,256,512,512,1024,1024,2048"
@@ -275,7 +275,7 @@ if __name__ == "__main__":
                                             latent_size=latent_size, lr=lr, depth=depth, 
                                             out_channels=out_channels, kernel_size=kernel_size, activation=activation,
                                             downsampling=downsampling, upsampling=upsampling, dropout=dropout,
-                                            batch_norm=batch_norm, lamb=lamb)
+                                            batch_norm=batch_norm)
 
 
                             # Trainer
