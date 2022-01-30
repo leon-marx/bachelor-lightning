@@ -1,12 +1,10 @@
 python -m tools.train\
-    --batch_size 4\
-    --model trVAE\
-    --latent_size 1024\
+    --batch_size 16\
+    --model AAE\
+    --latent_size 512\
     --lr 1e-4\
-    --feature_size 64\
     --gpus 3,\
-    --output_dir logs/trvae\
-    --mmd_size 512\
+    --output_dir logs/aae\
     --ckpt_path 0\
     --lamb 0.1\
     --datadir data/variants/PACS_small\
