@@ -14,6 +14,7 @@ from models.ae_v2 import AE_v2
 from models.ae_v3 import AE_v3
 from models.dccvae import DCCVAE
 from models.trvae import trVAE
+from models.aae import AAE
 from callbacks.logger import Logger
 
 
@@ -155,6 +156,12 @@ if __name__ == "__main__":
             model = trVAE.load_from_checkpoint(args.ckpt_path, num_domains=num_domains, num_contents=num_contents, latent_size=latent_size,
                         feature_size=feature_size, mmd_size=mmd_size, dropout_rate=dropout_rate,
                         lr=lr, lamb=lamb, beta=beta)
+        if args.model == "AAE":
+            model = AAE.load_from_checkpoint(args.ckpt_path, num_domains=num_domains, num_contents=num_contents,
+                        latent_size=latent_size, lr=lr, depth=depth, 
+                        out_channels=out_channels, kernel_size=kernel_size, activation=activation,
+                        downsampling=downsampling, upsampling=upsampling, dropout=dropout,
+                        batch_norm=batch_norm)
     else:
         if args.model == "CVAE":
             model = CVAE(num_domains=num_domains, num_contents=num_contents,
@@ -189,6 +196,12 @@ if __name__ == "__main__":
             model = trVAE(num_domains=num_domains, num_contents=num_contents, latent_size=latent_size,
                         feature_size=feature_size, mmd_size=mmd_size, dropout_rate=dropout_rate,
                         lr=lr, lamb=lamb, beta=beta)
+        if args.model == "AAE":
+            model = AAE(num_domains=num_domains, num_contents=num_contents,
+                        latent_size=latent_size, lr=lr, depth=depth, 
+                        out_channels=out_channels, kernel_size=kernel_size, activation=activation,
+                        downsampling=downsampling, upsampling=upsampling, dropout=dropout,
+                        batch_norm=batch_norm)
     
     # Callbacks
     callbacks = [
