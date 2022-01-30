@@ -165,8 +165,7 @@ class AAE(pl.LightningModule):
 
             loss = real_loss + fake_loss
             self.log("disc_train_loss", loss, batch_size=images.shape[0])
-            self.log("real", real_value, batch_size=images.shape[0], prog_bar=True)
-            self.log("fake", fake_value, batch_size=images.shape[0], prog_bar=True)
+            self.log("dis", real_value + fake_value, batch_size=images.shape[0], prog_bar=True)
             return loss
 
         # Train Encoder for confusion
@@ -177,7 +176,7 @@ class AAE(pl.LightningModule):
             loss, value = self.disc_loss(confusion_pred, confusion_truth, split_loss=True)
 
             self.log("enc_train_loss", loss, batch_size=images.shape[0])
-            self.log("conf", value, batch_size=images.shape[0], prog_bar=True)
+            self.log("con", value, batch_size=images.shape[0], prog_bar=True)
             return loss
 
     def validation_step(self, batch, batch_idx):
