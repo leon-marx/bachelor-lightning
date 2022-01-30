@@ -84,13 +84,14 @@ if __name__ == "__main__":
             "activation": ["selu", "elu"]
             },
         "AAE": {
-            "beta": [1e-5, 1e-4, 1e-3, 1e-2, 1e-1, 1.0, 1e+1],
+            "latent_size": [128, 256, 512],
+            "depth": [1, 2],
+            "batch_norm": [True, False],
             "out_channels": [
                 "128,128,256,256,512,512,1024",
                 "256,256,512,512,1024,1024,2048"
             ],
-            "depth": [1, 2],
-            "activation": ["selu", "elu"]
+            "activation": ["selu", "elu"],
             },
     }
     ####################
