@@ -82,6 +82,7 @@ if __name__ == "__main__":
             "loss_mode": ["mmd"],
             "depth": [2],
             "activation": ["selu"],
+            "batch_norm": [False],
             "latent_size":  [512],
             "lr":  [1e-4],
             "kernel_size": [3],
