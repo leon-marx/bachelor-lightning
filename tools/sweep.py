@@ -23,17 +23,20 @@ from callbacks.logger import Logger
 
 def get_combinations(arg_dict):
     combinations = [arg_dict]
+    names = []
     for key, value in arg_dict.items():
         new_combs = []
         for dd in combinations:
             if isinstance(value, list):
+                if len(value) > 1 and key not in names:
+                    names.append(key)
                 for val in value:
                     d = copy.deepcopy(dd)
                     d[key] = val
                     new_combs.append(d)
         if new_combs != []:
             combinations = new_combs
-    return combinations
+    return combinations, names
 
 
 if __name__ == "__main__":
@@ -73,15 +76,18 @@ if __name__ == "__main__":
             "beta": [1e-5, 1e-3, 1e-1, 1.0, 1e+1],
             },
         "MMD_CVAE": {
-            "lamb": [1e-5, 1e-3, 1e-1, 1.0, 1e+1],
-            "beta": [1e-5, 1e-3, 1e-1, 1.0, 1e+1],
-            "out_channels": [
-                "128,128,256,256,512,512",
-                "256,256,512,512,1024,1024"
-            ],
+            "lamb": [1e-5, 1e-4, 1e-3, 1e-2, 1e-1, 1.0, 1e+1],
+            "beta": [1e-5, 1e-4, 1e-3, 1e-2, 1e-1, 1.0, 1e+1],
+            "out_channels": ["256,256,512,512,1024,1024"],
             "loss_mode": ["mmd"],
-            "depth": [1, 2],
-            "activation": ["selu", "elu"]
+            "depth": [2],
+            "activation": ["selu"],
+            "latent_size":  [512],
+            "lr":  [1e-4],
+            "kernel_size": [3],
+            "downsampling": ["stride"],
+            "upsampling": ["upsample"],
+            "dropout": [False],
             },
         "AAE": {
             "latent_size": [128, 256, 512],
@@ -133,88 +139,86 @@ if __name__ == "__main__":
         for model_name in args.models.split(","):
             try:
                 print(f"Starting loop over {model_name} configurations.")
-                combinations = get_combinations(configs[model_name])
+                combinations, names = get_combinations(configs[model_name])
                 # random.shuffle(combinations)
                 for conf in combinations:
                     try:
                         print(f"Configuration: {conf}")
                         # Default values
                         log_dir = f"logs/sweep/{model_name}"
-                        latent_size =  128
-                        lamb =  1.0
-                        lr =  1e-4
-                        depth = 1
-                        out_channels = "128,128,256,256,512,512"
-                        kernel_size = 3
-                        activation = "elu"
-                        downsampling = "stride"
-                        upsampling = "upsample"
-                        dropout = False
-                        batch_norm = False
-                        loss_mode = "elbo"
-                        feature_size = 32
-                        mmd_size = 512
-                        beta = 1.0
-                        dropout_rate = 0.0
-                        no_bn_last = False
-
 
                         if "latent_size" in conf:
                             latent_size = conf["latent_size"]
-                            log_dir += f"_{latent_size}"
+                            if "latent_size" in names:
+                                log_dir += f"_{latent_size}"
                         if "feature_size" in conf:
                             feature_size = conf["feature_size"]
-                            log_dir += f"_{feature_size}"
+                            if "feature_size" in names:
+                                log_dir += f"_{feature_size}"
                         if "mmd_size" in conf:
                             mmd_size = conf["mmd_size"]
-                            log_dir += f"_{mmd_size}"
+                            if "mmd_size" in names:
+                                log_dir += f"_{mmd_size}"
                         if "lamb" in conf:
                             lamb = conf["lamb"]
-                            lamb_string = "{:e}".format(lamb)
+                            lamb_string = "{:f}".format(lamb)
                             lamb_string = lamb_string.replace(".", "-")
-                            log_dir += f"_{lamb_string}"
+                            if "lamb" in names:
+                                log_dir += f"_{lamb_string}"
                         if "beta" in conf:
                             beta = conf["beta"]
-                            beta_string = "{:e}".format(beta)
+                            beta_string = "{:f}".format(beta)
                             beta_string = beta_string.replace(".", "-")
-                            log_dir += f"_{beta_string}"
+                            if "beta" in names:
+                                log_dir += f"_{beta_string}"
                         if "dropout_rate" in conf:
                             dropout_rate = conf["dropout_rate"]
-                            dropout_rate_string = "{:e}".format(dropout_rate)
+                            dropout_rate_string = "{:f}".format(dropout_rate)
                             dropout_rate_string = dropout_rate_string.replace(".", "-")
-                            log_dir += f"_{dropout_rate_string}"
+                            if "dropout_rate" in names:
+                                log_dir += f"_{dropout_rate_string}"
                         if "lr" in conf:
                             lr = conf["lr"]
-                            lr_string = "{:e}".format(lr)
+                            lr_string = "{:f}".format(lr)
                             lr_string = lr_string.replace(".", "-")
-                            log_dir += f"_{lr_string}"
+                            if "lr" in names:
+                                log_dir += f"_{lr_string}"
                         if "depth" in conf:
                             depth = conf["depth"]
-                            log_dir += f"_{depth}"
+                            if "depth" in names:
+                                log_dir += f"_{depth}"
                         if "kernel_size" in conf:
                             kernel_size = conf["kernel_size"]
-                            log_dir += f"_{kernel_size}"
+                            if "kernel_size" in names:
+                                log_dir += f"_{kernel_size}"
                         if "activation" in conf:
                             activation = conf["activation"]
-                            log_dir += f"_{activation}"
+                            if "activation" in names:
+                                log_dir += f"_{activation}"
                         if "downsampling" in conf:
                             downsampling = conf["downsampling"]
-                            log_dir += f"_{downsampling}"
+                            if "downsampling" in names:
+                                log_dir += f"_{downsampling}"
                         if "upsampling" in conf:
                             upsampling = conf["upsampling"]
-                            log_dir += f"_{upsampling}"
+                            if "upsampling" in names:
+                                log_dir += f"_{upsampling}"
                         if "dropout" in conf:
                             dropout = conf["dropout"]
-                            log_dir += f"_{dropout}"
+                            if "dropout" in names:
+                                log_dir += f"_{dropout}"
                         if "batch_norm" in conf:
                             batch_norm = conf["batch_norm"]
-                            log_dir += f"_{batch_norm}"
+                            if "batch_norm" in names:
+                                log_dir += f"_{batch_norm}"
                         if "out_channels" in conf:
                             out_channels = conf["out_channels"]
-                            log_dir += f"_{out_channels.replace(',', '-')}"
+                            if "out_channels" in names:
+                                log_dir += f"_{out_channels.replace(',', '-')}"
                         if "loss_mode" in conf:
                             loss_mode = conf["loss_mode"]
-                            log_dir += f"_{loss_mode}"
+                            if "loss_mode" in names:
+                                log_dir += f"_{loss_mode}"
 
                             
 
