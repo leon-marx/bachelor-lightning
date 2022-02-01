@@ -268,7 +268,7 @@ class GAN(pl.LightningModule):
         domains: Tensor of shape (batch_size, num_domains)
         contents: Tensor of shape (batch_size, num_contents)
         """
-        with torch.no_grad:
+        with torch.no_grad():
             self.eval()
             codes = self.encoder(images, domains, contents)
             reconstructions = self.decoder(codes, domains, contents)
