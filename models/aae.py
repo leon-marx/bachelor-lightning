@@ -444,7 +444,8 @@ class Decoder(torch.nn.Module):
                 activation=self.activation,
                 upsampling=self.upsampling,
                 dropout=self.dropout,
-                batch_norm=self.batch_norm
+                batch_norm=self.batch_norm,
+                special_seven=True
             ),  # (N, [2], 7, 7)
             *self.block(
                 depth=self.depth,
@@ -499,7 +500,7 @@ class Decoder(torch.nn.Module):
             ),  # (N, 3, 224, 224)
         )
 
-    def block(self, depth, in_channels, out_channels, kernel_size, activation, upsampling="stride", dropout=False, batch_norm=False, last_block=False):
+    def block(self, depth, in_channels, out_channels, kernel_size, activation, upsampling="stride", dropout=False, batch_norm=False, last_block=False, special_seven=False):
         seq_list = []
         if isinstance(activation, torch.nn.SELU):
             dropout = False
@@ -525,7 +526,7 @@ class Decoder(torch.nn.Module):
                         if not (i == depth - 1 and last_block):
                             seq.append(torch.nn.BatchNorm2d(num_features=out_channels))
                     seq.append(activation)
-                    if out_channels == self.out_channels[2]:
+                    if special_seven:
                         seq.append(torch.nn.Upsample(size=7, mode="nearest"))
                     else:
                         seq.append(torch.nn.Upsample(scale_factor=2, mode="nearest"))
@@ -614,7 +615,9 @@ if __name__ == "__main__":
     num_contents = 7
     
     lr = 1e-4
-    out_channels = [128, 256, 512, 512, 1024, 1024, 2048]
+    # out_channels = [128, 256, 512, 512, 1024, 1024, 2048]
+    out_channels = [512, 512, 512, 512, 512, 512, 512]
+# 
 
     latent_size = 128
     depth = 1
@@ -638,6 +641,29 @@ if __name__ == "__main__":
         out_channels=out_channels, kernel_size=kernel_size, activation=activation,
         downsampling=downsampling, upsampling=upsampling, dropout=dropout,
         batch_norm=batch_norm)
+
+
+    # Analyzing the model layers and outputs
+    images = batch[0]
+    domains = batch[1]
+    contents = batch[2]
+    domain_panels = torch.ones(size=(images.shape[0], num_domains, 224, 224)).to(
+        images.device) * domains.view(images.shape[0], num_domains, 1, 1)
+    content_panels = torch.ones(size=(images.shape[0], num_contents, 224, 224)).to(
+        images.device) * contents.view(images.shape[0], num_contents, 1, 1)
+
+    output = torch.cat((images, domain_panels, content_panels), dim=1)
+    for i, m in enumerate(model.encoder.enc_conv_sequential.children()):
+        output = m(output)
+        print(m, output.shape)
+    codes = model.encoder.get_code(model.encoder.flatten(output))
+    output = torch.cat((codes, domains, contents), dim=1)
+    output = model.decoder.reshape(model.decoder.linear(output))
+    for i, m in enumerate(model.decoder.dec_conv_sequential.children()):
+        output = m(output)
+        print(m, output.shape)
+
+
     ae_loss = model.training_step(batch, 0, 0)
     print(f"ae_loss: {ae_loss}")
     disc_loss = model.training_step(batch, 0, 1)
