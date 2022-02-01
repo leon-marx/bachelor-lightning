@@ -151,9 +151,9 @@ class GAN(pl.LightningModule):
             fake_loss = self.loss(fake_pred, fake_truth)
 
             loss = real_loss + fake_loss
-            # self.log("img_dis_tot", loss, batch_size=images.shape[0])
-            # self.log("img_dis_real", real_loss, batch_size=images.shape[0])
-            # self.log("img_dis_fake", fake_loss, batch_size=images.shape[0])
+            self.log("img_dis_tot", loss, batch_size=images.shape[0])
+            self.log("img_dis_real", real_loss, batch_size=images.shape[0])
+            self.log("img_dis_fake", fake_loss, batch_size=images.shape[0])
             return loss
 
         # Train Decoder for confusion
@@ -162,7 +162,7 @@ class GAN(pl.LightningModule):
             confusion_truth = torch.ones_like(confusion_pred).to(self.device) * 0.9
             loss = self.loss(confusion_pred, confusion_truth)
 
-            # self.log("img_confusion", loss, batch_size=images.shape[0])
+            self.log("img_confusion", loss, batch_size=images.shape[0])
             return loss
 
         # Train Code Discriminator for regularization
@@ -179,9 +179,9 @@ class GAN(pl.LightningModule):
 
 
             loss = real_loss + fake_loss
-            # self.log("code_dis_tot", loss, batch_size=images.shape[0])
-            # self.log("code_dis_real", real_loss, batch_size=images.shape[0])
-            # self.log("code_dis_fake", fake_loss, batch_size=images.shape[0])
+            self.log("code_dis_tot", loss, batch_size=images.shape[0])
+            self.log("code_dis_real", real_loss, batch_size=images.shape[0])
+            self.log("code_dis_fake", fake_loss, batch_size=images.shape[0])
             return loss
 
         # Train Encoder for confusion
@@ -191,7 +191,66 @@ class GAN(pl.LightningModule):
             confusion_truth = torch.ones_like(confusion_pred).to(self.device) * 0.9
             loss = self.loss(confusion_pred, confusion_truth)
 
-            # self.log("code_confusion", loss, batch_size=images.shape[0])
+            self.log("code_confusion", loss, batch_size=images.shape[0])
+            return loss
+
+    def validation_step(self, batch, batch_idx):
+        """
+        Calculates the chosen Loss.
+
+        batch: List [x, domain, content, filenames]
+            images: Tensor of shape (batch_size, channels, height, width)
+            domains: Tensor of shape (batch_size, num_domains)
+            contents: Tensor of shape (batch_size, num_contents)
+            filenames: Tuple of strings of the form: {domain}/{content}/{fname}
+        batch_idx: The index of the batch, not used.
+        """
+        with torch.no_grad():
+            self.eval()
+            images = batch[0]
+            domains = batch[1]
+            contents = batch[2]
+
+            codes, reconstructions = self(images, domains, contents)
+
+            # Evaluate Image Discriminator for reconstruction
+            real_pred = self.image_discriminator(images, domains, contents)
+            real_truth = torch.ones_like(real_pred).to(self.device) * 0.9
+            real_loss = self.loss(real_pred, real_truth)
+            
+            fake_pred = self.image_discriminator(reconstructions.detach(), domains, contents)
+            fake_truth = torch.ones_like(fake_pred).to(self.device) * 0.1
+            fake_loss = self.loss(fake_pred, fake_truth)
+
+            img_dis_loss = real_loss + fake_loss
+
+            # Evaluate Decoder for confusion
+            confusion_pred = self.image_discriminator(reconstructions, domains, contents)
+            confusion_truth = torch.ones_like(confusion_pred).to(self.device) * 0.9
+            img_dec_loss = self.loss(confusion_pred, confusion_truth)
+
+            # Evaluate Code Discriminator for regularization
+            real_latent_noise = torch.randn_like(codes).to(self.device)
+
+            real_pred = self.code_discriminator(real_latent_noise)
+            real_truth = torch.ones_like(real_pred).to(self.device) * 0.9
+            real_loss = self.loss(real_pred, real_truth)
+            
+            fake_pred = self.code_discriminator(codes.detach())
+            fake_truth = torch.ones_like(fake_pred).to(self.device) * 0.1
+            fake_loss = self.loss(fake_pred, fake_truth)
+
+            code_dis_loss = real_loss + fake_loss
+
+            # Evaluate Encoder for confusion
+            confusion_pred = self.code_discriminator(codes)
+            confusion_truth = torch.ones_like(confusion_pred).to(self.device) * 0.9
+            code_enc_loss = self.loss(confusion_pred, confusion_truth)
+
+            # Sum it all up
+            loss =  img_dis_loss + img_dec_loss + code_dis_loss + code_enc_loss
+            self.log("val_loss", loss, batch_size=images.shape[0])
+            self.train()
             return loss
 
     def configure_optimizers(self):
