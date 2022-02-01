@@ -51,15 +51,16 @@ if __name__ == "__main__":
     parser.add_argument("--gpus", type=str, default=None)
     parser.add_argument("--output_dir", type=str, default=None)
     parser.add_argument("--max_epochs", type=int, default=1000)
-    parser.add_argument("--enable_checkpointing", action="store_true", default=True)
+    parser.add_argument("--disable_checkpointing", action="store_true", default=False)
     parser.add_argument("--log_every_n_steps", type=int, default=50)
+    parser.add_argument("--random_seed", type=int, default=17)
     
     args = parser.parse_args()
 
     # Configuration
     if args.output_dir is not None:
         os.makedirs(args.output_dir, exist_ok=True)
-    pl.seed_everything(17, workers=True)
+    pl.seed_everything(args.random_seed, workers=True)
     torch.backends.cudnn.deterministic = True
     torch.backends.cudnn.benchmark = False
 
@@ -223,7 +224,7 @@ if __name__ == "__main__":
         gradient_clip_val=1.0,
         gradient_clip_algorithm="norm",
         max_epochs=args.max_epochs,
-        enable_checkpointing=args.enable_checkpointing,
+        enable_checkpointing= not args.disable_checkpointing,
         log_every_n_steps=args.log_every_n_steps
     )
 
