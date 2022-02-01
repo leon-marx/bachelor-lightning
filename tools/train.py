@@ -15,6 +15,7 @@ from models.ae_v3 import AE_v3
 from models.dccvae import DCCVAE
 from models.trvae import trVAE
 from models.aae import AAE
+from models.gan import GAN
 from callbacks.logger import Logger
 
 
@@ -163,6 +164,12 @@ if __name__ == "__main__":
                         out_channels=out_channels, kernel_size=kernel_size, activation=activation,
                         downsampling=downsampling, upsampling=upsampling, dropout=dropout,
                         batch_norm=batch_norm)
+        if args.model == "GAN":
+            model = GAN.load_from_checkpoint(args.ckpt_path, num_domains=num_domains, num_contents=num_contents,
+                        latent_size=latent_size, lr=lr, depth=depth, 
+                        out_channels=out_channels, kernel_size=kernel_size, activation=activation,
+                        downsampling=downsampling, upsampling=upsampling, dropout=dropout,
+                        batch_norm=batch_norm)
     else:
         if args.model == "CVAE":
             model = CVAE(num_domains=num_domains, num_contents=num_contents,
@@ -199,6 +206,12 @@ if __name__ == "__main__":
                         lr=lr, lamb=lamb, beta=beta)
         if args.model == "AAE":
             model = AAE(num_domains=num_domains, num_contents=num_contents,
+                        latent_size=latent_size, lr=lr, depth=depth, 
+                        out_channels=out_channels, kernel_size=kernel_size, activation=activation,
+                        downsampling=downsampling, upsampling=upsampling, dropout=dropout,
+                        batch_norm=batch_norm)
+        if args.model == "GAN":
+            model = GAN(num_domains=num_domains, num_contents=num_contents,
                         latent_size=latent_size, lr=lr, depth=depth, 
                         out_channels=out_channels, kernel_size=kernel_size, activation=activation,
                         downsampling=downsampling, upsampling=upsampling, dropout=dropout,
