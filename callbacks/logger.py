@@ -200,9 +200,11 @@ class Logger(Callback):
     def log_umap(self, trainer, pl_module):
         with torch.no_grad():
             pl_module.eval()
-            latent_data = torch.zeros(size=(50, self.log_dm.batch_size, pl_module.latent_size))
-            latent_domains = torch.zeros(size=(50, self.log_dm.batch_size))
-            latent_contents = torch.zeros(size=(50, self.log_dm.batch_size))
+            first_dim = min(50, int(len(self.log_dm) / self.log_dm.batch_size))
+            print(first_dim)
+            latent_data = torch.zeros(size=(first_dim, self.log_dm.batch_size, pl_module.latent_size))
+            latent_domains = torch.zeros(size=(first_dim, self.log_dm.batch_size))
+            latent_contents = torch.zeros(size=(first_dim, self.log_dm.batch_size))
             for i, batch in enumerate(iter(self.log_dm.train_dataloader())):
                 images = batch[0].to(pl_module.device)
                 domains = batch[1].to(pl_module.device)
@@ -213,7 +215,7 @@ class Logger(Callback):
                 latent_data[i] = pl_module(images, domains, contents)[0].cpu()
                 latent_domains[i] = torch.argmax(domains.cpu(), dim=1)
                 latent_contents[i] = torch.argmax(contents.cpu(), dim=1)
-                if i >= 49:
+                if i >= latent_data.shape[0]:
                     break
             latent_data = latent_data.view(-1, pl_module.latent_size)
             latent_domains = latent_domains.view(-1, 1)
