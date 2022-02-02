@@ -208,8 +208,8 @@ class Logger(Callback):
                 domains = batch[1].to(pl_module.device)
                 contents = batch[2].to(pl_module.device)
                 latent_data[i] = pl_module(images, domains, contents)[0].cpu()
-                latent_domains[i] = np.argmax(domains.cpu().numpy(), axis=1)
-                latent_contents[i] = np.argmax(contents.cpu().numpy(), axis=1)
+                latent_domains[i] = torch.argmax(domains.cpu(), dim=1)
+                latent_contents[i] = torch.argmax(contents.cpu(), dim=1)
                 if i >= 49:
                     break
             reducer = umap.UMAP(random_state=17)
