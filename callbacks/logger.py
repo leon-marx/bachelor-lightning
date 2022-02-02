@@ -29,7 +29,7 @@ class Logger(Callback):
         self.contents = contents
         self.content_dict = {content: torch.LongTensor([i]) for i, content in enumerate(self.contents)}
 
-        self.epoch_counter = 0
+        self.epoch_counter = -1
         self.iov_flag = False
         self.images_on_val = images_on_val
     
@@ -55,7 +55,7 @@ class Logger(Callback):
         self.iov_flag = True
         self.epoch_counter += 1
         print(f"epoch_counter: {self.epoch_counter}")
-        if self.epoch_counter >= 5:
+        if self.epoch_counter / 2 >= 2:
             self.log_umap(trainer, pl_module)
             self.epoch_counter = 0
         return super().on_epoch_end(trainer, pl_module)
@@ -207,13 +207,19 @@ class Logger(Callback):
                 images = batch[0].to(pl_module.device)
                 domains = batch[1].to(pl_module.device)
                 contents = batch[2].to(pl_module.device)
+                print(latent_data[i].shape)
+                codes = pl_module(images, domains, contents)[0].cpu()
+                print(codes.shape)
                 latent_data[i] = pl_module(images, domains, contents)[0].cpu()
                 latent_domains[i] = torch.argmax(domains.cpu(), dim=1)
                 latent_contents[i] = torch.argmax(contents.cpu(), dim=1)
                 if i >= 49:
                     break
+            latent_data = latent_data.view(-1, pl_module.latent_size)
+            latent_domains = latent_domains.view(-1, 1)
+            latent_contents = latent_contents.view(-1, 1)
             reducer = umap.UMAP(random_state=17)
-            reducer.fit(self.latent_data)
+            reducer.fit(latent_data)
             embedding = reducer.embedding_
             fig = plt.figure(figsize=(8, 8))
             plt.scatter(embedding[:, 0], embedding[:, 1], c=self.latent_domains, cmap='Spectral', s=5)
