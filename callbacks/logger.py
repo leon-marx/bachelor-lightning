@@ -98,6 +98,28 @@ class Logger(Callback):
 
             pl_module.train()
 
+    def log_transfers(self, trainer, pl_module, tensorboard_log=False):
+        with torch.no_grad():
+            pl_module.eval()
+
+            train_imgs = self.train_batch[0].to(pl_module.device)
+            train_domains = self.train_batch[1].to(pl_module.device)
+            train_contents = self.train_batch[2].to(pl_module.device)
+
+            for decoder_domain in self.domains:
+                dec_domains = torch.cat(*[torch.nn.functional.one_hot(self.domain_dict[decoder_domain])] * train_domains.shape[0], dim=0)
+
+                transfers = pl_module.transfer(train_imgs, train_domains, train_contents, dec_domains)
+                train_imgs_to_plot = (train_imgs + 1.0) / 2.0
+                transfers = (transfers + 1.0) / 2.0
+                transfer_grid = torchvision.utils.make_grid(torch.stack((train_imgs_to_plot, transfers), dim=1).view(-1, 3, 224, 224))
+                torchvision.utils.save_image(transfer_grid, f"{self.output_dir}/version_{trainer.logger.version}/images/transfer_to_{decoder_domain}.png")
+
+                if tensorboard_log:
+                    trainer.logger.experiment.add_image(f"transfer_to_{decoder_domain}", transfer_grid)
+
+            pl_module.train()
+    
     def log_grad_flow(self, trainer, tensorboard_log=False):
         """
         Plots the gradients flowing through different layers in the net during training.
@@ -229,7 +251,7 @@ class Logger(Callback):
             trainer.logger.experiment.add_figure("first_two_by_domain", fig, close=False)
             plt.close(fig)
             fig = plt.figure(figsize=(10, 8))
-            plt.scatter(latent_data[:, 0], latent_data[:, 1], c=latent_domains, cmap='Spectral', s=5)
+            plt.scatter(latent_data[:, 0], latent_data[:, 1], c=latent_contents, cmap='Spectral', s=5)
             plt.gca().set_aspect('equal', 'datalim')
             cbar = plt.colorbar(boundaries=np.arange(len(self.contents)+1)-0.5)
             cbar.set_ticks(np.arange(len(self.contents)))

@@ -275,6 +275,23 @@ class GAN(pl.LightningModule):
             self.train()
             return reconstructions
 
+
+    def transfer(self, images, domains, contents, decoder_domains):
+        """
+        Calculates codes for the given images and returns their reconstructions.
+
+        images: Tensor of shape (batch_size, channels, height, width)
+        domains: Tensor of shape (batch_size, num_domains)
+        contents: Tensor of shape (batch_size, num_contents)
+        decoder_domains: Tensor of shape (batch_size, num_domains)
+        """
+        with torch.no_grad():
+            self.eval()
+            codes = self.encoder(images, domains, contents)
+            transfers = self.decoder(codes, decoder_domains, contents)
+            self.train()
+            return transfers
+
     def generate(self, codes, domains, contents):
         """
         Generate images from Gaussian distributed codes.
