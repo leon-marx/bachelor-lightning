@@ -154,7 +154,7 @@ class GAN(pl.LightningModule):
             self.log("img_dis_tot", loss, batch_size=images.shape[0])
             self.log("img_dis_real", real_loss, batch_size=images.shape[0])
             self.log("img_dis_fake", fake_loss, batch_size=images.shape[0])
-            return loss
+            return loss 
 
         # Train Decoder for confusion
         if optimizer_idx == 1:
@@ -254,9 +254,9 @@ class GAN(pl.LightningModule):
             return loss
 
     def configure_optimizers(self):
-        opt_img_dis = torch.optim.Adam(params=self.image_discriminator.parameters(), lr=self.lr, betas=(0.5, 0.999))
+        opt_img_dis = torch.optim.Adam(params=self.image_discriminator.parameters(), lr=self.lr * 0.1, betas=(0.5, 0.999))
         opt_img_dec = torch.optim.Adam(self.decoder.parameters(), lr=self.lr, betas=(0.5, 0.999))
-        opt_code_dis = torch.optim.Adam(self.code_discriminator.parameters(), lr=self.lr, betas=(0.5, 0.999))
+        opt_code_dis = torch.optim.Adam(self.code_discriminator.parameters(), lr=self.lr * 0.1, betas=(0.5, 0.999))
         opt_code_enc = torch.optim.Adam(self.encoder.parameters(), lr=self.lr, betas=(0.5, 0.999))
         return [opt_img_dis, opt_img_dec, opt_code_dis, opt_code_enc], []
 
