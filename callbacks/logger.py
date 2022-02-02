@@ -215,7 +215,7 @@ class Logger(Callback):
                 latent_data[i] = pl_module(images, domains, contents)[0].cpu()
                 latent_domains[i] = torch.argmax(domains.cpu(), dim=1)
                 latent_contents[i] = torch.argmax(contents.cpu(), dim=1)
-                if i >= latent_data.shape[0]:
+                if i+1 >= latent_data.shape[0]:
                     break
             latent_data = latent_data.view(-1, pl_module.latent_size)
             latent_domains = latent_domains.view(-1, 1)
