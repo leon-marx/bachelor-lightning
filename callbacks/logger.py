@@ -5,12 +5,15 @@ import torchvision
 import matplotlib.pyplot as plt
 from matplotlib.lines import Line2D
 import numpy as np
+import umap
 
 
 class Logger(Callback):
-    def __init__(self, output_dir, train_batch, val_batch, domains, contents, images_on_val=False):
+    def __init__(self, output_dir, log_dm, train_batch, val_batch, domains, contents, images_on_val=False):
         super().__init__()
         self.output_dir = output_dir
+
+        self.log_dm = log_dm
 
         self.train_batch = train_batch
         self.val_batch = val_batch
@@ -26,7 +29,7 @@ class Logger(Callback):
         self.contents = contents
         self.content_dict = {content: torch.LongTensor([i]) for i, content in enumerate(self.contents)}
 
-
+        self.epoch_counter = 0
         self.iov_flag = False
         self.images_on_val = images_on_val
     
@@ -50,6 +53,10 @@ class Logger(Callback):
 
     def on_epoch_end(self, trainer, pl_module):
         self.iov_flag = True
+        self.epoch_counter += 1
+        if self.epoch_counter >= 10:
+            self.log_umap(trainer, pl_module)
+            self.epoch_counter = 0
         return super().on_epoch_end(trainer, pl_module)
 
     def on_validation_batch_end(self, trainer, pl_module, outputs, batch, batch_idx, dataloader_idx):
@@ -187,4 +194,44 @@ class Logger(Callback):
                     if tensorboard_log:
                         trainer.logger.experiment.add_image(f"generated_{domain_name}_{content_name}", gen_grid)
 
+            pl_module.train()
+    
+    def log_umap(self, trainer, pl_module):
+        with torch.no_grad():
+            pl_module.eval()
+            latent_data = torch.zeros(size=(50, self.log_dm.batch_size, pl_module.latent_size))
+            latent_domains = torch.zeros(size=(50, self.log_dm.batch_size))
+            latent_contents = torch.zeros(size=(50, self.log_dm.batch_size))
+            for i, batch in enumerate(iter(self.log_dm.train_dataloader())):
+                images = batch[0]
+                domains = batch[1]
+                contents = batch[2]
+                latent_data[i] = pl_module(images, domains, contents)[0]
+                latent_domains[i] = np.argmax(domains, axis=1)
+                latent_contents[i] = np.argmax(contents, axis=1)
+                if i >= 49:
+                    break
+            reducer = umap.UMAP(random_state=17)
+            reducer.fit(self.latent_data)
+            embedding = reducer.embedding_
+            fig = plt.figure(figsize=(8, 8))
+            plt.scatter(embedding[:, 0], embedding[:, 1], c=self.latent_domains, cmap='Spectral', s=5)
+            plt.gca().set_aspect('equal', 'datalim')
+            cbar = plt.colorbar(boundaries=np.arange(len(self.domains)+1)-0.5)
+            cbar.set_ticks(np.arange(len(self.domains)))
+            cbar.ax.set_yticklabels(list(self.domain_dict.keys()))
+            plt.title('UMAP projection of the latent space by domain', fontsize=24)
+            plt.savefig(f"{self.output_dir}/version_{trainer.logger.version}/images/umap_by_domain.png")
+            trainer.logger.experiment.add_figure("umap_by_domain", fig, close=False)
+            plt.close(fig)
+            fig = plt.figure(figsize=(8, 8))
+            plt.scatter(embedding[:, 0], embedding[:, 1], c=self.latent_contents, cmap='Spectral', s=5)
+            plt.gca().set_aspect('equal', 'datalim')
+            cbar = plt.colorbar(boundaries=np.arange(len(self.contents)+1)-0.5)
+            cbar.set_ticks(np.arange(len(self.contents)))
+            cbar.ax.set_yticklabels(list(self.content_dict.keys()))
+            plt.title('UMAP projection of the latent space by content', fontsize=24)
+            plt.savefig(f"{self.output_dir}/version_{trainer.logger.version}/images/umap_by_content.png")
+            trainer.logger.experiment.add_figure("umap_by_content", fig, close=False)
+            plt.close(fig)
             pl_module.train()

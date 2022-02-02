@@ -219,7 +219,7 @@ if __name__ == "__main__":
     
     # Callbacks
     callbacks = [
-        Logger(args.output_dir, train_batch, val_batch, domains, contents, images_on_val=True),
+        Logger(args.output_dir, log_dm, train_batch, val_batch, domains, contents, images_on_val=True),
         pl.callbacks.ModelCheckpoint(monitor="val_loss"),
     ]
     if args.model not in ["AAE", "GAN"]:
