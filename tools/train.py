@@ -16,6 +16,7 @@ from models.dccvae import DCCVAE
 from models.trvae import trVAE
 from models.aae import AAE
 from models.gan import GAN
+from models.mmd_cvae import MMD_CVAE
 from callbacks.logger import Logger
 
 
@@ -170,6 +171,12 @@ if __name__ == "__main__":
                         out_channels=out_channels, kernel_size=kernel_size, activation=activation,
                         downsampling=downsampling, upsampling=upsampling, dropout=dropout,
                         batch_norm=batch_norm)
+        if args.model == "MMD_CVAE":
+            model = MMD_CVAE.load_from_checkpoint(args.ckpt_path, num_domains=num_domains, num_contents=num_contents,
+                        latent_size=latent_size, lr=lr, depth=depth, 
+                        out_channels=out_channels, kernel_size=kernel_size, activation=activation,
+                        downsampling=downsampling, upsampling=upsampling, dropout=dropout,
+                        batch_norm=batch_norm, loss_mode=loss_mode, lamb=lamb, beta=beta)
     else:
         if args.model == "CVAE":
             model = CVAE(num_domains=num_domains, num_contents=num_contents,
@@ -216,6 +223,12 @@ if __name__ == "__main__":
                         out_channels=out_channels, kernel_size=kernel_size, activation=activation,
                         downsampling=downsampling, upsampling=upsampling, dropout=dropout,
                         batch_norm=batch_norm)
+        if args.model == "MMD_CVAE":
+            model = MMD_CVAE(num_domains=num_domains, num_contents=num_contents,
+                        latent_size=latent_size, lr=lr, depth=depth, 
+                        out_channels=out_channels, kernel_size=kernel_size, activation=activation,
+                        downsampling=downsampling, upsampling=upsampling, dropout=dropout,
+                        batch_norm=batch_norm, loss_mode=loss_mode, lamb=lamb, beta=beta)
     
     # Callbacks
     callbacks = [
