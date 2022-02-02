@@ -54,7 +54,8 @@ class Logger(Callback):
     def on_epoch_end(self, trainer, pl_module):
         self.iov_flag = True
         self.epoch_counter += 1
-        if self.epoch_counter >= 10:
+        print(f"epoch_counter: {self.epoch_counter}")
+        if self.epoch_counter >= 5:
             self.log_umap(trainer, pl_module)
             self.epoch_counter = 0
         return super().on_epoch_end(trainer, pl_module)
@@ -203,12 +204,12 @@ class Logger(Callback):
             latent_domains = torch.zeros(size=(50, self.log_dm.batch_size))
             latent_contents = torch.zeros(size=(50, self.log_dm.batch_size))
             for i, batch in enumerate(iter(self.log_dm.train_dataloader())):
-                images = batch[0]
-                domains = batch[1]
-                contents = batch[2]
-                latent_data[i] = pl_module(images, domains, contents)[0]
-                latent_domains[i] = np.argmax(domains, axis=1)
-                latent_contents[i] = np.argmax(contents, axis=1)
+                images = batch[0].to(pl_module.device)
+                domains = batch[1].to(pl_module.device)
+                contents = batch[2].to(pl_module.device)
+                latent_data[i] = pl_module(images, domains, contents)[0].cpu()
+                latent_domains[i] = np.argmax(domains.cpu().numpy(), axis=1)
+                latent_contents[i] = np.argmax(contents.cpu().numpy(), axis=1)
                 if i >= 49:
                     break
             reducer = umap.UMAP(random_state=17)
