@@ -200,7 +200,7 @@ class Logger(Callback):
     def log_umap(self, trainer, pl_module):
         with torch.no_grad():
             pl_module.eval()
-            first_dim = min(50, int(len(self.log_dm) / self.log_dm.batch_size))
+            first_dim = min(50, int(len(self.log_dm.train_dataloader())-1))
             print(first_dim)
             latent_data = torch.zeros(size=(first_dim, self.log_dm.batch_size, pl_module.latent_size))
             latent_domains = torch.zeros(size=(first_dim, self.log_dm.batch_size))
