@@ -54,7 +54,6 @@ class Logger(Callback):
     def on_epoch_end(self, trainer, pl_module):
         self.iov_flag = True
         self.epoch_counter += 1
-        print(f"epoch_counter: {self.epoch_counter}")
         if self.epoch_counter / 2 >= 2:
             self.log_umap(trainer, pl_module)
             self.epoch_counter = 0
