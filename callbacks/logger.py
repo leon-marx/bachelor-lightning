@@ -7,6 +7,9 @@ from matplotlib.lines import Line2D
 import numpy as np
 import umap
 
+from models.cvae_v3 import CVAE_v3
+from models.mmd_cvae import MMD_CVAE
+
 
 class Logger(Callback):
     def __init__(self, output_dir, log_dm, train_batch, val_batch, domains, contents, images_on_val=False):
@@ -57,6 +60,8 @@ class Logger(Callback):
         if self.epoch_counter / 2 >= 2:
             self.log_umap(trainer, pl_module)
             self.epoch_counter = 0
+            if isinstance(pl_module, CVAE_v3) or isinstance(pl_module, MMD_CVAE):
+                pl_module.warmer()
         return super().on_epoch_end(trainer, pl_module)
 
     def on_validation_batch_end(self, trainer, pl_module, outputs, batch, batch_idx, dataloader_idx):
@@ -65,6 +70,7 @@ class Logger(Callback):
             os.makedirs(f"{self.output_dir}/version_{trainer.logger.version}/images", exist_ok=True)
             self.log_reconstructions(trainer, pl_module, tensorboard_log=True)
             self.log_generated(trainer, pl_module, tensorboard_log=True)
+            self.log_transfers(trainer, pl_module, tensorboard_log=True)
             self.log_losses(trainer)
             self.log_grad_flow(trainer, tensorboard_log=True)
 
@@ -229,7 +235,11 @@ class Logger(Callback):
                 images = batch[0].to(pl_module.device)
                 domains = batch[1].to(pl_module.device)
                 contents = batch[2].to(pl_module.device)
-                latent_data[i] = pl_module(images, domains, contents)[0].cpu()
+                if isinstance(pl_module, CVAE_v3) or isinstance(pl_module, MMD_CVAE):
+                    enc_mu, enc_logvar = pl_module(images, domains, contents)[:2]
+                    latent_data[i] = enc_mu + torch.randn_like(enc_mu) * (0.5 * enc_logvar).exp()
+                else:
+                    latent_data[i] = pl_module(images, domains, contents)[0].cpu()
                 latent_domains[i] = torch.argmax(domains.cpu(), dim=1)
                 latent_contents[i] = torch.argmax(contents.cpu(), dim=1)
                 if i+1 >= latent_data.shape[0]:
