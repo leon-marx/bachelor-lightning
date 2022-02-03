@@ -113,7 +113,7 @@ class Logger(Callback):
             train_contents = self.train_batch[2].to(pl_module.device)
 
             for decoder_domain in self.domains:
-                dec_domains = torch.cat((torch.nn.functional.one_hot(self.domain_dict[decoder_domain]),) * train_domains.shape[0], dim=0).to(pl_module.device)
+                dec_domains = torch.cat((torch.nn.functional.one_hot(self.domain_dict[decoder_domain], num_classes=len(self.domains)),) * train_domains.shape[0], dim=0).to(pl_module.device)
                 print(dec_domains.shape)
                 print(train_domains.shape)
                 print(dec_domains[0])
