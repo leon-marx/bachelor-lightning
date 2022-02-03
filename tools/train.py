@@ -170,7 +170,7 @@ if __name__ == "__main__":
             loaded_state_dict = torch.load(args.ckpt_path)["state_dict"]
             new_state_dict={k:v if v.size()==current_model_dict[k].size()  else  current_model_dict[k] for k,v in zip(current_model_dict.keys(), loaded_state_dict.values())}
             model.load_state_dict(new_state_dict, strict=False)
-            model.to(args.gpus)
+            model.to(args.gpus[0])
             # model = AAE.load_from_checkpoint(args.ckpt_path, num_domains=num_domains, num_contents=num_contents,
             #             latent_size=latent_size, lr=lr, depth=depth, 
             #             out_channels=out_channels, kernel_size=kernel_size, activation=activation,
