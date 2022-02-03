@@ -113,10 +113,10 @@ class Logger(Callback):
             train_contents = self.train_batch[2].to(pl_module.device)
 
             for decoder_domain in self.domains:
-                dec_domains = torch.cat((torch.nn.functional.one_hot(self.domain_dict[decoder_domain]),) * train_domains.shape[0], dim=0)
+                dec_domains = torch.cat((torch.nn.functional.one_hot(self.domain_dict[decoder_domain]),) * train_domains.shape[0], dim=0).to(pl_module.device)
 
-                transfers = pl_module.transfer(train_imgs, train_domains, train_contents, dec_domains)
-                train_imgs_to_plot = (train_imgs + 1.0) / 2.0
+                transfers = pl_module.transfer(train_imgs, train_domains, train_contents, dec_domains).cpu()
+                train_imgs_to_plot = (train_imgs.cpu() + 1.0) / 2.0
                 transfers = (transfers + 1.0) / 2.0
                 transfer_grid = torchvision.utils.make_grid(torch.stack((train_imgs_to_plot, transfers), dim=1).view(-1, 3, 224, 224))
                 torchvision.utils.save_image(transfer_grid, f"{self.output_dir}/version_{trainer.logger.version}/images/transfer_to_{decoder_domain}.png")
