@@ -49,6 +49,7 @@ if __name__ == "__main__":
     parser.add_argument("--batch_norm", action="store_true", default=False)
     parser.add_argument("--no_bn_last", action="store_true", default=False)
     parser.add_argument("--loss_mode", type=str, default="elbo")
+    parser.add_argument("--no_strict", action="store_true", default=False)
     # Training
     parser.add_argument("--gpus", type=str, default=None)
     parser.add_argument("--output_dir", type=str, default=None)
@@ -128,55 +129,55 @@ if __name__ == "__main__":
     if args.ckpt_path != "0":
         if args.model == "CVAE":
             model = CVAE.load_from_checkpoint(args.ckpt_path, num_domains=num_domains, num_contents=num_contents,
-                        latent_size=latent_size, lamb=lamb, lr=lr)
+                        latent_size=latent_size, lamb=lamb, lr=lr, strict = not args.no_strict)
         if args.model == "CVAE_v2":
             model = CVAE_v2.load_from_checkpoint(args.ckpt_path, num_domains=num_domains, num_contents=num_contents, 
                         latent_size=latent_size, lr=lr, depth=depth, out_channels=out_channels, 
                         kernel_size=kernel_size, activation=activation, downsampling=downsampling, 
                         upsampling=upsampling, dropout=dropout, batch_norm=batch_norm, loss_mode=loss_mode,
-                        lamb=lamb, no_bn_last=no_bn_last, strict=not no_bn_last)
+                        lamb=lamb, no_bn_last=no_bn_last, strict=not no_bn_last, strict = not args.no_strict)
         if args.model == "CVAE_v3":
             model = CVAE_v3.load_from_checkpoint(args.ckpt_path, num_domains=num_domains, num_contents=num_contents, 
                         latent_size=latent_size, lr=lr, depth=depth, out_channels=out_channels, 
                         kernel_size=kernel_size, activation=activation, downsampling=downsampling, 
                         upsampling=upsampling, dropout=dropout, batch_norm=batch_norm, loss_mode=loss_mode,
-                        lamb=lamb, no_bn_last=no_bn_last, strict=not no_bn_last)
+                        lamb=lamb, no_bn_last=no_bn_last, strict=not no_bn_last, strict = not args.no_strict)
         if args.model == "AE":
             model = AE.load_from_checkpoint(args.ckpt_path, num_domains=num_domains, num_contents=num_contents,
-                        latent_size=latent_size, lr=lr)
+                        latent_size=latent_size, lr=lr, strict = not args.no_strict)
         if args.model == "AE_v2":
             model = AE_v2.load_from_checkpoint(args.ckpt_path, num_domains=num_domains, num_contents=num_contents,
-                        latent_size=latent_size, lr=lr)
+                        latent_size=latent_size, lr=lr, strict = not args.no_strict)
         if args.model == "AE_v3":
             model = AE_v3.load_from_checkpoint(args.ckpt_path, num_domains=num_domains, num_contents=num_contents, 
                         latent_size=latent_size, lr=lr, depth=depth, out_channels=out_channels, 
                         kernel_size=kernel_size, activation=activation, downsampling=downsampling, 
-                        upsampling=upsampling, dropout=dropout, batch_norm=batch_norm, loss_mode=loss_mode, strict=not no_bn_last)
+                        upsampling=upsampling, dropout=dropout, batch_norm=batch_norm, loss_mode=loss_mode, strict=not no_bn_last, strict = not args.no_strict)
         if args.model == "DCCVAE":
             model = DCCVAE.load_from_checkpoint(args.ckpt_path, num_domains=num_domains, num_contents=num_contents, lr=lr,
-                        latent_size=latent_size, feature_size=feature_size, loss_mode=loss_mode, lamb=lamb)
+                        latent_size=latent_size, feature_size=feature_size, loss_mode=loss_mode, lamb=lamb, strict = not args.no_strict)
         if args.model == "trVAE":
             model = trVAE.load_from_checkpoint(args.ckpt_path, num_domains=num_domains, num_contents=num_contents, latent_size=latent_size,
                         feature_size=feature_size, mmd_size=mmd_size, dropout_rate=dropout_rate,
-                        lr=lr, lamb=lamb, beta=beta)
+                        lr=lr, lamb=lamb, beta=beta, strict = not args.no_strict)
         if args.model == "AAE":
             model = AAE.load_from_checkpoint(args.ckpt_path, num_domains=num_domains, num_contents=num_contents,
                         latent_size=latent_size, lr=lr, depth=depth, 
                         out_channels=out_channels, kernel_size=kernel_size, activation=activation,
                         downsampling=downsampling, upsampling=upsampling, dropout=dropout,
-                        batch_norm=batch_norm)
+                        batch_norm=batch_norm, strict = not args.no_strict)
         if args.model == "GAN":
             model = GAN.load_from_checkpoint(args.ckpt_path, num_domains=num_domains, num_contents=num_contents,
                         latent_size=latent_size, lr=lr, depth=depth, 
                         out_channels=out_channels, kernel_size=kernel_size, activation=activation,
                         downsampling=downsampling, upsampling=upsampling, dropout=dropout,
-                        batch_norm=batch_norm)
+                        batch_norm=batch_norm, strict = not args.no_strict)
         if args.model == "MMD_CVAE":
             model = MMD_CVAE.load_from_checkpoint(args.ckpt_path, num_domains=num_domains, num_contents=num_contents,
                         latent_size=latent_size, lr=lr, depth=depth, 
                         out_channels=out_channels, kernel_size=kernel_size, activation=activation,
                         downsampling=downsampling, upsampling=upsampling, dropout=dropout,
-                        batch_norm=batch_norm, loss_mode=loss_mode, lamb=lamb, beta=beta)
+                        batch_norm=batch_norm, loss_mode=loss_mode, lamb=lamb, beta=beta, strict = not args.no_strict)
     else:
         if args.model == "CVAE":
             model = CVAE(num_domains=num_domains, num_contents=num_contents,
