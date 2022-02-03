@@ -290,9 +290,12 @@ class Logger(Callback):
             plt.savefig(f"{self.output_dir}/version_{trainer.logger.version}/images/umap_by_content.png")
             trainer.logger.experiment.add_figure("umap_by_content", fig, close=False)
             plt.close(fig)
+
             fig = plt.figure(figsize=(10, 8))
             normal = torch.randn(size=(first_dim * self.log_dm.batch_size, pl_module.latent_size))
             normal_embedding = reducer.transform(normal)
+            print(normal_embedding.shape)
+            print(normal.shape)
             plt.scatter(embedding[:, 0], embedding[:, 1], c=torch.zeros_like(normal), cmap='Spectral', s=5)
             plt.scatter(normal_embedding[:, 0], normal_embedding[:, 1], c=torch.ones_like(normal), cmap='Spectral', s=5)
             plt.gca().set_aspect('equal', 'datalim')
