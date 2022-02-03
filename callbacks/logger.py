@@ -33,6 +33,7 @@ class Logger(Callback):
         self.content_dict = {content: torch.LongTensor([i]) for i, content in enumerate(self.contents)}
 
         self.epoch_counter = -1
+        self.warumup_freq = 10
         self.iov_flag = False
         self.images_on_val = images_on_val
     
@@ -57,7 +58,7 @@ class Logger(Callback):
     def on_epoch_end(self, trainer, pl_module):
         self.iov_flag = True
         self.epoch_counter += 1
-        if self.epoch_counter / 2 >= 2:
+        if self.epoch_counter / 2 >= self.warumup_freq:
             self.log_umap(trainer, pl_module)
             self.epoch_counter = 0
             if isinstance(pl_module, CVAE_v3) or isinstance(pl_module, MMD_CVAE):
