@@ -1,15 +1,23 @@
-import matplotlib.pyplot as plt
-import torch
-import umap
+# import matplotlib.pyplot as plt
+# import torch
+# import umap
 import numpy as np
 
 if __name__ == "__main__":
+    a = 1e-8
+    for i in range(20):
+        a = np.round( a * 10 ** 0.5, 8)
+        print(a)
+    
+    
+    """
+    batch_size = 3 * 8
     out_channels = [256]
     num_domains = 3
     num_classes = 7
     beta = 1e-5
 
-    y_mmd = torch.randn(size=(49*out_channels[0]))
+    y_mmd = torch.randn(size=(batch_size, 49*out_channels[0]))
 
     mmd = 0
 
@@ -28,4 +36,4 @@ if __name__ == "__main__":
                 mmd += k / n ** 2
             else:
                 mmd -= 2 * k / n ** 2
-    print(mmd)
+    print(mmd)"""
