@@ -1,49 +1,24 @@
+import matplotlib.pyplot as plt
 import torch
-
-
-def get_combinations(array_1, array_2):
-    res = []
-    for item_1 in array_1:
-        for item_2 in array_2:
-            res.append([item_1, item_2])
-    return res
-
-def kernel_sum(combinations):
-    k = 0
-    alphas = [0.1, 1.0, 10]
-    for comb in combinations:
-        for alpha in alphas:
-            k += torch.exp(- alpha * (comb[0], comb[1]) ** 2).sum()
-    return k
-
-
-def mmd_loss(y):
-    """
-    y: torch.Tensor of shape (batch_size * num_domains, mmd_size)
-    """
-    mmd_loss = 0
-    y_list = []
-    for i in range(len(y_list)):
-        for j in range(i+1):
-            combinations = get_combinations(y_list[i], y_list[j])
-            term = kernel_sum(combinations)
-            if i == j:
-                mmd_loss += term
-            else:
-                mmd_loss -= 2 * term
-
-
-
-    n0 = y_label_0.shape[0]
-    n1 = y_label_1.shape[0]
-    args_00 = get_combinations(y_label_0, y_label_0)
-    args_11 = get_combinations(y_label_1, y_label_1)
-    args_01 = get_combinations(y_label_0, y_label_1)
-    term_00 = kernel(args_00) / (n0 ** 2)
-    term_1 = kernel(args_1) / (n1 ** 2)
-    term_01 = kernel(args_01) / (n0 * n1)
-    return term_00 + term_11 - 2 * term_01
+import umap
+import numpy as np
 
 if __name__ == "__main__":
-    a = torch.arange(4 * 3 * 16 * 16).view(4, 3, 16, 16)
-    b = a * 10
+    first_dim = 50
+    batch_size = 32
+    latent_size = 128
+
+    latent_data = torch.randn(size=(first_dim * batch_size, latent_size))
+    latent_contents = torch.randint(low=0, high=8, size=(first_dim * batch_size, 1))
+
+    reducer = umap.UMAP(random_state=17)
+    reducer.fit(latent_data)
+    embedding = reducer.embedding_
+    plt.figure(figsize=(10, 8))
+    plt.scatter(embedding[:, 0], embedding[:, 1], c=latent_contents, cmap='gist_rainbow', s=5)
+    plt.gca().set_aspect('equal', 'datalim')
+    cbar = plt.colorbar(boundaries=np.arange(2+1)-0.5)
+    cbar.set_ticks(np.arange(2))
+    cbar.ax.set_yticklabels([f"class_{i}" for i in range(8)])
+    plt.title('UMAP projection of the latent space and normal distribution', fontsize=14)
+    plt.show()
