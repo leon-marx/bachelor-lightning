@@ -4,21 +4,28 @@ import umap
 import numpy as np
 
 if __name__ == "__main__":
-    first_dim = 50
-    batch_size = 32
-    latent_size = 128
+    out_channels = [256]
+    num_domains = 3
+    num_classes = 7
+    beta = 1e-5
 
-    latent_data = torch.randn(size=(first_dim * batch_size, latent_size))
-    latent_contents = torch.randint(low=0, high=8, size=(first_dim * batch_size, 1))
+    y_mmd = torch.randn(size=(49*out_channels[0]))
 
-    reducer = umap.UMAP(random_state=17)
-    reducer.fit(latent_data)
-    embedding = reducer.embedding_
-    plt.figure(figsize=(10, 8))
-    plt.scatter(embedding[:, 0], embedding[:, 1], c=latent_contents, cmap='gist_rainbow', s=5)
-    plt.gca().set_aspect('equal', 'datalim')
-    cbar = plt.colorbar(boundaries=np.arange(2+1)-0.5)
-    cbar.set_ticks(np.arange(2))
-    cbar.ax.set_yticklabels([f"class_{i}" for i in range(8)])
-    plt.title('UMAP projection of the latent space and normal distribution', fontsize=14)
-    plt.show()
+    mmd = 0
+
+    n = int(y_mmd.shape[0] / num_domains)
+    labeled_y = [y_mmd[i*n:(i+1)*n] for i in range(num_domains)]
+    sigmas = [1e-6, 1e-5, 1e-4, 1e-3, 1e-2, 1e-1, 1, 5, 10, 15, 20, 25, 30, 35, 100, 1e3, 1e4, 1e5, 1e6]
+    for i in range(len(labeled_y)):
+        for j in range(i+1):
+            k = 0
+            for x1 in labeled_y[i]:
+                for x2 in labeled_y[j]:
+                    e = torch.exp(-(x1 - x2) ** 2).mean()
+                    for sigma in sigmas:
+                        k += e ** sigma * beta
+            if i == j:
+                mmd += k / n ** 2
+            else:
+                mmd -= 2 * k / n ** 2
+    print(mmd)
