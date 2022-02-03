@@ -228,7 +228,7 @@ class Logger(Callback):
         with torch.no_grad():
             pl_module.eval()
             first_dim = min(50, int(len(self.log_dm.train_dataloader())-1))
-            latent_data = torch.zeros(size=(first_dim, self.train_batch.shape[0], pl_module.latent_size))
+            latent_data = torch.zeros(size=(first_dim, self.train_batch[0].shape[0], pl_module.latent_size))
             latent_domains = torch.zeros(size=(first_dim, self.log_dm.batch_size))
             latent_contents = torch.zeros(size=(first_dim, self.log_dm.batch_size))
             for i, batch in enumerate(iter(self.log_dm.train_dataloader())):
