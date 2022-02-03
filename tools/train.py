@@ -135,13 +135,13 @@ if __name__ == "__main__":
                         latent_size=latent_size, lr=lr, depth=depth, out_channels=out_channels, 
                         kernel_size=kernel_size, activation=activation, downsampling=downsampling, 
                         upsampling=upsampling, dropout=dropout, batch_norm=batch_norm, loss_mode=loss_mode,
-                        lamb=lamb, no_bn_last=no_bn_last, strict=not no_bn_last, strict = not args.no_strict)
+                        lamb=lamb, no_bn_last=no_bn_last, strict = not args.no_strict)
         if args.model == "CVAE_v3":
             model = CVAE_v3.load_from_checkpoint(args.ckpt_path, num_domains=num_domains, num_contents=num_contents, 
                         latent_size=latent_size, lr=lr, depth=depth, out_channels=out_channels, 
                         kernel_size=kernel_size, activation=activation, downsampling=downsampling, 
                         upsampling=upsampling, dropout=dropout, batch_norm=batch_norm, loss_mode=loss_mode,
-                        lamb=lamb, no_bn_last=no_bn_last, strict=not no_bn_last, strict = not args.no_strict)
+                        lamb=lamb, no_bn_last=no_bn_last, strict = not args.no_strict)
         if args.model == "AE":
             model = AE.load_from_checkpoint(args.ckpt_path, num_domains=num_domains, num_contents=num_contents,
                         latent_size=latent_size, lr=lr, strict = not args.no_strict)
@@ -152,7 +152,7 @@ if __name__ == "__main__":
             model = AE_v3.load_from_checkpoint(args.ckpt_path, num_domains=num_domains, num_contents=num_contents, 
                         latent_size=latent_size, lr=lr, depth=depth, out_channels=out_channels, 
                         kernel_size=kernel_size, activation=activation, downsampling=downsampling, 
-                        upsampling=upsampling, dropout=dropout, batch_norm=batch_norm, loss_mode=loss_mode, strict=not no_bn_last, strict = not args.no_strict)
+                        upsampling=upsampling, dropout=dropout, batch_norm=batch_norm, loss_mode=loss_mode, strict = not args.no_strict)
         if args.model == "DCCVAE":
             model = DCCVAE.load_from_checkpoint(args.ckpt_path, num_domains=num_domains, num_contents=num_contents, lr=lr,
                         latent_size=latent_size, feature_size=feature_size, loss_mode=loss_mode, lamb=lamb, strict = not args.no_strict)
