@@ -114,6 +114,10 @@ class Logger(Callback):
 
             for decoder_domain in self.domains:
                 dec_domains = torch.cat((torch.nn.functional.one_hot(self.domain_dict[decoder_domain]),) * train_domains.shape[0], dim=0).to(pl_module.device)
+                print(dec_domains.shape)
+                print(train_domains.shape)
+                print(dec_domains[0])
+                print(train_domains[0])
 
                 transfers = pl_module.transfer(train_imgs, train_domains, train_contents, dec_domains).cpu()
                 train_imgs_to_plot = (train_imgs.cpu() + 1.0) / 2.0
