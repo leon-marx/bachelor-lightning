@@ -114,10 +114,6 @@ class Logger(Callback):
 
             for decoder_domain in self.domains:
                 dec_domains = torch.cat((torch.nn.functional.one_hot(self.domain_dict[decoder_domain], num_classes=len(self.domains)),) * train_domains.shape[0], dim=0).to(pl_module.device)
-                print(dec_domains.shape)
-                print(train_domains.shape)
-                print(dec_domains[0])
-                print(train_domains[0])
 
                 transfers = pl_module.transfer(train_imgs, train_domains, train_contents, dec_domains).cpu()
                 train_imgs_to_plot = (train_imgs.cpu() + 1.0) / 2.0
@@ -295,7 +291,7 @@ class Logger(Callback):
             trainer.logger.experiment.add_figure("umap_by_content", fig, close=False)
             plt.close(fig)
             fig = plt.figure(figsize=(10, 8))
-            normal = np.random.randn(first_dim * self.log_dm.batch_size, pl_module.latent_size)
+            normal = torch.randn(size=(first_dim * self.log_dm.batch_size, pl_module.latent_size))
             normal_embedding = reducer.transform(normal)
             plt.scatter(embedding[:, 0], embedding[:, 1], c=torch.zeros_like(normal), cmap='Spectral', s=5)
             plt.scatter(normal_embedding[:, 0], normal_embedding[:, 1], c=torch.ones_like(normal), cmap='Spectral', s=5)
