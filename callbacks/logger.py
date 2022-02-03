@@ -229,8 +229,8 @@ class Logger(Callback):
             pl_module.eval()
             first_dim = min(50, int(len(self.log_dm.train_dataloader())-1))
             latent_data = torch.zeros(size=(first_dim, self.train_batch[0].shape[0], pl_module.latent_size))
-            latent_domains = torch.zeros(size=(first_dim, self.log_dm.batch_size))
-            latent_contents = torch.zeros(size=(first_dim, self.log_dm.batch_size))
+            latent_domains = torch.zeros(size=(first_dim, self.train_batch[0].shape[0]))
+            latent_contents = torch.zeros(size=(first_dim, self.train_batch[0].shape[0]))
             for i, batch in enumerate(iter(self.log_dm.train_dataloader())):
                 images = batch[0].to(pl_module.device)
                 domains = batch[1].to(pl_module.device)
@@ -292,7 +292,7 @@ class Logger(Callback):
             plt.close(fig)
 
             fig = plt.figure(figsize=(10, 8))
-            normal = torch.randn(size=(first_dim * self.log_dm.batch_size, pl_module.latent_size))
+            normal = torch.randn(size=(first_dim * self.train_batch[0].shape[0], pl_module.latent_size))
             normal_embedding = reducer.transform(normal)
             compare_embedding = np.concatenate((embedding, normal_embedding), axis=0)
             compare_colors = np.concatenate((np.zeros(normal_embedding.shape[0]), np.ones(normal_embedding.shape[0])), axis=0)
