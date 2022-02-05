@@ -98,6 +98,8 @@ class AAE(pl.LightningModule):
         if self.loss_mode == "deep":
             img_loss = self.get_mse_loss(images, reconstructions)
             code_loss = self.get_mse_loss(codes, codes_2)
+            self.log("deep_loss_img", img_loss.item(), batch_size=images.shape[0])
+            self.log("deep_loss_code", code_loss.item(), batch_size=images.shape[0])
             loss = img_loss + code_loss
             if split_loss:
                 return loss, loss.item()
