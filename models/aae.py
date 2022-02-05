@@ -156,7 +156,7 @@ class AAE(pl.LightningModule):
 
         # Train CVAE for reconstruction
         if optimizer_idx == 0:
-            loss , value = self.vae_loss(images, reconstructions, split_loss=True)
+            loss , value = self.vae_loss(images, reconstructions, codes, split_loss=True)
             self.log("rec_train_loss", loss, batch_size=images.shape[0])
             self.log("rec", value, batch_size=images.shape[0], prog_bar=True)
             return loss
@@ -207,7 +207,7 @@ class AAE(pl.LightningModule):
 
         codes, reconstructions = self(images, domains, contents)
 
-        loss = self.vae_loss(images, reconstructions)
+        loss = self.vae_loss(images, reconstructions, codes)
         self.log("val_loss", loss, batch_size=images.shape[0])
         return loss
 
@@ -228,7 +228,7 @@ class AAE(pl.LightningModule):
 
         codes, reconstructions = self(images, domains, contents)
 
-        return self.vae_loss(images, reconstructions)
+        return self.vae_loss(images, reconstructions, codes)
 
     def configure_optimizers(self):
         opt_ae = torch.optim.Adam(params=list(self.encoder.parameters()) + list(self.decoder.parameters()), lr=self.lr, betas=(0.5, 0.999))
