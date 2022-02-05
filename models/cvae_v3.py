@@ -80,7 +80,7 @@ class CVAE_v3(pl.LightningModule):
         if isinstance(activation, torch.nn.SELU):
             self.apply(selu_init)
 
-    def loss(self, images, enc_mu, enc_logvar, reconstructions, split_loss=False):
+    def loss(self, images, enc_mu, enc_logvar, reconstructions, codes_2=None, split_loss=False):
         """
         Calculates the loss. Choose from l1, l2 and elbo
 
@@ -106,9 +106,8 @@ class CVAE_v3(pl.LightningModule):
                 return kld + rec
         if self.loss_mode == "deep":
             img_loss = self.get_mse_loss(images, reconstructions)
-            re_enc_mu, re_enc_logvar = self.encoder(reconstructions)
-            code_mu_loss = self.get_mse_loss(enc_mu, re_enc_mu)
-            code_logvar_loss = self.get_mse_loss(enc_mu, re_enc_logvar)
+            code_mu_loss = self.get_mse_loss(enc_mu, codes_2[0])
+            code_logvar_loss = self.get_mse_loss(enc_mu, codes_2[1])
             loss = img_loss + code_mu_loss + code_logvar_loss
             if split_loss:
                 return loss, loss.item()
@@ -146,7 +145,12 @@ class CVAE_v3(pl.LightningModule):
 
         enc_mu, enc_logvar, reconstructions = self(images, domains, contents)
 
-        loss, kld_value, rec_value = self.loss(images, enc_mu, enc_logvar, reconstructions, split_loss=True)
+        if self.loss_mode == "deep":
+            codes_2 = self.encoder(reconstructions, domains, contents)
+            loss, kld_value, rec_value = self.loss(images, enc_mu, enc_logvar, reconstructions, codes_2=codes_2, split_loss=True)
+
+        else:
+            loss, kld_value, rec_value = self.loss(images, enc_mu, enc_logvar, reconstructions, split_loss=True)
         self.log("train_loss", loss, batch_size=images.shape[0])
         self.log("kld", kld_value, prog_bar=True, batch_size=images.shape[0])
         self.log("rec", rec_value, prog_bar=True, batch_size=images.shape[0])

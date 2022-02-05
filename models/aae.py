@@ -87,7 +87,7 @@ class AAE(pl.LightningModule):
         if isinstance(activation, torch.nn.SELU):
             self.apply(selu_init)
 
-    def vae_loss(self, images, reconstructions, codes, split_loss=False):
+    def vae_loss(self, images, reconstructions, codes, codes_2=None, split_loss=False):
         """
         Calculates the l2 loss..
 
@@ -97,7 +97,7 @@ class AAE(pl.LightningModule):
         """
         if self.loss_mode == "deep":
             img_loss = self.get_mse_loss(images, reconstructions)
-            code_loss = self.get_mse_loss(codes, self.encoder(reconstructions))
+            code_loss = self.get_mse_loss(codes, codes_2)
             loss = img_loss + code_loss
             if split_loss:
                 return loss, loss.item()
@@ -156,7 +156,11 @@ class AAE(pl.LightningModule):
 
         # Train CVAE for reconstruction
         if optimizer_idx == 0:
-            loss , value = self.vae_loss(images, reconstructions, codes, split_loss=True)
+            if self.loss_mode == "deep":
+                codes_2 = self.encoder(reconstructions, domains, contents)
+                loss , value = self.vae_loss(images, reconstructions, codes, codes_2=codes_2, split_loss=True)
+            else:
+                loss , value = self.vae_loss(images, reconstructions, codes, split_loss=True)
             self.log("rec_train_loss", loss, batch_size=images.shape[0])
             self.log("rec", value, batch_size=images.shape[0], prog_bar=True)
             return loss

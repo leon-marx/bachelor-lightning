@@ -82,7 +82,7 @@ class MMD_CVAE(pl.LightningModule):
         if isinstance(activation, torch.nn.SELU):
             self.apply(selu_init)
 
-    def loss(self, images, enc_mu, enc_logvar, reconstructions, y_mmd, split_loss=False):
+    def loss(self, images, enc_mu, enc_logvar, reconstructions, y_mmd, codes_2=None, split_loss=False):
         """
         Calculates the loss. Choose from l1, l2 and elbo
 
@@ -119,9 +119,8 @@ class MMD_CVAE(pl.LightningModule):
                 return kld + rec + mmd
         if self.loss_mode == "deep":
             img_loss = self.get_mse_loss(images, reconstructions)
-            re_enc_mu, re_enc_logvar = self.encoder(reconstructions)
-            code_mu_loss = self.get_mse_loss(enc_mu, re_enc_mu)
-            code_logvar_loss = self.get_mse_loss(enc_mu, re_enc_logvar)
+            code_mu_loss = self.get_mse_loss(enc_mu, codes_2[0])
+            code_logvar_loss = self.get_mse_loss(enc_mu, codes_2[1])
             rec = img_loss + code_mu_loss + code_logvar_loss
             kld = self.lamb * 0.5 * (enc_mu ** 2 + enc_logvar.exp() - enc_logvar - 1).mean(dim=[0, 1])
             mmd = 0
@@ -190,8 +189,12 @@ class MMD_CVAE(pl.LightningModule):
         contents = batch[2]
 
         enc_mu, enc_logvar, reconstructions, y_mmd = self(images, domains, contents)
+        if self.loss_mode == "deep":
+            codes_2 = self.encoder(reconstructions, domains, contents)
+            loss, kld_value, rec_value, mmd_value = self.loss(images, enc_mu, enc_logvar, reconstructions, y_mmd, codes_2=codes_2, split_loss=True)
+        else:
+            loss, kld_value, rec_value, mmd_value = self.loss(images, enc_mu, enc_logvar, reconstructions, y_mmd, split_loss=True)
 
-        loss, kld_value, rec_value, mmd_value = self.loss(images, enc_mu, enc_logvar, reconstructions, y_mmd, split_loss=True)
         self.log("train_loss", loss, batch_size=images.shape[0])
         self.log("kld", kld_value, prog_bar=True, batch_size=images.shape[0])
         self.log("rec", rec_value, prog_bar=True, batch_size=images.shape[0])
