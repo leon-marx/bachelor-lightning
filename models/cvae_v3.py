@@ -146,7 +146,8 @@ class CVAE_v3(pl.LightningModule):
         enc_mu, enc_logvar, reconstructions = self(images, domains, contents)
 
         if self.loss_mode == "deep":
-            codes_2 = self.encoder(reconstructions, domains, contents)
+            with torch.no_grad():
+                codes_2 = self.encoder(reconstructions, domains, contents)
             loss, kld_value, rec_value = self.loss(images, enc_mu, enc_logvar, reconstructions, codes_2=codes_2, split_loss=True)
 
         else:

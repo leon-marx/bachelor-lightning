@@ -159,7 +159,8 @@ class AAE(pl.LightningModule):
         # Train CVAE for reconstruction
         if optimizer_idx == 0:
             if self.loss_mode == "deep":
-                codes_2 = self.encoder(reconstructions, domains, contents)
+                with torch.no_grad():
+                    codes_2 = self.encoder(reconstructions, domains, contents)
                 loss , value = self.vae_loss(images, reconstructions, codes, codes_2=codes_2, split_loss=True)
             else:
                 loss , value = self.vae_loss(images, reconstructions, codes, split_loss=True)
