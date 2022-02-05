@@ -211,7 +211,12 @@ class AAE(pl.LightningModule):
 
         codes, reconstructions = self(images, domains, contents)
 
-        loss = self.vae_loss(images, reconstructions, codes)
+        if self.loss_mode == "deep":
+            codes_2 = self.encoder(reconstructions, domains, contents)
+            loss = self.vae_loss(images, reconstructions, codes, codes_2=codes_2)
+        else:
+            
+            loss = self.vae_loss(images, reconstructions, codes)
         self.log("val_loss", loss, batch_size=images.shape[0])
         return loss
 

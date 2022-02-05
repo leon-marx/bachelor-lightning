@@ -175,7 +175,11 @@ class CVAE_v3(pl.LightningModule):
 
         enc_mu, enc_logvar, reconstructions = self(images, domains, contents)
 
-        loss = self.loss(images, enc_mu, enc_logvar, reconstructions)
+        if self.loss_mode == "deep":
+            codes_2 = self.encoder(reconstructions, domains, contents)
+            loss = self.loss(images, enc_mu, enc_logvar, reconstructions, codes_2=codes_2)
+        else:
+            loss = self.loss(images, enc_mu, enc_logvar, reconstructions)
         self.log("val_loss", loss, batch_size=images.shape[0])
         return loss
 
