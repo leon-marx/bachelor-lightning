@@ -18,7 +18,7 @@ def selu_init(m):
 
 
 class AAE(pl.LightningModule):
-    def __init__(self, num_domains, num_contents, latent_size, lr, depth, out_channels, kernel_size, activation, downsampling, upsampling, dropout, batch_norm, no_bn_last=True):
+    def __init__(self, num_domains, num_contents, latent_size, lr, depth, out_channels, kernel_size, activation, downsampling, upsampling, dropout, batch_norm, loss_mode="normal", no_bn_last=True):
         super().__init__()
 
         self.num_domains = num_domains
@@ -32,6 +32,7 @@ class AAE(pl.LightningModule):
         self.upsampling = upsampling
         self.dropout = dropout
         self.batch_norm = batch_norm
+        self.loss_mode = loss_mode
         self.no_bn_last = no_bn_last
         self.get_mse_loss = torch.nn.MSELoss(reduction="mean")
         self.get_bce_loss = torch.nn.BCEWithLogitsLoss(reduction="mean")
@@ -47,6 +48,7 @@ class AAE(pl.LightningModule):
             "upsampling": self.upsampling,
             "dropout": self.dropout,
             "batch_norm": self.batch_norm,
+            "loss_mode": self.loss_mode,
             "no_bn_last": self.no_bn_last,
         }
 
@@ -85,7 +87,7 @@ class AAE(pl.LightningModule):
         if isinstance(activation, torch.nn.SELU):
             self.apply(selu_init)
 
-    def vae_loss(self, images, reconstructions, split_loss=False):
+    def vae_loss(self, images, reconstructions, codes, split_loss=False):
         """
         Calculates the l2 loss..
 
@@ -93,11 +95,20 @@ class AAE(pl.LightningModule):
         reconstructions: Tensor of shape (batch_size, channels, height, width)
         split_loss: bool, if True, returns kld and rec losses separately
         """
-        loss = self.get_mse_loss(images, reconstructions)
-        if split_loss:
-            return loss, loss.item()
+        if self.loss_mode == "deep":
+            img_loss = self.get_mse_loss(images, reconstructions)
+            code_loss = self.get_mse_loss(codes, self.encoder(reconstructions))
+            loss = img_loss + code_loss
+            if split_loss:
+                return loss, loss.item()
+            else:
+                return loss
         else:
-            return loss
+            loss = self.get_mse_loss(images, reconstructions)
+            if split_loss:
+                return loss, loss.item()
+            else:
+                return loss
    
     def disc_loss(self, pred, truth, split_loss=False):
         """

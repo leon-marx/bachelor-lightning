@@ -117,6 +117,34 @@ class MMD_CVAE(pl.LightningModule):
                 return kld + rec + mmd, kld.item(), rec.item(), mmd.item()
             else:
                 return kld + rec + mmd
+        if self.loss_mode == "deep":
+            img_loss = self.get_mse_loss(images, reconstructions)
+            re_enc_mu, re_enc_logvar = self.encoder(reconstructions)
+            code_mu_loss = self.get_mse_loss(enc_mu, re_enc_mu)
+            code_logvar_loss = self.get_mse_loss(enc_mu, re_enc_logvar)
+            rec = img_loss + code_mu_loss + code_logvar_loss
+            kld = self.lamb * 0.5 * (enc_mu ** 2 + enc_logvar.exp() - enc_logvar - 1).mean(dim=[0, 1])
+            mmd = 0
+
+            n = int(y_mmd.shape[0] / self.num_domains)
+            labeled_y = [y_mmd[i*n:(i+1)*n] for i in range(self.num_domains)]
+            sigmas = [1e-6, 1e-5, 1e-4, 1e-3, 1e-2, 1e-1, 1, 5, 10, 15, 20, 25, 30, 35, 100, 1e3, 1e4, 1e5, 1e6]
+            for i in range(len(labeled_y)):
+                for j in range(i+1):
+                    k = 0
+                    for x1 in labeled_y[i]:
+                        for x2 in labeled_y[j]:
+                            e = torch.exp(-(x1 - x2) ** 2).mean()
+                            for sigma in sigmas:
+                                k += e ** sigma * self.beta
+                    if i == j:
+                        mmd += k / n ** 2
+                    else:
+                        mmd -= 2 * k / n ** 2
+            if split_loss:
+                return kld + rec + mmd, kld.item(), rec.item(), mmd.item()
+            else:
+                return kld + rec + mmd
         if self.loss_mode == "l1":
             loss = torch.abs(images - reconstructions)
             return loss.mean(dim=[0, 1, 2, 3])

@@ -174,7 +174,7 @@ if __name__ == "__main__":
             model = AAE.load_from_checkpoint(args.ckpt_path, num_domains=num_domains, num_contents=num_contents,
                         latent_size=latent_size, lr=lr, depth=depth, 
                         out_channels=out_channels, kernel_size=kernel_size, activation=activation,
-                        downsampling=downsampling, upsampling=upsampling, dropout=dropout,
+                        downsampling=downsampling, upsampling=upsampling, dropout=dropout, loss_mode=loss_mode,
                         batch_norm=batch_norm, strict = not args.no_strict)
         if args.model == "GAN":
             model = GAN.load_from_checkpoint(args.ckpt_path, num_domains=num_domains, num_contents=num_contents,
@@ -226,7 +226,7 @@ if __name__ == "__main__":
             model = AAE(num_domains=num_domains, num_contents=num_contents,
                         latent_size=latent_size, lr=lr, depth=depth, 
                         out_channels=out_channels, kernel_size=kernel_size, activation=activation,
-                        downsampling=downsampling, upsampling=upsampling, dropout=dropout,
+                        downsampling=downsampling, upsampling=upsampling, dropout=dropout, loss_mode=loss_mode,
                         batch_norm=batch_norm)
         if args.model == "GAN":
             model = GAN(num_domains=num_domains, num_contents=num_contents,

@@ -104,6 +104,16 @@ class CVAE_v3(pl.LightningModule):
                 return kld + rec, kld.item(), rec.item()
             else:
                 return kld + rec
+        if self.loss_mode == "deep":
+            img_loss = self.get_mse_loss(images, reconstructions)
+            re_enc_mu, re_enc_logvar = self.encoder(reconstructions)
+            code_mu_loss = self.get_mse_loss(enc_mu, re_enc_mu)
+            code_logvar_loss = self.get_mse_loss(enc_mu, re_enc_logvar)
+            loss = img_loss + code_mu_loss + code_logvar_loss
+            if split_loss:
+                return loss, loss.item()
+            else:
+                return loss
 
     def forward(self, images, domains, contents):
         """
