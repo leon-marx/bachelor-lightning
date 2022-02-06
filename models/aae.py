@@ -1,6 +1,6 @@
 import torch
 import pytorch_lightning as pl
-from torchmetrics.image.lpip import LearnedPerceptualImagePatchSimilarity
+import lpips
 
 
 def selu_init(m):
@@ -38,7 +38,7 @@ class AAE(pl.LightningModule):
         self.get_mse_loss = torch.nn.MSELoss(reduction="mean")
         self.get_bce_loss = torch.nn.BCEWithLogitsLoss(reduction="mean")
         if self.loss_mode == "deep":
-            self.lpips = LearnedPerceptualImagePatchSimilarity(net_type="vgg")
+            self.lpips = lpips.LPIPS(net="vgg")
         self.hyper_param_dict = {
             "num_domains": self.num_domains,
             "num_contents": self.num_contents,
