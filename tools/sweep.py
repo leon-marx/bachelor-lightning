@@ -113,7 +113,7 @@ if __name__ == "__main__":
             "dropout": [False],
             "batch_norm": [False],
             "loss_mode": ["deep_lpips"],
-            "lamb": [1e-8],
+            "lamb": [1e-8, 1e-6, 1e-4, 1e-2, 0.5, 1.0],
             "net": ["alex", "vgg", "squeeze"],
             "calibration": [True, False]
             },
