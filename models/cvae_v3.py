@@ -113,9 +113,9 @@ class CVAE_v3(pl.LightningModule):
                 img_loss = self.get_mse_loss(images, reconstructions)
                 code_mu_loss = self.get_mse_loss(enc_mu, codes_2[0])
                 code_logvar_loss = self.get_mse_loss(enc_mu, codes_2[1])
-                self.log("deep_loss_img", img_loss.item(), batch_size=images.shape[0], logger=True)
-                self.log("deep_loss_code_mu", code_mu_loss.item(), batch_size=images.shape[0], logger=True)
-                self.log("deep_loss_code_logvar", code_logvar_loss.item(), batch_size=images.shape[0], logger=True)
+                # self.log("deep_loss_img", img_loss.item(), batch_size=images.shape[0], logger=True)
+                # self.log("deep_loss_code_mu", code_mu_loss.item(), batch_size=images.shape[0], logger=True)
+                # self.log("deep_loss_code_logvar", code_logvar_loss.item(), batch_size=images.shape[0], logger=True)
                 rec = img_loss + code_mu_loss + code_logvar_loss
             elif self.loss_mode == "deep_lpips":
                 rec = self.lpips(images, reconstructions).mean()
@@ -191,7 +191,7 @@ class CVAE_v3(pl.LightningModule):
 
         enc_mu, enc_logvar, reconstructions = self(images, domains, contents)
 
-        if self.loss_mode == "deep":
+        if self.loss_mode == "deep_own":
             codes_2 = self.encoder(reconstructions, domains, contents)
             loss = self.loss(images, enc_mu, enc_logvar, reconstructions, codes_2=codes_2)
         elif self.loss_mode == "deep_lpips":
@@ -600,5 +600,5 @@ if __name__ == "__main__":
         out_channels=out_channels, kernel_size=kernel_size, activation=activation,
         downsampling=downsampling, upsampling=upsampling, dropout=dropout,
         batch_norm=batch_norm, loss_mode=loss_mode, lamb=lamb)
-    ae_loss = model.training_step(batch, 0)
+    ae_loss = model.validation_step(batch, 0)
     print("Done!")
