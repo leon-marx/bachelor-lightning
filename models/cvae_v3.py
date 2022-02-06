@@ -588,7 +588,7 @@ if __name__ == "__main__":
     upsampling = "upsample"
     dropout = False
     batch_norm = True
-    loss_mode = "deep_own"
+    loss_mode = "deep_lpips"
     lamb = 10
 
     batch = [
@@ -604,5 +604,6 @@ if __name__ == "__main__":
         out_channels=out_channels, kernel_size=kernel_size, activation=activation,
         downsampling=downsampling, upsampling=upsampling, dropout=dropout,
         batch_norm=batch_norm, loss_mode=loss_mode, lamb=lamb)
-    ae_loss = model.validation_step(batch, 0)
+    ae_loss = model.training_step(batch, 0)
+    print(ae_loss)
     print("Done!")
