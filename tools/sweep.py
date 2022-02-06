@@ -18,6 +18,7 @@ from models.dccvae import DCCVAE
 from models.trvae import trVAE
 from models.mmd_cvae import MMD_CVAE
 from models.aae import AAE
+from models.aae_v2 import AAE_v2
 from callbacks.logger import Logger
 
 
@@ -99,6 +100,11 @@ if __name__ == "__main__":
                 "256,256,512,512,1024,1024,2048"
             ],
             "activation": ["selu", "elu"],
+            },
+        "AAE_v2": {
+            "lamb": [1e-8],
+            "net": ["alex", "vgg", "squeeze"],
+            "calibration": [True, False]
             },
     }
     ####################
@@ -220,6 +226,14 @@ if __name__ == "__main__":
                             loss_mode = conf["loss_mode"]
                             if "loss_mode" in names:
                                 log_dir += f"_{loss_mode}"
+                        if "net" in conf:
+                            net = conf["net"]
+                            if "net" in names:
+                                log_dir += f"_{net}"
+                        if "calibration" in conf:
+                            calibration = conf["calibration"]
+                            if "calibration" in names:
+                                log_dir += f"_{calibration}"
 
                             
 
@@ -270,18 +284,23 @@ if __name__ == "__main__":
                                             feature_size=feature_size, mmd_size=mmd_size, dropout_rate=dropout_rate,
                                             lr=lr, lamb=lamb, beta=beta)
                             if model_name == "MMD_CVAE":
-                                model = MMD_CVAE(
-                                            num_domains=num_domains, num_contents=num_contents,
+                                model = MMD_CVAE(num_domains=num_domains, num_contents=num_contents,
                                             latent_size=latent_size, lr=lr, depth=depth, 
                                             out_channels=out_channels, kernel_size=kernel_size, activation=activation,
                                             downsampling=downsampling, upsampling=upsampling, dropout=dropout,
-                                            batch_norm=batch_norm, loss_mode=loss_mode, lamb=lamb, beta=beta)
+                                            batch_norm=batch_norm, loss_mode=loss_mode, lamb=lamb, beta=beta, initialize=True)
                             if model_name == "AAE":
                                 model = AAE(num_domains=num_domains, num_contents=num_contents,
                                             latent_size=latent_size, lr=lr, depth=depth, 
                                             out_channels=out_channels, kernel_size=kernel_size, activation=activation,
                                             downsampling=downsampling, upsampling=upsampling, dropout=dropout,
-                                            batch_norm=batch_norm)
+                                            batch_norm=batch_norm, initialize=True)
+                            if model_name == "AAE_v2":
+                                model = AAE_v2(num_domains=num_domains, num_contents=num_contents,
+                                            latent_size=latent_size, lr=lr, depth=depth, 
+                                            out_channels=out_channels, kernel_size=kernel_size, activation=activation,
+                                            downsampling=downsampling, upsampling=upsampling, dropout=dropout,
+                                            batch_norm=batch_norm, lamb=lamb, net=net, calibration=calibration, initialize=True)
 
 
                             # Trainer

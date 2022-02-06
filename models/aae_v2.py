@@ -22,7 +22,7 @@ def selu_init(m):
             torch.nn.init.zeros_(m.bias)
 
 
-class AAE(pl.LightningModule):
+class AAE_v2(pl.LightningModule):
     def __init__(self, num_domains, num_contents, latent_size, lr, depth, out_channels, kernel_size, activation, downsampling, upsampling, dropout, batch_norm, loss_mode, lamb, net, calibration, no_bn_last=True, initialize=False):
         super().__init__()
 
@@ -267,7 +267,7 @@ class AAE(pl.LightningModule):
     def warmer(self):
         self.lamb *= 10 ** 0.5
         print(f"New lambda: {self.lamb}")
-        
+
     def configure_optimizers(self):
         opt_ae = torch.optim.Adam(params=list(self.encoder.parameters()) + list(self.decoder.parameters()), lr=self.lr, betas=(0.5, 0.999))
         opt_d = torch.optim.Adam(self.discriminator.parameters(), lr=self.lr, betas=(0.5, 0.999))
@@ -690,7 +690,10 @@ if __name__ == "__main__":
     upsampling = "upsample"
     dropout = False
     batch_norm = True
-    loss_mode = "deep"
+    loss_mode = "deep_lpips"
+    lamb = 0.1
+    net = "alex"
+    calibration = True
 
     batch = [
         torch.randn(size=(batch_size, 3, 224, 224)),
@@ -700,11 +703,11 @@ if __name__ == "__main__":
             low=0, high=num_contents, size=(batch_size,)), num_classes=num_contents),
         (f"pic_{i}" for i in range(batch_size))
     ]
-    model = AAE(num_domains=num_domains, num_contents=num_contents,
+    model = AAE_v2(num_domains=num_domains, num_contents=num_contents,
         latent_size=latent_size, lr=lr, depth=depth, 
         out_channels=out_channels, kernel_size=kernel_size, activation=activation,
         downsampling=downsampling, upsampling=upsampling, dropout=dropout, loss_mode=loss_mode,
-        batch_norm=batch_norm)
+        lamb=lamb, net=net, calibration=calibration, batch_norm=batch_norm)
 
 
     # Analyzing the model layers and outputs
