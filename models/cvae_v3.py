@@ -113,9 +113,9 @@ class CVAE_v3(pl.LightningModule):
                 img_loss = self.get_mse_loss(images, reconstructions)
                 code_mu_loss = self.get_mse_loss(enc_mu, codes_2[0])
                 code_logvar_loss = self.get_mse_loss(enc_mu, codes_2[1])
-                # self.log("deep_loss_img", img_loss.item(), batch_size=images.shape[0], logger=True)
-                # self.log("deep_loss_code_mu", code_mu_loss.item(), batch_size=images.shape[0], logger=True)
-                # self.log("deep_loss_code_logvar", code_logvar_loss.item(), batch_size=images.shape[0], logger=True)
+                self.log("deep_loss_img", img_loss.item(), batch_size=images.shape[0], logger=True)
+                self.log("deep_loss_code_mu", code_mu_loss.item(), batch_size=images.shape[0], logger=True)
+                self.log("deep_loss_code_logvar", code_logvar_loss.item(), batch_size=images.shape[0], logger=True)
                 rec = img_loss + code_mu_loss + code_logvar_loss
             elif self.loss_mode == "deep_lpips":
                 rec = self.lpips(images, reconstructions).mean()
