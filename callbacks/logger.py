@@ -61,7 +61,7 @@ class Logger(Callback):
         if self.epoch_counter / 2 >= self.warumup_freq:
             self.log_umap(trainer, pl_module)
             self.epoch_counter = 0
-            if isinstance(pl_module, CVAE_v3) or isinstance(pl_module, MMD_CVAE):
+            if getattr(pl_module, "warmer", None) is not None:
                 pl_module.warmer()
         return super().on_epoch_end(trainer, pl_module)
 

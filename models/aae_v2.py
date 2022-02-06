@@ -1,3 +1,4 @@
+from matplotlib import image
 import torch
 import pytorch_lightning as pl
 import lpips
@@ -22,7 +23,7 @@ def selu_init(m):
 
 
 class AAE(pl.LightningModule):
-    def __init__(self, num_domains, num_contents, latent_size, lr, depth, out_channels, kernel_size, activation, downsampling, upsampling, dropout, batch_norm, loss_mode, no_bn_last=True, initialize=False):
+    def __init__(self, num_domains, num_contents, latent_size, lr, depth, out_channels, kernel_size, activation, downsampling, upsampling, dropout, batch_norm, loss_mode, lamb, net, calibration, no_bn_last=True, initialize=False):
         super().__init__()
 
         self.num_domains = num_domains
@@ -38,6 +39,9 @@ class AAE(pl.LightningModule):
         self.batch_norm = batch_norm
         self.loss_mode = loss_mode
         self.no_bn_last = no_bn_last
+        self.lamb = lamb
+        self.net = net
+        self.calibration = calibration
         self.get_mse_loss = torch.nn.MSELoss(reduction="mean")
         self.get_bce_loss = torch.nn.BCEWithLogitsLoss(reduction="mean")
         self.hyper_param_dict = {
@@ -92,7 +96,7 @@ class AAE(pl.LightningModule):
             if isinstance(activation, torch.nn.SELU):
                 self.apply(selu_init)
         if self.loss_mode == "deep_lpips":
-            self.lpips = lpips.LPIPS(net="vgg")
+            self.lpips = lpips.LPIPS(net=self.net, lpips=self.calibration)
 
     def vae_loss(self, images, reconstructions, codes, codes_2=None, split_loss=False):
         """
@@ -111,7 +115,9 @@ class AAE(pl.LightningModule):
                 loss = img_loss + code_loss
                 
             elif self.loss_mode == "deep_lpips":
-                loss = self.lpips(images, reconstructions).mean()
+                lpips_loss = self.lamb * self.lpips(images, reconstructions).mean()
+                image_loss = (1 - self.lamb) * self.get_mse_loss(images, reconstructions)
+                loss = lpips_loss + image_loss
 
             if split_loss:
                 return loss, loss.item()
@@ -258,6 +264,10 @@ class AAE(pl.LightningModule):
 
         return self.vae_loss(images, reconstructions, codes)
 
+    def warmer(self):
+        self.lamb *= 10 ** 0.5
+        print(f"New lambda: {self.lamb}")
+        
     def configure_optimizers(self):
         opt_ae = torch.optim.Adam(params=list(self.encoder.parameters()) + list(self.decoder.parameters()), lr=self.lr, betas=(0.5, 0.999))
         opt_d = torch.optim.Adam(self.discriminator.parameters(), lr=self.lr, betas=(0.5, 0.999))
