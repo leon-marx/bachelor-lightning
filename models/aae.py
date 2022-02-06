@@ -22,7 +22,7 @@ def selu_init(m):
 
 
 class AAE(pl.LightningModule):
-    def __init__(self, num_domains, num_contents, latent_size, lr, depth, out_channels, kernel_size, activation, downsampling, upsampling, dropout, batch_norm, loss_mode, no_bn_last=True):
+    def __init__(self, num_domains, num_contents, latent_size, lr, depth, out_channels, kernel_size, activation, downsampling, upsampling, dropout, batch_norm, loss_mode, no_bn_last=True, initialize=False):
         super().__init__()
 
         self.num_domains = num_domains
@@ -40,8 +40,6 @@ class AAE(pl.LightningModule):
         self.no_bn_last = no_bn_last
         self.get_mse_loss = torch.nn.MSELoss(reduction="mean")
         self.get_bce_loss = torch.nn.BCEWithLogitsLoss(reduction="mean")
-        if self.loss_mode == "deep_lpips":
-            self.lpips = lpips.LPIPS(net="vgg")
         self.hyper_param_dict = {
             "num_domains": self.num_domains,
             "num_contents": self.num_contents,
@@ -90,8 +88,11 @@ class AAE(pl.LightningModule):
             )
 
         self.lr = lr
-        if isinstance(activation, torch.nn.SELU):
-            self.apply(selu_init)
+        if initialize:
+            if isinstance(activation, torch.nn.SELU):
+                self.apply(selu_init)
+        if self.loss_mode == "deep_lpips":
+            self.lpips = lpips.LPIPS(net="vgg")
 
     def vae_loss(self, images, reconstructions, codes, codes_2=None, split_loss=False):
         """

@@ -206,7 +206,7 @@ if __name__ == "__main__":
                         latent_size=latent_size, lr=lr, depth=depth, out_channels=out_channels, 
                         kernel_size=kernel_size, activation=activation, downsampling=downsampling, 
                         upsampling=upsampling, dropout=dropout, batch_norm=batch_norm, loss_mode=loss_mode,
-                        lamb=lamb, no_bn_last=no_bn_last)
+                        lamb=lamb, no_bn_last=no_bn_last, initialize=True)
         if args.model == "AE":
             model = AE(num_domains=num_domains, num_contents=num_contents,
                         latent_size=latent_size, lr=lr)
@@ -230,7 +230,7 @@ if __name__ == "__main__":
                         latent_size=latent_size, lr=lr, depth=depth, 
                         out_channels=out_channels, kernel_size=kernel_size, activation=activation,
                         downsampling=downsampling, upsampling=upsampling, dropout=dropout, loss_mode=loss_mode,
-                        batch_norm=batch_norm)
+                        batch_norm=batch_norm, initialize=True)
         if args.model == "GAN":
             model = GAN(num_domains=num_domains, num_contents=num_contents,
                         latent_size=latent_size, lr=lr, depth=depth, 
@@ -242,7 +242,7 @@ if __name__ == "__main__":
                         latent_size=latent_size, lr=lr, depth=depth, 
                         out_channels=out_channels, kernel_size=kernel_size, activation=activation,
                         downsampling=downsampling, upsampling=upsampling, dropout=dropout,
-                        batch_norm=batch_norm, loss_mode=loss_mode, lamb=lamb, beta=beta)
+                        batch_norm=batch_norm, loss_mode=loss_mode, lamb=lamb, beta=beta, initialize=True)
     
     # Callbacks
     callbacks = [
