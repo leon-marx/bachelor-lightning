@@ -254,7 +254,7 @@ if __name__ == "__main__":
                             iov = args.iov == 1
                             print(f"Images on val: {iov}")
                             callbacks = [
-                                Logger(log_dir, train_batch, val_batch, domains, contents, images_on_val=iov)
+                                Logger(log_dir, log_dm, train_batch, val_batch, domains, contents, images_on_val=iov)
                             ]
                             
                             print("Args:")
