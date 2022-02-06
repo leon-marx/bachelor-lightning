@@ -1,5 +1,6 @@
 import torch
 import pytorch_lightning as pl
+import lpips
 
 
 def selu_init(m):
@@ -35,6 +36,9 @@ class CVAE_v3(pl.LightningModule):
         self.loss_mode = loss_mode
         self.lamb = lamb
         self.no_bn_last = no_bn_last
+        self.get_mse_loss = torch.nn.MSELoss(reduction="mean")
+        if self.loss_mode == "deep_lpips":
+            self.lpips = lpips.LPIPS(net="vgg")
         self.hyper_param_dict = {
             "num_domains": self.num_domains,
             "num_contents": self.num_contents,
@@ -94,25 +98,34 @@ class CVAE_v3(pl.LightningModule):
             loss = torch.abs(images - reconstructions)
             return loss.mean(dim=[0, 1, 2, 3])
         if self.loss_mode == "l2":
-            loss = torch.nn.functional.mse_loss(
-                images, reconstructions, reduction="none")
-            return loss.mean(dim=[0, 1, 2, 3])
+            loss = self.get_mse_loss(
+                images, reconstructions)
+            return loss
         if self.loss_mode == "elbo":
             kld = self.lamb * 0.5 * (enc_mu ** 2 + enc_logvar.exp() - enc_logvar - 1).mean(dim=[0, 1])
-            rec = torch.nn.functional.mse_loss(images, reconstructions, reduction="none").mean(dim=[0, 1, 2, 3])
+            rec = self.get_mse_loss(images, reconstructions)
             if split_loss:
                 return kld + rec, kld.item(), rec.item()
             else:
                 return kld + rec
-        if self.loss_mode == "deep":
-            img_loss = self.get_mse_loss(images, reconstructions)
-            code_mu_loss = self.get_mse_loss(enc_mu, codes_2[0])
-            code_logvar_loss = self.get_mse_loss(enc_mu, codes_2[1])
-            loss = img_loss + code_mu_loss + code_logvar_loss
+        if "deep" in self.loss_mode:
+            if self.loss_mode == "deep_own":
+                img_loss = self.get_mse_loss(images, reconstructions)
+                code_mu_loss = self.get_mse_loss(enc_mu, codes_2[0])
+                code_logvar_loss = self.get_mse_loss(enc_mu, codes_2[1])
+                self.log("deep_loss_img", img_loss.item(), batch_size=images.shape[0], logger=True)
+                self.log("deep_loss_code_mu", code_mu_loss.item(), batch_size=images.shape[0], logger=True)
+                self.log("deep_loss_code_logvar", code_logvar_loss.item(), batch_size=images.shape[0], logger=True)
+                rec = img_loss + code_mu_loss + code_logvar_loss
+            elif self.loss_mode == "deep_lpips":
+                rec = self.lpips(images, reconstructions).mean()
+
+            kld = self.lamb * 0.5 * (enc_mu ** 2 + enc_logvar.exp() - enc_logvar - 1).mean(dim=[0, 1])
+            
             if split_loss:
-                return loss, loss.item()
+                return kld + rec, kld.item(), rec.item()
             else:
-                return loss
+                return kld + rec
 
     def forward(self, images, domains, contents):
         """
@@ -145,10 +158,12 @@ class CVAE_v3(pl.LightningModule):
 
         enc_mu, enc_logvar, reconstructions = self(images, domains, contents)
 
-        if self.loss_mode == "deep":
+        if self.loss_mode == "deep_own":
             with torch.no_grad():
                 codes_2 = self.encoder(reconstructions, domains, contents)
             loss, kld_value, rec_value = self.loss(images, enc_mu, enc_logvar, reconstructions, codes_2=codes_2, split_loss=True)
+        elif self.loss_mode == "deep_lpips":
+            loss, kld_value, rec_value = self.loss(images, enc_mu, enc_logvar, reconstructions, split_loss=True)
 
         else:
             loss, kld_value, rec_value = self.loss(images, enc_mu, enc_logvar, reconstructions, split_loss=True)
@@ -179,6 +194,8 @@ class CVAE_v3(pl.LightningModule):
         if self.loss_mode == "deep":
             codes_2 = self.encoder(reconstructions, domains, contents)
             loss = self.loss(images, enc_mu, enc_logvar, reconstructions, codes_2=codes_2)
+        elif self.loss_mode == "deep_lpips":
+            loss = self.loss(images, enc_mu, enc_logvar, reconstructions)
         else:
             loss = self.loss(images, enc_mu, enc_logvar, reconstructions)
         self.log("val_loss", loss, batch_size=images.shape[0])
@@ -398,7 +415,6 @@ class Encoder(torch.nn.Module):
 
         return enc_mu, enc_logvar
 
-
 class Decoder(torch.nn.Module):
     def __init__(self, num_domains, num_contents, latent_size, depth, out_channels, kernel_size, activation, upsampling, dropout, batch_norm, no_bn_last):
         super().__init__()
@@ -568,7 +584,7 @@ if __name__ == "__main__":
     upsampling = "upsample"
     dropout = False
     batch_norm = True
-    loss_mode = "elbo"
+    loss_mode = "deep_own"
     lamb = 10
 
     batch = [
@@ -584,4 +600,5 @@ if __name__ == "__main__":
         out_channels=out_channels, kernel_size=kernel_size, activation=activation,
         downsampling=downsampling, upsampling=upsampling, dropout=dropout,
         batch_norm=batch_norm, loss_mode=loss_mode, lamb=lamb)
+    ae_loss = model.training_step(batch, 0)
     print("Done!")
