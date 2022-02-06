@@ -165,7 +165,7 @@ if __name__ == "__main__":
                 model = AAE(num_domains=num_domains, num_contents=num_contents,
                             latent_size=latent_size, lr=lr, depth=depth, 
                             out_channels=out_channels, kernel_size=kernel_size, activation=activation,
-                            downsampling=downsampling, upsampling=upsampling, dropout=dropout,
+                            downsampling=downsampling, upsampling=upsampling, dropout=dropout, loss_mode=loss_mode,
                             batch_norm=batch_norm)
                 current_model_dict = model.state_dict()
                 loaded_state_dict = torch.load(args.ckpt_path, map_location=f"cuda:{args.gpus[0]}")["state_dict"]

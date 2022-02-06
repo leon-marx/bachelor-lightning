@@ -19,7 +19,7 @@ def selu_init(m):
 
 
 class AAE(pl.LightningModule):
-    def __init__(self, num_domains, num_contents, latent_size, lr, depth, out_channels, kernel_size, activation, downsampling, upsampling, dropout, batch_norm, loss_mode="normal", no_bn_last=True):
+    def __init__(self, num_domains, num_contents, latent_size, lr, depth, out_channels, kernel_size, activation, downsampling, upsampling, dropout, batch_norm, loss_mode, no_bn_last=True):
         super().__init__()
 
         self.num_domains = num_domains
