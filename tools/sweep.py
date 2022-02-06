@@ -102,6 +102,17 @@ if __name__ == "__main__":
             "activation": ["selu", "elu"],
             },
         "AAE_v2": {
+            "latent_size": [128],
+            "lr": [1e-4],
+            "depth": [1],
+            "out_channels": ["128,256,256,512,512,1024,1024"],
+            "kernel_size": [3],
+            "activation": ["selu"],
+            "downsampling": ["stride"],
+            "upsampling": ["upsample"],
+            "dropout": [False],
+            "batch_norm": [False],
+            "loss_mode": ["deep_lpips"],
             "lamb": [1e-8],
             "net": ["alex", "vgg", "squeeze"],
             "calibration": [True, False]
