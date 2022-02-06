@@ -9,13 +9,16 @@ def selu_init(m):
     """
     if isinstance(m, torch.nn.Conv2d):
         torch.nn.init.kaiming_normal_(m.weight, mode="fan_in", nonlinearity="linear")
-        torch.nn.init.zeros_(m.bias)
+        if m.bias is not None:
+            torch.nn.init.zeros_(m.bias)
     if isinstance(m, torch.nn.Linear):
         torch.nn.init.kaiming_normal_(m.weight, mode="fan_in", nonlinearity="linear")
-        torch.nn.init.zeros_(m.bias)
+        if m.bias is not None:
+            torch.nn.init.zeros_(m.bias)
     if isinstance(m, torch.nn.ConvTranspose2d):
         torch.nn.init.kaiming_normal_(m.weight, mode="fan_in", nonlinearity="linear")
-        torch.nn.init.zeros_(m.bias)
+        if m.bias is not None:
+            torch.nn.init.zeros_(m.bias)
 
 
 class AAE(pl.LightningModule):
@@ -37,7 +40,7 @@ class AAE(pl.LightningModule):
         self.no_bn_last = no_bn_last
         self.get_mse_loss = torch.nn.MSELoss(reduction="mean")
         self.get_bce_loss = torch.nn.BCEWithLogitsLoss(reduction="mean")
-        if self.loss_mode == "deep":
+        if self.loss_mode == "deep_lpips":
             self.lpips = lpips.LPIPS(net="vgg")
         self.hyper_param_dict = {
             "num_domains": self.num_domains,
@@ -98,14 +101,18 @@ class AAE(pl.LightningModule):
         reconstructions: Tensor of shape (batch_size, channels, height, width)
         split_loss: bool, if True, returns kld and rec losses separately
         """
-        if self.loss_mode == "deep":
+        if "deep" in self.loss_mode:
             print("deep loss called")
-            # img_loss = self.get_mse_loss(images, reconstructions)
-            # code_loss = self.get_mse_loss(codes, codes_2)
-            # self.log("deep_loss_img", img_loss.item(), batch_size=images.shape[0], logger=True)
-            # self.log("deep_loss_code", code_loss.item(), batch_size=images.shape[0], logger=True)
-            # loss = img_loss + code_loss
-            loss = self.lpips(images, reconstructions)
+            if self.loss_mode == "deep_own":
+                img_loss = self.get_mse_loss(images, reconstructions)
+                code_loss = self.get_mse_loss(codes, codes_2)
+                self.log("deep_loss_img", img_loss.item(), batch_size=images.shape[0], logger=True)
+                self.log("deep_loss_code", code_loss.item(), batch_size=images.shape[0], logger=True)
+                loss = img_loss + code_loss
+                
+            elif self.loss_mode == "deep_lpips":
+                loss = self.lpips(images, reconstructions).mean()
+
             if split_loss:
                 return loss, loss.item()
             else:
@@ -163,10 +170,12 @@ class AAE(pl.LightningModule):
 
         # Train CVAE for reconstruction
         if optimizer_idx == 0:
-            if self.loss_mode == "deep":
+            if self.loss_mode == "deep_own":
                 with torch.no_grad():
                     codes_2 = self.encoder(reconstructions, domains, contents)
                 loss , value = self.vae_loss(images, reconstructions, codes, codes_2=codes_2, split_loss=True)
+            elif self.loss_mode == "deep_lpips":
+                loss , value = self.vae_loss(images, reconstructions, codes, split_loss=True)
             else:
                 loss , value = self.vae_loss(images, reconstructions, codes, split_loss=True)
             self.log("rec_train_loss", loss, batch_size=images.shape[0])
@@ -219,11 +228,13 @@ class AAE(pl.LightningModule):
 
         codes, reconstructions = self(images, domains, contents)
 
-        if self.loss_mode == "deep":
+        if self.loss_mode == "deep_own":
             codes_2 = self.encoder(reconstructions, domains, contents)
             loss = self.vae_loss(images, reconstructions, codes, codes_2=codes_2)
+
+        elif self.loss_mode == "deep_lpips":
+            loss = self.vae_loss(images, reconstructions, codes)
         else:
-            
             loss = self.vae_loss(images, reconstructions, codes)
         self.log("val_loss", loss, batch_size=images.shape[0])
         return loss
@@ -669,6 +680,7 @@ if __name__ == "__main__":
     upsampling = "upsample"
     dropout = False
     batch_norm = True
+    loss_mode = "deep"
 
     batch = [
         torch.randn(size=(batch_size, 3, 224, 224)),
@@ -681,7 +693,7 @@ if __name__ == "__main__":
     model = AAE(num_domains=num_domains, num_contents=num_contents,
         latent_size=latent_size, lr=lr, depth=depth, 
         out_channels=out_channels, kernel_size=kernel_size, activation=activation,
-        downsampling=downsampling, upsampling=upsampling, dropout=dropout,
+        downsampling=downsampling, upsampling=upsampling, dropout=dropout, loss_mode=loss_mode,
         batch_norm=batch_norm)
 
 
