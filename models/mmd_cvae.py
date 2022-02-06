@@ -9,13 +9,16 @@ def selu_init(m):
     """
     if isinstance(m, torch.nn.Conv2d):
         torch.nn.init.kaiming_normal_(m.weight, mode="fan_in", nonlinearity="linear")
-        torch.nn.init.zeros_(m.bias)
+        if m.bias is not None:
+            torch.nn.init.zeros_(m.bias)
     if isinstance(m, torch.nn.Linear):
         torch.nn.init.kaiming_normal_(m.weight, mode="fan_in", nonlinearity="linear")
-        torch.nn.init.zeros_(m.bias)
+        if m.bias is not None:
+           torch.nn.init.zeros_(m.bias)
     if isinstance(m, torch.nn.ConvTranspose2d):
         torch.nn.init.kaiming_normal_(m.weight, mode="fan_in", nonlinearity="linear")
-        torch.nn.init.zeros_(m.bias)
+        if m.bias is not None:
+            torch.nn.init.zeros_(m.bias)
 
 
 class MMD_CVAE(pl.LightningModule):
