@@ -1,5 +1,6 @@
 import torch
 import pytorch_lightning as pl
+from torchmetrics.image.lpip import LearnedPerceptualImagePatchSimilarity
 
 
 def selu_init(m):
@@ -36,6 +37,8 @@ class AAE(pl.LightningModule):
         self.no_bn_last = no_bn_last
         self.get_mse_loss = torch.nn.MSELoss(reduction="mean")
         self.get_bce_loss = torch.nn.BCEWithLogitsLoss(reduction="mean")
+        if self.loss_mode == "deep":
+            self.lpips = LearnedPerceptualImagePatchSimilarity(net_type="vgg")
         self.hyper_param_dict = {
             "num_domains": self.num_domains,
             "num_contents": self.num_contents,
@@ -96,11 +99,12 @@ class AAE(pl.LightningModule):
         split_loss: bool, if True, returns kld and rec losses separately
         """
         if self.loss_mode == "deep":
-            img_loss = self.get_mse_loss(images, reconstructions)
-            code_loss = self.get_mse_loss(codes, codes_2)
-            self.log("deep_loss_img", img_loss.item(), batch_size=images.shape[0], logger=True)
-            self.log("deep_loss_code", code_loss.item(), batch_size=images.shape[0], logger=True)
-            loss = img_loss + code_loss
+            # img_loss = self.get_mse_loss(images, reconstructions)
+            # code_loss = self.get_mse_loss(codes, codes_2)
+            # self.log("deep_loss_img", img_loss.item(), batch_size=images.shape[0], logger=True)
+            # self.log("deep_loss_code", code_loss.item(), batch_size=images.shape[0], logger=True)
+            # loss = img_loss + code_loss
+            loss = self.lpips(images, reconstructions)
             if split_loss:
                 return loss, loss.item()
             else:
