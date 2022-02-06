@@ -99,6 +99,7 @@ class AAE(pl.LightningModule):
         split_loss: bool, if True, returns kld and rec losses separately
         """
         if self.loss_mode == "deep":
+            print("deep loss called")
             # img_loss = self.get_mse_loss(images, reconstructions)
             # code_loss = self.get_mse_loss(codes, codes_2)
             # self.log("deep_loss_img", img_loss.item(), batch_size=images.shape[0], logger=True)
