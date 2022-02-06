@@ -92,7 +92,7 @@ class AAE(pl.LightningModule):
             if isinstance(activation, torch.nn.SELU):
                 self.apply(selu_init)
         if self.loss_mode == "deep_lpips":
-            self.lpips = lpips.LPIPS(net="vgg")
+            self.lpips = lpips.LPIPS(net="vgg", lpips=False)
 
     def vae_loss(self, images, reconstructions, codes, codes_2=None, split_loss=False):
         """
