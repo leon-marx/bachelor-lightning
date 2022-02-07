@@ -190,6 +190,7 @@ if __name__ == "__main__":
     no_bn_last = args.no_bn_last
     net = args.net
     calibration = args.calibration
+    data = args.data
     if args.ckpt_path != "0":
         if args.model == "CVAE":
             model = CVAE.load_from_checkpoint(args.ckpt_path, num_domains=num_domains, num_contents=num_contents,
@@ -201,7 +202,7 @@ if __name__ == "__main__":
                         upsampling=upsampling, dropout=dropout, batch_norm=batch_norm, loss_mode=loss_mode,
                         lamb=lamb, no_bn_last=no_bn_last, strict = not args.no_strict)
         if args.model == "CVAE_v3":
-            model = CVAE_v3.load_from_checkpoint(args.ckpt_path, num_domains=num_domains, num_contents=num_contents, 
+            model = CVAE_v3.load_from_checkpoint(args.ckpt_path, data=data, num_domains=num_domains, num_contents=num_contents, 
                         latent_size=latent_size, lr=lr, depth=depth, out_channels=out_channels, 
                         kernel_size=kernel_size, activation=activation, downsampling=downsampling, 
                         upsampling=upsampling, dropout=dropout, batch_norm=batch_norm, loss_mode=loss_mode,
@@ -226,7 +227,7 @@ if __name__ == "__main__":
                         lr=lr, lamb=lamb, beta=beta, strict = not args.no_strict)
         if args.model == "AAE":
             if args.no_strict:
-                model = AAE(num_domains=num_domains, num_contents=num_contents,
+                model = AAE(data=data, num_domains=num_domains, num_contents=num_contents,
                             latent_size=latent_size, lr=lr, depth=depth, 
                             out_channels=out_channels, kernel_size=kernel_size, activation=activation,
                             downsampling=downsampling, upsampling=upsampling, dropout=dropout, loss_mode=loss_mode,
@@ -238,14 +239,14 @@ if __name__ == "__main__":
                 loaded_state_dict = None
                 new_state_dict = None
             else:
-                model = AAE.load_from_checkpoint(args.ckpt_path, num_domains=num_domains, num_contents=num_contents,
+                model = AAE.load_from_checkpoint(args.ckpt_path, data=data, num_domains=num_domains, num_contents=num_contents,
                             latent_size=latent_size, lr=lr, depth=depth, 
                             out_channels=out_channels, kernel_size=kernel_size, activation=activation,
                             downsampling=downsampling, upsampling=upsampling, dropout=dropout, loss_mode=loss_mode,
                             batch_norm=batch_norm, strict = not args.no_strict)
         if args.model == "AAE_v2":
             if args.no_strict:
-                model = AAE_v2(num_domains=num_domains, num_contents=num_contents,
+                model = AAE_v2(data=data, num_domains=num_domains, num_contents=num_contents,
                             latent_size=latent_size, lr=lr, depth=depth, 
                             out_channels=out_channels, kernel_size=kernel_size, activation=activation,
                             downsampling=downsampling, upsampling=upsampling, dropout=dropout, loss_mode=loss_mode,
@@ -257,7 +258,7 @@ if __name__ == "__main__":
                 loaded_state_dict = None
                 new_state_dict = None
             else:
-                model = AAE_v2.load_from_checkpoint(args.ckpt_path, num_domains=num_domains, num_contents=num_contents,
+                model = AAE_v2.load_from_checkpoint(args.ckpt_path, data=data, num_domains=num_domains, num_contents=num_contents,
                             latent_size=latent_size, lr=lr, depth=depth, 
                             out_channels=out_channels, kernel_size=kernel_size, activation=activation,
                             downsampling=downsampling, upsampling=upsampling, dropout=dropout, loss_mode=loss_mode,
@@ -269,7 +270,7 @@ if __name__ == "__main__":
                         downsampling=downsampling, upsampling=upsampling, dropout=dropout,
                         batch_norm=batch_norm, strict = not args.no_strict)
         if args.model == "MMD_CVAE":
-            model = MMD_CVAE.load_from_checkpoint(args.ckpt_path, num_domains=num_domains, num_contents=num_contents,
+            model = MMD_CVAE.load_from_checkpoint(args.ckpt_path, data=data, num_domains=num_domains, num_contents=num_contents,
                         latent_size=latent_size, lr=lr, depth=depth, 
                         out_channels=out_channels, kernel_size=kernel_size, activation=activation,
                         downsampling=downsampling, upsampling=upsampling, dropout=dropout,
@@ -285,7 +286,7 @@ if __name__ == "__main__":
                         upsampling=upsampling, dropout=dropout, batch_norm=batch_norm, loss_mode=loss_mode,
                         lamb=lamb, no_bn_last=no_bn_last)
         if args.model == "CVAE_v3":
-            model = CVAE_v3(num_domains=num_domains, num_contents=num_contents, 
+            model = CVAE_v3(data=data, num_domains=num_domains, num_contents=num_contents, 
                         latent_size=latent_size, lr=lr, depth=depth, out_channels=out_channels, 
                         kernel_size=kernel_size, activation=activation, downsampling=downsampling, 
                         upsampling=upsampling, dropout=dropout, batch_norm=batch_norm, loss_mode=loss_mode,
@@ -309,13 +310,13 @@ if __name__ == "__main__":
                         feature_size=feature_size, mmd_size=mmd_size, dropout_rate=dropout_rate,
                         lr=lr, lamb=lamb, beta=beta)
         if args.model == "AAE":
-            model = AAE(num_domains=num_domains, num_contents=num_contents,
+            model = AAE(data=data, num_domains=num_domains, num_contents=num_contents,
                         latent_size=latent_size, lr=lr, depth=depth, 
                         out_channels=out_channels, kernel_size=kernel_size, activation=activation,
                         downsampling=downsampling, upsampling=upsampling, dropout=dropout, loss_mode=loss_mode,
                         batch_norm=batch_norm, initialize=True)
         if args.model == "AAE_v2":
-            model = AAE_v2(num_domains=num_domains, num_contents=num_contents,
+            model = AAE_v2(data=data, num_domains=num_domains, num_contents=num_contents,
                         latent_size=latent_size, lr=lr, depth=depth, 
                         out_channels=out_channels, kernel_size=kernel_size, activation=activation,
                         downsampling=downsampling, upsampling=upsampling, dropout=dropout, loss_mode=loss_mode,
@@ -327,7 +328,7 @@ if __name__ == "__main__":
                         downsampling=downsampling, upsampling=upsampling, dropout=dropout,
                         batch_norm=batch_norm)
         if args.model == "MMD_CVAE":
-            model = MMD_CVAE(num_domains=num_domains, num_contents=num_contents,
+            model = MMD_CVAE(data=data, num_domains=num_domains, num_contents=num_contents,
                         latent_size=latent_size, lr=lr, depth=depth, 
                         out_channels=out_channels, kernel_size=kernel_size, activation=activation,
                         downsampling=downsampling, upsampling=upsampling, dropout=dropout,
