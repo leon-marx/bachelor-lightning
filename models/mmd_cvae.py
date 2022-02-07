@@ -22,9 +22,10 @@ def selu_init(m):
 
 
 class MMD_CVAE(pl.LightningModule):
-    def __init__(self, num_domains, num_contents, latent_size, lr, depth, out_channels, kernel_size, activation, downsampling, upsampling, dropout, batch_norm, loss_mode, lamb, beta, no_bn_last=True, initialize=False):
+    def __init__(self, data, num_domains, num_contents, latent_size, lr, depth, out_channels, kernel_size, activation, downsampling, upsampling, dropout, batch_norm, loss_mode, lamb, beta, no_bn_last=True, initialize=False):
         super().__init__()
 
+        self.data = data
         self.num_domains = num_domains
         self.num_contents = num_contents
         self.latent_size = latent_size
@@ -42,6 +43,7 @@ class MMD_CVAE(pl.LightningModule):
         self.no_bn_last = no_bn_last
         self.get_mse_loss = torch.nn.MSELoss(reduction="mean")
         self.hyper_param_dict = {
+            "data": self.data,
             "num_domains": self.num_domains,
             "num_contents": self.num_contents,
             "latent_size": self.latent_size,
@@ -59,7 +61,8 @@ class MMD_CVAE(pl.LightningModule):
             "no_bn_last": self.no_bn_last,
         }
 
-        self.encoder = Encoder(num_domains=self.num_domains,
+        self.encoder = Encoder(data=self.data,
+                               num_domains=self.num_domains,
                                num_contents=self.num_contents,
                                latent_size=self.latent_size,
                                depth=self.depth,
@@ -70,7 +73,8 @@ class MMD_CVAE(pl.LightningModule):
                                dropout=self.dropout,
                                batch_norm=self.batch_norm
         )
-        self.decoder = Decoder(num_domains=self.num_domains,
+        self.decoder = Decoder(data=self.data,
+                               num_domains=self.num_domains,
                                num_contents=self.num_contents,
                                latent_size=self.latent_size,
                                depth=self.depth,
@@ -318,8 +322,11 @@ class MMD_CVAE(pl.LightningModule):
             return reconstructions
 
 class Encoder(torch.nn.Module):
-    def __init__(self, num_domains, num_contents, latent_size, depth, out_channels, kernel_size, activation, downsampling, dropout, batch_norm):
+    def __init__(self, data, num_domains, num_contents, latent_size, depth, out_channels, kernel_size, activation, downsampling, dropout, batch_norm):
         super().__init__()
+        self.data = data
+        self.HW = {"PACS": 224, "RMNIST": 28}[self.data]
+        self.C = {"PACS": 3, "RMNIST": 1}[self.data]
         self.num_domains = num_domains
         self.num_contents = num_contents
         self.latent_size = latent_size
@@ -330,77 +337,120 @@ class Encoder(torch.nn.Module):
         self.downsampling = downsampling
         self.dropout = dropout
         self.batch_norm = batch_norm
-        self.enc_conv_sequential = torch.nn.Sequential(
-            *self.block(
-                depth=self.depth,
-                in_channels=3 + self.num_domains + self.num_contents,
-                out_channels=self.out_channels[0],
-                kernel_size=self.kernel_size,
-                activation=self.activation,
-                downsampling="none",
-                dropout=self.dropout,
-                batch_norm=self.batch_norm
-            ),  # (N, [0], 224, 224)
-            *self.block(
-                depth=self.depth,
-                in_channels=self.out_channels[0],
-                out_channels=self.out_channels[1],
-                kernel_size=self.kernel_size,
-                activation=self.activation,
-                downsampling=self.downsampling,
-                dropout=self.dropout,
-                batch_norm=self.batch_norm
-            ),  # (N, [1], 112, 112)
-            *self.block(
-                depth=self.depth,
-                in_channels=self.out_channels[1],
-                out_channels=self.out_channels[2],
-                kernel_size=self.kernel_size,
-                activation=self.activation,
-                downsampling=self.downsampling,
-                dropout=self.dropout,
-                batch_norm=self.batch_norm
-            ),  # (N, [2], 56, 56)
-            *self.block(
-                depth=self.depth,
-                in_channels=self.out_channels[2],
-                out_channels=self.out_channels[3],
-                kernel_size=self.kernel_size,
-                activation=self.activation,
-                downsampling=self.downsampling,
-                dropout=self.dropout,
-                batch_norm=self.batch_norm
-            ),  # (N, [3], 28, 28)
-            *self.block(
-                depth=self.depth,
-                in_channels=self.out_channels[3],
-                out_channels=self.out_channels[4],
-                kernel_size=self.kernel_size,
-                activation=self.activation,
-                downsampling=self.downsampling,
-                dropout=self.dropout,
-                batch_norm=self.batch_norm
-            ),  # (N, [4], 14, 14)
-            *self.block(
-                depth=self.depth,
-                in_channels=self.out_channels[4],
-                out_channels=self.out_channels[5],
-                kernel_size=self.kernel_size,
-                activation=self.activation,
-                downsampling=self.downsampling,
-                dropout=self.dropout,
-                batch_norm=self.batch_norm
-            ),  # (N, [5], 7, 7)
-        )
-        self.flatten = torch.nn.Flatten()
-        self.get_mu = torch.nn.Sequential(
-            torch.nn.Linear(49 * self.out_channels[5], self.latent_size),
-            self.activation,
-        )
-        self.get_logvar = torch.nn.Sequential(
-            torch.nn.Linear(49 * self.out_channels[5], self.latent_size),
-            self.activation,
-        )
+        if self.data == "PACS":
+            self.enc_conv_sequential = torch.nn.Sequential(
+                *self.block(
+                    depth=self.depth,
+                    in_channels=self.C + self.num_domains + self.num_contents,
+                    out_channels=self.out_channels[0],
+                    kernel_size=self.kernel_size,
+                    activation=self.activation,
+                    downsampling="none",
+                    dropout=self.dropout,
+                    batch_norm=self.batch_norm
+                ),  # (N, [0], 224, 224)
+                *self.block(
+                    depth=self.depth,
+                    in_channels=self.out_channels[0],
+                    out_channels=self.out_channels[1],
+                    kernel_size=self.kernel_size,
+                    activation=self.activation,
+                    downsampling=self.downsampling,
+                    dropout=self.dropout,
+                    batch_norm=self.batch_norm
+                ),  # (N, [1], 112, 112)
+                *self.block(
+                    depth=self.depth,
+                    in_channels=self.out_channels[1],
+                    out_channels=self.out_channels[2],
+                    kernel_size=self.kernel_size,
+                    activation=self.activation,
+                    downsampling=self.downsampling,
+                    dropout=self.dropout,
+                    batch_norm=self.batch_norm
+                ),  # (N, [2], 56, 56)
+                *self.block(
+                    depth=self.depth,
+                    in_channels=self.out_channels[2],
+                    out_channels=self.out_channels[3],
+                    kernel_size=self.kernel_size,
+                    activation=self.activation,
+                    downsampling=self.downsampling,
+                    dropout=self.dropout,
+                    batch_norm=self.batch_norm
+                ),  # (N, [3], 28, 28)
+                *self.block(
+                    depth=self.depth,
+                    in_channels=self.out_channels[3],
+                    out_channels=self.out_channels[4],
+                    kernel_size=self.kernel_size,
+                    activation=self.activation,
+                    downsampling=self.downsampling,
+                    dropout=self.dropout,
+                    batch_norm=self.batch_norm
+                ),  # (N, [4], 14, 14)
+                *self.block(
+                    depth=self.depth,
+                    in_channels=self.out_channels[4],
+                    out_channels=self.out_channels[5],
+                    kernel_size=self.kernel_size,
+                    activation=self.activation,
+                    downsampling=self.downsampling,
+                    dropout=self.dropout,
+                    batch_norm=self.batch_norm
+                ),  # (N, [5], 7, 7)
+            )
+            self.flatten = torch.nn.Flatten()
+            self.get_mu = torch.nn.Sequential(
+                torch.nn.Linear(49 * self.out_channels[5], self.latent_size),
+                self.activation,
+            )
+            self.get_logvar = torch.nn.Sequential(
+                torch.nn.Linear(49 * self.out_channels[5], self.latent_size),
+                self.activation,
+            )
+        elif self.data == "RMNIST":
+            self.enc_conv_sequential = torch.nn.Sequential(
+                *self.block(
+                    depth=self.depth,
+                    in_channels=self.C + self.num_domains + self.num_contents,
+                    out_channels=self.out_channels[0],
+                    kernel_size=self.kernel_size,
+                    activation=self.activation,
+                    downsampling="none",
+                    dropout=self.dropout,
+                    batch_norm=self.batch_norm
+                ),  # (N, [0], 28, 28)
+                *self.block(
+                    depth=self.depth,
+                    in_channels=self.out_channels[0],
+                    out_channels=self.out_channels[1],
+                    kernel_size=self.kernel_size,
+                    activation=self.activation,
+                    downsampling=self.downsampling,
+                    dropout=self.dropout,
+                    batch_norm=self.batch_norm
+                ),  # (N, [1], 14, 14)
+                *self.block(
+                    depth=self.depth,
+                    in_channels=self.out_channels[1],
+                    out_channels=self.out_channels[2],
+                    kernel_size=self.kernel_size,
+                    activation=self.activation,
+                    downsampling=self.downsampling,
+                    dropout=self.dropout,
+                    batch_norm=self.batch_norm
+                ),  # (N, [2], 7, 7)
+            )
+            self.flatten = torch.nn.Flatten()
+            self.get_mu = torch.nn.Sequential(
+                torch.nn.Linear(49 * self.out_channels[2], self.latent_size),
+                self.activation,
+            )
+            self.get_logvar = torch.nn.Sequential(
+                torch.nn.Linear(49 * self.out_channels[2], self.latent_size),
+                self.activation,
+            )
 
     def block(self, depth, in_channels, out_channels, kernel_size, activation, downsampling="stride", dropout=False, batch_norm=False):
         seq_list = []
@@ -457,9 +507,9 @@ class Encoder(torch.nn.Module):
         domains: Tensor of shape (batch_size, num_domains)
         contents: Tensor of shape (batch_size, num_contents)
         """
-        domain_panels = torch.ones(size=(images.shape[0], self.num_domains, 224, 224)).to(
+        domain_panels = torch.ones(size=(images.shape[0], self.num_domains, self.HW, self.HW)).to(
             images.device) * domains.view(images.shape[0], self.num_domains, 1, 1)
-        content_panels = torch.ones(size=(images.shape[0], self.num_contents, 224, 224)).to(
+        content_panels = torch.ones(size=(images.shape[0], self.num_contents, self.HW, self.HW)).to(
             images.device) * contents.view(images.shape[0], self.num_contents, 1, 1)
 
         x = torch.cat((images, domain_panels, content_panels), dim=1)
@@ -471,8 +521,11 @@ class Encoder(torch.nn.Module):
         return enc_mu, enc_logvar
 
 class Decoder(torch.nn.Module):
-    def __init__(self, num_domains, num_contents, latent_size, depth, out_channels, kernel_size, activation, upsampling, dropout, batch_norm, no_bn_last):
+    def __init__(self, data, num_domains, num_contents, latent_size, depth, out_channels, kernel_size, activation, upsampling, dropout, batch_norm, no_bn_last):
         super().__init__()
+        self.data = data
+        self.HW = {"PACS": 224, "RMNIST": 28}[self.data]
+        self.C = {"PACS": 3, "RMNIST": 1}[self.data]
         self.num_domains = num_domains
         self.num_contents = num_contents
         self.latent_size = latent_size
@@ -489,69 +542,104 @@ class Decoder(torch.nn.Module):
             self.activation,
         )
         self.reshape = lambda x: x.view(-1, self.out_channels[0], 7, 7)
-        self.dec_conv_sequential = torch.nn.Sequential(
-            *self.block(
-                depth=self.depth,
-                in_channels=self.out_channels[0],
-                out_channels=self.out_channels[1],
-                kernel_size=self.kernel_size,
-                activation=self.activation,
-                upsampling="none",
-                dropout=self.dropout,
-                batch_norm=self.batch_norm
-            ),  # (N, [1], 7, 7)
-            *self.block(
-                depth=self.depth,
-                in_channels=self.out_channels[1],
-                out_channels=self.out_channels[2],
-                kernel_size=self.kernel_size,
-                activation=self.activation,
-                upsampling=self.upsampling,
-                dropout=self.dropout,
-                batch_norm=self.batch_norm
-            ),  # (N, [2], 14, 14)
-            *self.block(
-                depth=self.depth,
-                in_channels=self.out_channels[2],
-                out_channels=self.out_channels[3],
-                kernel_size=self.kernel_size,
-                activation=self.activation,
-                upsampling=self.upsampling,
-                dropout=self.dropout,
-                batch_norm=self.batch_norm
-            ),  # (N, [3], 28, 28)
-            *self.block(
-                depth=self.depth,
-                in_channels=self.out_channels[3],
-                out_channels=self.out_channels[4],
-                kernel_size=self.kernel_size,
-                activation=self.activation,
-                upsampling=self.upsampling,
-                dropout=self.dropout,
-                batch_norm=self.batch_norm
-            ),  # (N, [4], 56, 56)
-            *self.block(
-                depth=self.depth,
-                in_channels=self.out_channels[4],
-                out_channels=self.out_channels[5],
-                kernel_size=self.kernel_size,
-                activation=self.activation,
-                upsampling=self.upsampling,
-                dropout=self.dropout,
-                batch_norm=self.batch_norm
-            ),  # (N, [5], 112, 112)
-            *self.block(
-                depth=self.depth,
-                in_channels=self.out_channels[5],
-                out_channels=3,
-                kernel_size=self.kernel_size,
-                activation=self.activation,
-                upsampling=self.upsampling,
-                dropout=self.dropout,
-                batch_norm=self.batch_norm,
-                last_block=self.no_bn_last
-            ),  # (N, 3, 224, 224)
-        )
+        if self.data == "PACS":
+            self.dec_conv_sequential = torch.nn.Sequential(
+                *self.block(
+                    depth=self.depth,
+                    in_channels=self.out_channels[0],
+                    out_channels=self.out_channels[1],
+                    kernel_size=self.kernel_size,
+                    activation=self.activation,
+                    upsampling="none",
+                    dropout=self.dropout,
+                    batch_norm=self.batch_norm
+                ),  # (N, [1], 7, 7)
+                *self.block(
+                    depth=self.depth,
+                    in_channels=self.out_channels[1],
+                    out_channels=self.out_channels[2],
+                    kernel_size=self.kernel_size,
+                    activation=self.activation,
+                    upsampling=self.upsampling,
+                    dropout=self.dropout,
+                    batch_norm=self.batch_norm
+                ),  # (N, [2], 14, 14)
+                *self.block(
+                    depth=self.depth,
+                    in_channels=self.out_channels[2],
+                    out_channels=self.out_channels[3],
+                    kernel_size=self.kernel_size,
+                    activation=self.activation,
+                    upsampling=self.upsampling,
+                    dropout=self.dropout,
+                    batch_norm=self.batch_norm
+                ),  # (N, [3], 28, 28)
+                *self.block(
+                    depth=self.depth,
+                    in_channels=self.out_channels[3],
+                    out_channels=self.out_channels[4],
+                    kernel_size=self.kernel_size,
+                    activation=self.activation,
+                    upsampling=self.upsampling,
+                    dropout=self.dropout,
+                    batch_norm=self.batch_norm
+                ),  # (N, [4], 56, 56)
+                *self.block(
+                    depth=self.depth,
+                    in_channels=self.out_channels[4],
+                    out_channels=self.out_channels[5],
+                    kernel_size=self.kernel_size,
+                    activation=self.activation,
+                    upsampling=self.upsampling,
+                    dropout=self.dropout,
+                    batch_norm=self.batch_norm
+                ),  # (N, [5], 112, 112)
+                *self.block(
+                    depth=self.depth,
+                    in_channels=self.out_channels[5],
+                    out_channels=self.C,
+                    kernel_size=self.kernel_size,
+                    activation=self.activation,
+                    upsampling=self.upsampling,
+                    dropout=self.dropout,
+                    batch_norm=self.batch_norm,
+                    last_block=self.no_bn_last
+                ),  # (N, self.C, 224, 224)
+            )
+        if self.data == "RMNIST":
+            self.dec_conv_sequential = torch.nn.Sequential(
+                *self.block(
+                    depth=self.depth,
+                    in_channels=self.out_channels[0],
+                    out_channels=self.out_channels[1],
+                    kernel_size=self.kernel_size,
+                    activation=self.activation,
+                    upsampling="none",
+                    dropout=self.dropout,
+                    batch_norm=self.batch_norm
+                ),  # (N, [1], 7, 7)
+                *self.block(
+                    depth=self.depth,
+                    in_channels=self.out_channels[1],
+                    out_channels=self.out_channels[2],
+                    kernel_size=self.kernel_size,
+                    activation=self.activation,
+                    upsampling=self.upsampling,
+                    dropout=self.dropout,
+                    batch_norm=self.batch_norm
+                ),  # (N, [2], 14, 14)
+                *self.block(
+                    depth=self.depth,
+                    in_channels=self.out_channels[2],
+                    out_channels=self.C,
+                    kernel_size=self.kernel_size,
+                    activation=self.activation,
+                    upsampling=self.upsampling,
+                    dropout=self.dropout,
+                    batch_norm=self.batch_norm,
+                    last_block=self.no_bn_last
+                ),  # (N, self.C, 28, 28)
+            )
 
     def block(self, depth, in_channels, out_channels, kernel_size, activation, upsampling="stride", dropout=False, batch_norm=False, last_block=False):
         seq_list = []
@@ -625,33 +713,32 @@ class Decoder(torch.nn.Module):
 
 if __name__ == "__main__":
     batch_size = 4
-    num_domains = 3
-    num_contents = 7
+    num_domains = 6
+    num_contents = 10
     
     lr = 1e-4
     out_channels = [128, 256, 512, 512, 1024, 1024]
 
     latent_size = 128
-    depth = 1
+    depth = 2
     kernel_size = 3
     activation = torch.nn.ELU()
     downsampling = "stride"
     upsampling = "upsample"
     dropout = False
     batch_norm = True
-    loss_mode = "deep_lpips"
-    lamb = 1.0
-    beta = 1.0
+    loss_mode = "mmd"
+    lamb = 0.1
+    beta = 0.1
 
     batch = [
-        torch.randn(size=(batch_size, 3, 224, 224)),
+        torch.randn(size=(batch_size, 1, 28, 28)),
         torch.nn.functional.one_hot(torch.randint(
             low=0, high=num_domains, size=(batch_size,)), num_classes=num_domains),
         torch.nn.functional.one_hot(torch.randint(
-            low=0, high=num_contents, size=(batch_size,)), num_classes=num_contents),
-        (f"pic_{i}" for i in range(batch_size))
+            low=0, high=num_contents, size=(batch_size,)), num_classes=num_contents)
     ]
-    model = MMD_CVAE(
+    model = MMD_CVAE(data="RMNIST",
         num_domains=num_domains, num_contents=num_contents,
         latent_size=latent_size, lr=lr, depth=depth, 
         out_channels=out_channels, kernel_size=kernel_size, activation=activation,

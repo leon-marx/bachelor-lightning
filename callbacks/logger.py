@@ -20,6 +20,8 @@ class Logger(Callback):
 
         self.train_batch = train_batch
         self.val_batch = val_batch
+        self.num_channels = self.train_batch[0].shape[1]
+        self.image_size = self.train_batch[0].shape[2]
 
         self.ave_grad_list = [[], [], [], [], [], [], [], [], [], []]
         self.max_grad_list = [[], [], [], [], [], [], [], [], [], []]
@@ -87,7 +89,7 @@ class Logger(Callback):
             train_recs = pl_module.reconstruct(train_imgs, train_domains, train_contents)
             train_imgs = (train_imgs + 1.0) / 2.0
             train_recs = (train_recs + 1.0) / 2.0
-            train_grid = torchvision.utils.make_grid(torch.stack((train_imgs, train_recs), dim=1).view(-1, 3, 224, 224))
+            train_grid = torchvision.utils.make_grid(torch.stack((train_imgs, train_recs), dim=1).view(-1, self.num_channels, self.image_size, self.image_size))
             torchvision.utils.save_image(train_grid, f"{self.output_dir}/version_{trainer.logger.version}/images/train_reconstructions.png")
 
             val_imgs = self.val_batch[0][:max(8, len(self.val_batch[0]))].to(pl_module.device)
@@ -96,7 +98,7 @@ class Logger(Callback):
             val_recs = pl_module.reconstruct(val_imgs, val_domains, val_contents)
             val_imgs = (val_imgs + 1.0) / 2.0
             val_recs = (val_recs + 1.0) / 2.0
-            val_grid = torchvision.utils.make_grid(torch.stack((val_imgs, val_recs), dim=1).view(-1, 3, 224, 224))
+            val_grid = torchvision.utils.make_grid(torch.stack((val_imgs, val_recs), dim=1).view(-1, self.num_channels, self.image_size, self.image_size))
             torchvision.utils.save_image(val_grid, f"{self.output_dir}/version_{trainer.logger.version}/images/val_reconstructions.png")
 
             if tensorboard_log:
@@ -119,7 +121,7 @@ class Logger(Callback):
                 transfers = pl_module.transfer(train_imgs, train_domains, train_contents, dec_domains).cpu()
                 train_imgs_to_plot = (train_imgs.cpu() + 1.0) / 2.0
                 transfers = (transfers + 1.0) / 2.0
-                transfer_grid = torchvision.utils.make_grid(torch.stack((train_imgs_to_plot, transfers), dim=1).view(-1, 3, 224, 224))
+                transfer_grid = torchvision.utils.make_grid(torch.stack((train_imgs_to_plot, transfers), dim=1).view(-1, self.num_channels, self.image_size, self.image_size))
                 torchvision.utils.save_image(transfer_grid, f"{self.output_dir}/version_{trainer.logger.version}/images/transfer_to_{decoder_domain}.png")
 
                 if tensorboard_log:

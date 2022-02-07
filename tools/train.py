@@ -6,6 +6,8 @@ import torch
 # Own Modules
 from datasets.pacs import PACSDataModule
 from datasets.pacs_balanced import BalancedPACSDataModule
+from datasets.rotated_mnist import RMNISTDataModule
+from datasets.rotated_mnist_balanced import BalancedRMNISTDataModule
 from models.cvae import CVAE
 from models.cvae_v2 import CVAE_v2
 from models.cvae_v3 import CVAE_v3
@@ -25,10 +27,10 @@ if __name__ == "__main__":
     # Parser
     parser = ArgumentParser()
     # Dataset
-    parser.add_argument("--datadir", type=str, default="data")
+    parser.add_argument("--data", type=str, default=None)
     parser.add_argument("--batch_size", type=int, default=None)
     parser.add_argument("--num_workers", type=int, default=20)
-    parser.add_argument("--domains", type=str, default="PAC")
+    parser.add_argument("--domains", type=str, default=None)
     parser.add_argument("--unbalanced_data", action="store_true", default=False)
     # Model
     parser.add_argument("--model", type=str, default=None)
@@ -80,25 +82,82 @@ if __name__ == "__main__":
         print(f"    {k}: {v}")
     
     # Dataset
-    domain_dict = {
-        "A": "art_painting",
-        "C": "cartoon",
-        "P": "photo",
-        "S": "sketch",
-    }
-    domains = sorted([domain_dict[k] for k in args.domains])
-    contents = ["dog", "elephant", "giraffe", "guitar", "horse", "house", "person"]
     batch_size = args.batch_size
-    if args.unbalanced_data:
-        dm = PACSDataModule(root=args.datadir, domains=domains, contents=contents,
-                            batch_size=batch_size, num_workers=args.num_workers)
-        log_dm = PACSDataModule(root=args.datadir, domains=domains, contents=contents,
-                            batch_size=batch_size, num_workers=args.num_workers, shuffle_all=True)
+    if args.domains is None:
+        argument_domains = ["a"]
     else:
-        dm = BalancedPACSDataModule(root=args.datadir, domains=domains, contents=contents,
-                            batch_size=batch_size, num_workers=args.num_workers)
-        log_dm = BalancedPACSDataModule(root=args.datadir, domains=domains, contents=contents,
-                            batch_size=batch_size, num_workers=args.num_workers, shuffle_all=True)
+        argument_domains = [char for char in args.domains]
+    if args.data == "PACS":
+        domain_dict = {
+            "a": ["art_painting", "cartoon", "photo"],
+            "0": ["art_painting"],
+            "1": ["cartoon"],
+            "2": ["photo"],
+            "3": ["sketch"],
+        }
+        domains = []
+        for key in argument_domains:
+            domains += domain_dict[key]
+        domains = sorted(domains)
+        contents = ["dog", "elephant", "giraffe", "guitar", "horse", "house", "person"]
+        if args.unbalanced_data:
+            dm = PACSDataModule(root="data", domains=domains, contents=contents,
+                                batch_size=batch_size, num_workers=args.num_workers)
+            log_dm = PACSDataModule(root="data", domains=domains, contents=contents,
+                                batch_size=batch_size, num_workers=args.num_workers, shuffle_all=True)
+        else:
+            dm = BalancedPACSDataModule(root="data", domains=domains, contents=contents,
+                                batch_size=batch_size, num_workers=args.num_workers)
+            log_dm = BalancedPACSDataModule(root="data", domains=domains, contents=contents,
+                                batch_size=batch_size, num_workers=args.num_workers, shuffle_all=True)
+    elif args.data == "PACS_small":
+        domain_dict = {
+            "a": ["art_painting", "cartoon", "photo"],
+            "0": ["art_painting"],
+            "1": ["cartoon"],
+            "2": ["photo"],
+            "3": ["sketch"],
+        }
+        domains = []
+        for key in argument_domains:
+            domains += domain_dict[key]
+        domains = sorted(domains)
+        contents = ["dog", "elephant", "giraffe", "guitar", "horse", "house", "person"]
+        if args.unbalanced_data:
+            dm = PACSDataModule(root="data/variants/PACS_small", domains=domains, contents=contents,
+                                batch_size=batch_size, num_workers=args.num_workers)
+            log_dm = PACSDataModule(root="data/variants/PACS_small", domains=domains, contents=contents,
+                                batch_size=batch_size, num_workers=args.num_workers, shuffle_all=True)
+        else:
+            dm = BalancedPACSDataModule(root="data/variants/PACS_small", domains=domains, contents=contents,
+                                batch_size=batch_size, num_workers=args.num_workers)
+            log_dm = BalancedPACSDataModule(root="data/variants/PACS_small", domains=domains, contents=contents,
+                                batch_size=batch_size, num_workers=args.num_workers, shuffle_all=True)
+    elif args.data == "RMNIST":
+        domain_dict = {
+            "a": [0, 15, 30, 45, 60, 75],
+            "0": [0],
+            "1": [15],
+            "2": [30],
+            "3": [45],
+            "4": [60],
+            "5": [75],
+        }
+        domains = []
+        for key in argument_domains:
+            domains += domain_dict[key]
+        domains = sorted(domains)
+        contents = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+        if args.unbalanced_data:
+            dm = RMNISTDataModule(root="data", domains=domains, contents=contents,
+                                batch_size=batch_size, num_workers=args.num_workers)
+            log_dm = RMNISTDataModule(root="data", domains=domains, contents=contents,
+                                batch_size=batch_size, num_workers=args.num_workers, shuffle_all=True)
+        else:
+            dm = BalancedRMNISTDataModule(root="data", domains=domains, contents=contents,
+                                batch_size=batch_size, num_workers=args.num_workers)
+            log_dm = BalancedRMNISTDataModule(root="data", domains=domains, contents=contents,
+                                batch_size=batch_size, num_workers=args.num_workers, shuffle_all=True)
     log_dm.setup()
     train_batch = next(iter(log_dm.train_dataloader()))
     val_batch = next(iter(log_dm.val_dataloader()))

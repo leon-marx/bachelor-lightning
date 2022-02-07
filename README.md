@@ -1,2 +1,2 @@
 # bachelor-lightning
-Using Pytorch Lightning to train a CVAE on PACS.
+Pytorch Lightning implementation of the algorithms used for my Bachelor's thesis.

@@ -10,6 +10,8 @@ import random
 # Own Modules
 from datasets.pacs import PACSDataModule
 from datasets.pacs_balanced import BalancedPACSDataModule
+from datasets.rotated_mnist import RMNISTDataModule
+from datasets.rotated_mnist_balanced import BalancedRMNISTDataModule
 from models.cvae import CVAE
 from models.ae import AE
 from models.ae_v2 import AE_v2
@@ -131,13 +133,21 @@ if __name__ == "__main__":
     print(f"    CUDNN: {torch.backends.cudnn.version()}")
 
     # Dataset
-    domains = ["art_painting", "cartoon", "photo"]
-    contents = ["dog", "elephant", "giraffe", "guitar", "horse", "house", "person"]
-    batch_size = 4
-    dm = BalancedPACSDataModule(root="data/variants/PACS_small", domains=domains, contents=contents,
-                        batch_size=batch_size, num_workers=20)
-    log_dm = BalancedPACSDataModule(root="data/variants/PACS_small", domains=domains, contents=contents,
-                        batch_size=batch_size, num_workers=20, shuffle_all=True)
+    batch_size = args.batch_size
+    if args.data == "PACS":
+        domains = ["art_painting", "cartoon", "photo"]
+        contents = ["dog", "elephant", "giraffe", "guitar", "horse", "house", "person"]
+        dm = BalancedPACSDataModule(root="data/variants/PACS_small", domains=domains, contents=contents,
+                            batch_size=batch_size, num_workers=20)
+        log_dm = BalancedPACSDataModule(root="data/variants/PACS_small", domains=domains, contents=contents,
+                            batch_size=batch_size, num_workers=20, shuffle_all=True)
+    elif args.data == "RMNIST":
+        domains = [0, 15, 30, 45, 60, 75]
+        contents = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+        dm = BalancedRMNISTDataModule(root="data", domains=domains, contents=contents,
+                            batch_size=batch_size, num_workers=20)
+        log_dm = BalancedRMNISTDataModule(root="data", domains=domains, contents=contents,
+                            batch_size=batch_size, num_workers=20, shuffle_all=True)
     num_domains = len(domains)
     num_contents = len(contents)
 
