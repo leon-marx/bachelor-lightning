@@ -212,8 +212,16 @@ class MMD_CVAE(pl.LightningModule):
             loss, kld_value, rec_value, mmd_value = self.loss(images, enc_mu, enc_logvar, reconstructions, y_mmd, codes_2=codes_2, split_loss=True)
         elif self.loss_mode == "deep_lpips":
             loss, kld_value, rec_value, mmd_value = self.loss(images, enc_mu, enc_logvar, reconstructions, y_mmd, split_loss=True)
-        else:
+        elif self.loss_mode == "mmd":
             loss, kld_value, rec_value, mmd_value = self.loss(images, enc_mu, enc_logvar, reconstructions, y_mmd, split_loss=True)
+        elif self.loss_mode == "elbo":
+            loss, kld_value, rec_value = self.loss(images, enc_mu, enc_logvar, reconstructions, y_mmd, split_loss=True)
+            mmd_value = 0
+        else:
+            loss = self.loss(images, enc_mu, enc_logvar, reconstructions, y_mmd, split_loss=True)
+            mmd_value = 0
+            rec_value = 0
+            kld_value = 0
 
         self.log("train_loss", loss, batch_size=images.shape[0])
         self.log("kld", kld_value, prog_bar=True, batch_size=images.shape[0])
