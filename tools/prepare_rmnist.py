@@ -12,9 +12,8 @@ import matplotlib.pyplot as plt
 def rotate_dataset(images, labels, angle):
     rotation = transforms.Compose([
         transforms.ToPILImage(),
-        # transforms.Lambda(lambda x: transforms.functional.rotate(x, float(angle), fill=(0,),
-        #     interpolation=PIL.Image.BILINEAR)),
-        transforms.Lambda(lambda x: transforms.functional.rotate(x, float(angle), fill=(0,))),
+        transforms.Lambda(lambda x: transforms.functional.rotate(x, float(angle), fill=(0,),
+            interpolation=PIL.Image.BILINEAR)),
         transforms.ToTensor()])
 
     x = torch.zeros(len(images), 1, 28, 28)
