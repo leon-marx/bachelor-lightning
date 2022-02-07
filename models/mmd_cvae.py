@@ -102,7 +102,7 @@ class MMD_CVAE(pl.LightningModule):
         y_mmd: Tensor of shape (batch_size * num_domains, mmd_size)
         """
         if self.loss_mode == "mmd":
-            rec = self.get_mse_loss(images, reconstructions, reduction="none").mean(dim=[0, 1, 2, 3])
+            rec = self.get_mse_loss(images, reconstructions)
             kld = self.lamb * 0.5 * (enc_mu ** 2 + enc_logvar.exp() - enc_logvar - 1).mean(dim=[0, 1])
             mmd = 0
 
