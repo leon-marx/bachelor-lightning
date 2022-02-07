@@ -213,7 +213,7 @@ class Logger(Callback):
             pl_module.eval()
             codes = torch.randn(size=(min(self.train_batch[0].shape[0], 8), pl_module.latent_size)).to(pl_module.device)
             for domain_name in self.domains:
-                for content_name in ["dog"]:
+                for content_name in {3: ["dog"], 1: [4]}[self.num_channels]:
                 # for content_name in self.contents:
                     domains = torch.nn.functional.one_hot(self.domain_dict[domain_name], num_classes=len(self.domains)).repeat(codes.shape[0], 1).to(pl_module.device)
                     contents = torch.nn.functional.one_hot(self.content_dict[content_name], num_classes=len(self.contents)).repeat(codes.shape[0], 1).to(pl_module.device)
