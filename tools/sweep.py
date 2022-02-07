@@ -361,7 +361,7 @@ if __name__ == "__main__":
                                             latent_size=latent_size, lr=lr, depth=depth, 
                                             out_channels=out_channels, kernel_size=kernel_size, activation=activation,
                                             downsampling=downsampling, upsampling=upsampling, dropout=dropout,
-                                            batch_norm=batch_norm, initialize=True)
+                                            batch_norm=batch_norm, loss_mode=loss_mode, initialize=True)
                             if model_name == "AAE_v2":
                                 model = AAE_v2(data=args.data, num_domains=num_domains, num_contents=num_contents,
                                             latent_size=latent_size, lr=lr, depth=depth, 
