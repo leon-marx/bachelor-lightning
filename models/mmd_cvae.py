@@ -271,7 +271,7 @@ class MMD_CVAE(pl.LightningModule):
         return optimizer
 
     def warmer(self):
-        if self.lamb <= 1e-2:
+        if self.lamb < 1e-2:
             self.lamb *= 10 ** 0.5
             print(f"New lambda: {self.lamb}")
         self.beta *= 10 ** 0.5
