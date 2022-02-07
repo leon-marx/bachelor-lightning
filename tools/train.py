@@ -15,6 +15,7 @@ from models.ae_v3 import AE_v3
 from models.dccvae import DCCVAE
 from models.trvae import trVAE
 from models.aae import AAE
+from models.aae_v2 import AAE_v2
 from models.gan import GAN
 from models.mmd_cvae import MMD_CVAE
 from callbacks.logger import Logger
@@ -50,6 +51,8 @@ if __name__ == "__main__":
     parser.add_argument("--no_bn_last", action="store_true", default=False)
     parser.add_argument("--loss_mode", type=str, default="elbo")
     parser.add_argument("--no_strict", action="store_true", default=False)
+    parser.add_argument("--net", type=str, default="vgg")
+    parser.add_argument("--calibration", action="store_true", default=False)
     # Training
     parser.add_argument("--gpus", type=str, default=None)
     parser.add_argument("--output_dir", type=str, default=None)
@@ -126,6 +129,8 @@ if __name__ == "__main__":
     batch_norm = args.batch_norm
     loss_mode = args.loss_mode
     no_bn_last = args.no_bn_last
+    net = args.net
+    calibration = args.calibration
     if args.ckpt_path != "0":
         if args.model == "CVAE":
             model = CVAE.load_from_checkpoint(args.ckpt_path, num_domains=num_domains, num_contents=num_contents,
@@ -166,7 +171,7 @@ if __name__ == "__main__":
                             latent_size=latent_size, lr=lr, depth=depth, 
                             out_channels=out_channels, kernel_size=kernel_size, activation=activation,
                             downsampling=downsampling, upsampling=upsampling, dropout=dropout, loss_mode=loss_mode,
-                            batch_norm=batch_norm)
+                            batch_norm=batch_norm, initialize=True)
                 current_model_dict = model.state_dict()
                 loaded_state_dict = torch.load(args.ckpt_path, map_location=f"cuda:{args.gpus[0]}")["state_dict"]
                 new_state_dict={k:v.cpu() if v.size()==current_model_dict[k].size()  else  current_model_dict[k] for k,v in zip(current_model_dict.keys(), loaded_state_dict.values())}
@@ -179,6 +184,25 @@ if __name__ == "__main__":
                             out_channels=out_channels, kernel_size=kernel_size, activation=activation,
                             downsampling=downsampling, upsampling=upsampling, dropout=dropout, loss_mode=loss_mode,
                             batch_norm=batch_norm, strict = not args.no_strict)
+        if args.model == "AAE_v2":
+            if args.no_strict:
+                model = AAE_v2(num_domains=num_domains, num_contents=num_contents,
+                            latent_size=latent_size, lr=lr, depth=depth, 
+                            out_channels=out_channels, kernel_size=kernel_size, activation=activation,
+                            downsampling=downsampling, upsampling=upsampling, dropout=dropout, loss_mode=loss_mode,
+                            lamb=lamb, net=net, calibration=calibration, batch_norm=batch_norm, initialize=True)
+                current_model_dict = model.state_dict()
+                loaded_state_dict = torch.load(args.ckpt_path, map_location=f"cuda:{args.gpus[0]}")["state_dict"]
+                new_state_dict={k:v.cpu() if v.size()==current_model_dict[k].size()  else  current_model_dict[k] for k,v in zip(current_model_dict.keys(), loaded_state_dict.values())}
+                model.load_state_dict(new_state_dict, strict=False)
+                loaded_state_dict = None
+                new_state_dict = None
+            else:
+                model = AAE_v2.load_from_checkpoint(args.ckpt_path, num_domains=num_domains, num_contents=num_contents,
+                            latent_size=latent_size, lr=lr, depth=depth, 
+                            out_channels=out_channels, kernel_size=kernel_size, activation=activation,
+                            downsampling=downsampling, upsampling=upsampling, dropout=dropout, loss_mode=loss_mode,
+                            lamb=lamb, net=net, calibration=calibration, batch_norm=batch_norm, strict = not args.no_strict)
         if args.model == "GAN":
             model = GAN.load_from_checkpoint(args.ckpt_path, num_domains=num_domains, num_contents=num_contents,
                         latent_size=latent_size, lr=lr, depth=depth, 
@@ -231,6 +255,12 @@ if __name__ == "__main__":
                         out_channels=out_channels, kernel_size=kernel_size, activation=activation,
                         downsampling=downsampling, upsampling=upsampling, dropout=dropout, loss_mode=loss_mode,
                         batch_norm=batch_norm, initialize=True)
+        if args.model == "AAE_v2":
+            model = AAE_v2(num_domains=num_domains, num_contents=num_contents,
+                        latent_size=latent_size, lr=lr, depth=depth, 
+                        out_channels=out_channels, kernel_size=kernel_size, activation=activation,
+                        downsampling=downsampling, upsampling=upsampling, dropout=dropout, loss_mode=loss_mode,
+                        lamb=lamb, net=net, calibration=calibration, batch_norm=batch_norm, initialize=True)
         if args.model == "GAN":
             model = GAN(num_domains=num_domains, num_contents=num_contents,
                         latent_size=latent_size, lr=lr, depth=depth, 
