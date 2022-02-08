@@ -173,7 +173,7 @@ if __name__ == "__main__":
     print(f"    CUDNN: {torch.backends.cudnn.version()}")
 
     # Dataset
-    batch_size = 4
+    batch_size = 32
     if args.data == "PACS":
         domains = ["art_painting", "cartoon", "photo"]
         contents = ["dog", "elephant", "giraffe", "guitar", "horse", "house", "person"]
