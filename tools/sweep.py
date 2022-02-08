@@ -96,7 +96,7 @@ if __name__ == "__main__":
             "dropout": [False], 
             "batch_norm": [True], 
             "loss_mode": ["deep_lpips", "elbo"],
-            "lamb": [1e-4], 
+            "lamb": [0.0, 1e-4, 1e-2], 
             "no_bn_last": [True], 
             "initialize": [True]
             },
@@ -115,8 +115,8 @@ if __name__ == "__main__":
             "dropout": [False], 
             "batch_norm": [True], 
             "loss_mode": ["deep_lpips", "mmd", "elbo"],
-            "lamb": [1e-4], 
-            "beta": [1e-4], 
+            "lamb": [0.0, 1e-4, 1e-2], 
+            "beta": [0.0, 1e-4, 1e-2], 
             "no_bn_last": [True], 
             "initialize": [True]
             },
@@ -153,7 +153,7 @@ if __name__ == "__main__":
             "dropout": [False], 
             "batch_norm": [True], 
             "loss_mode": ["deep_lpips", "elbo"],
-            "lamb": [1e-4],
+            "lamb": [0.0, 1e-4, 1e-2],
             "no_bn_last": [True], 
             "initialize": [True],
             "net": ["vgg"],
