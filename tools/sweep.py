@@ -95,7 +95,7 @@ if __name__ == "__main__":
             "upsampling": ["upsample"], 
             "dropout": [False], 
             "batch_norm": [True], 
-            "loss_mode": ["deep_lpips", "elbo"],
+            "loss_mode": ["elbo"],
             "lamb": [0.0, 1e-4, 1e-2], 
             "no_bn_last": [True], 
             "initialize": [True]
