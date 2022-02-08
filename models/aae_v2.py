@@ -268,8 +268,9 @@ class AAE_v2(pl.LightningModule):
         return self.vae_loss(images, reconstructions, codes)
 
     def warmer(self):
-        self.lamb *= 10 ** 0.5
-        print(f"New lambda: {self.lamb}")
+        if self.lamb < 1.0:
+            self.lamb *= 10 ** 0.5
+            print(f"New lambda: {self.lamb}")
 
     def configure_optimizers(self):
         opt_ae = torch.optim.Adam(params=list(self.encoder.parameters()) + list(self.decoder.parameters()), lr=self.lr, betas=(0.5, 0.999))
