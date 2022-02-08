@@ -280,7 +280,7 @@ class AAE(pl.LightningModule):
 
         return reconstructions
 
-    def transfer(self, images, domains, contents, decoder_domains):
+    def transfer(self, images, domains, contents, decoder_domains, decoder_contents):
         """
         Calculates codes for the given images and returns their reconstructions.
 
@@ -288,9 +288,10 @@ class AAE(pl.LightningModule):
         domains: Tensor of shape (batch_size, num_domains)
         contents: Tensor of shape (batch_size, num_contents)
         decoder_domains: Tensor of shape (batch_size, num_domains)
+        decoder_contents: Tensor of shape (batch_size, num_contents)
         """
         codes = self.encoder(images, domains, contents)
-        transfers = self.decoder(codes, decoder_domains, contents)
+        transfers = self.decoder(codes, decoder_domains, decoder_contents)
 
         return transfers
 

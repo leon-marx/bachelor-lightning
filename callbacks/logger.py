@@ -73,7 +73,8 @@ class Logger(Callback):
             os.makedirs(f"{self.output_dir}/version_{trainer.logger.version}/images", exist_ok=True)
             self.log_reconstructions(trainer, pl_module, tensorboard_log=True)
             self.log_generated(trainer, pl_module, tensorboard_log=True)
-            self.log_transfers(trainer, pl_module, tensorboard_log=True)
+            self.log_domain_transfers(trainer, pl_module, tensorboard_log=True)
+            self.log_content_transfers(trainer, pl_module, tensorboard_log=True)
             self.log_losses(trainer)
             self.log_grad_flow(trainer, tensorboard_log=True)
 
@@ -107,7 +108,7 @@ class Logger(Callback):
 
             pl_module.train()
 
-    def log_transfers(self, trainer, pl_module, tensorboard_log=False):
+    def log_domain_transfers(self, trainer, pl_module, tensorboard_log=False):
         with torch.no_grad():
             pl_module.eval()
 
@@ -118,14 +119,36 @@ class Logger(Callback):
             for decoder_domain in self.domains:
                 dec_domains = torch.cat((torch.nn.functional.one_hot(self.domain_dict[decoder_domain], num_classes=len(self.domains)),) * train_domains.shape[0], dim=0).to(pl_module.device)
 
-                transfers = pl_module.transfer(train_imgs, train_domains, train_contents, dec_domains).cpu()
+                transfers = pl_module.transfer(train_imgs, train_domains, train_contents, dec_domains, train_contents).cpu()
                 train_imgs_to_plot = (train_imgs.cpu() + 1.0) / 2.0
                 transfers = (transfers + 1.0) / 2.0
                 transfer_grid = torchvision.utils.make_grid(torch.stack((train_imgs_to_plot, transfers), dim=1).view(-1, self.num_channels, self.image_size, self.image_size))
-                torchvision.utils.save_image(transfer_grid, f"{self.output_dir}/version_{trainer.logger.version}/images/transfer_to_{decoder_domain}.png")
+                torchvision.utils.save_image(transfer_grid, f"{self.output_dir}/version_{trainer.logger.version}/images/domain_transfer_to_{decoder_domain}.png")
 
                 if tensorboard_log:
-                    trainer.logger.experiment.add_image(f"transfer_to_{decoder_domain}", transfer_grid)
+                    trainer.logger.experiment.add_image(f"domain_transfer_to_{decoder_domain}", transfer_grid)
+
+            pl_module.train()
+
+    def log_content_transfers(self, trainer, pl_module, tensorboard_log=False):
+        with torch.no_grad():
+            pl_module.eval()
+
+            train_imgs = self.train_batch[0].to(pl_module.device)
+            train_domains = self.train_batch[1].to(pl_module.device)
+            train_contents = self.train_batch[2].to(pl_module.device)
+
+            for decoder_content in self.contents:
+                dec_contents = torch.cat((torch.nn.functional.one_hot(self.content_dict[decoder_content], num_classes=len(self.contents)),) * train_contents.shape[0], dim=0).to(pl_module.device)
+
+                transfers = pl_module.transfer(train_imgs, train_domains, train_contents, train_domains, dec_contents).cpu()
+                train_imgs_to_plot = (train_imgs.cpu() + 1.0) / 2.0
+                transfers = (transfers + 1.0) / 2.0
+                transfer_grid = torchvision.utils.make_grid(torch.stack((train_imgs_to_plot, transfers), dim=1).view(-1, self.num_channels, self.image_size, self.image_size))
+                torchvision.utils.save_image(transfer_grid, f"{self.output_dir}/version_{trainer.logger.version}/images/content_transfer_to_{decoder_content}.png")
+
+                if tensorboard_log:
+                    trainer.logger.experiment.add_image(f"content_transfer_to_{decoder_content}", transfer_grid)
 
             pl_module.train()
     

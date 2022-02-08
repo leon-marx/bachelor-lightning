@@ -249,7 +249,7 @@ class CVAE_v3(pl.LightningModule):
 
         return reconstructions
 
-    def transfer(self, images, domains, contents, decoder_domains):
+    def transfer(self, images, domains, contents, decoder_domains, decoder_contents):
         """
         Calculates codes for the given images and returns their reconstructions.
 
@@ -257,9 +257,10 @@ class CVAE_v3(pl.LightningModule):
         domains: Tensor of shape (batch_size, num_domains)
         contents: Tensor of shape (batch_size, num_contents)
         decoder_domains: Tensor of shape (batch_size, num_domains)
+        decoder_contents: Tensor of shape (batch_size, num_contents)
         """
         enc_mu, enc_logvar = self.encoder(images, domains, contents)
-        transfers = self.decoder(enc_mu, decoder_domains, contents)
+        transfers = self.decoder(enc_mu, decoder_domains, decoder_contents)
 
         return transfers
 
