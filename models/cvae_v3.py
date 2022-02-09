@@ -233,8 +233,9 @@ class CVAE_v3(pl.LightningModule):
         return optimizer
 
     def warmer(self):
-        self.lamb *= 10 ** 0.5
-        print(f"New lambda: {self.lamb}")
+        if self.lamb < 1.0:
+            self.lamb *= 10 ** 0.5
+            print(f"New lambda: {self.lamb}")
 
     def reconstruct(self, images, domains, contents):
         """

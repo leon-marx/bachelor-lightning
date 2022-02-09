@@ -11,8 +11,7 @@ python -m tools.train\
     --activation elu\
     --downsampling stride\
     --upsampling upsample\
-    --dropout False\
-    --batch_norm True\
+    --batch_norm\
     --loss_mode elbo\
     --lamb 1e-2\
     --no_bn_last\
