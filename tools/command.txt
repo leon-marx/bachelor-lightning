@@ -1,20 +1,23 @@
 python -m tools.train\
-    --datadir data/variants/PACS_small\
-    --batch_size 16\
-    --model AAE\
+    --data RMNIST\
+    --batch_size 4\
+    --model CVAE_v3\
     --latent_size 128\
     --lr 1e-4\
     --ckpt_path 0\
     --depth 1\
-    --out_channels 128,128,256,256,512,512,1024\
+    --out_channels 128,128,256,256,512,512\
     --kernel_size 3\
-    --activation selu\
+    --activation elu\
     --downsampling stride\
     --upsampling upsample\
     --dropout False\
     --batch_norm True\
+    --loss_mode elbo\
+    --lamb 1e-2\
+    --no_bn_last\
     --gpus 3,\
-    --output_dir logs/aae
+    --output_dir logs/rmnist_cvae_v3
 
     AAE(num_domains=num_domains, num_contents=num_contents,
         latent_size=latent_size, lr=lr, depth=depth, 

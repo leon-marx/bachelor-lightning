@@ -337,7 +337,7 @@ if __name__ == "__main__":
     # Callbacks
     callbacks = [
         Logger(args.output_dir, log_dm, train_batch, val_batch, domains, contents, images_on_val=True),
-        pl.callbacks.ModelCheckpoint(monitor="val_loss"),
+        pl.callbacks.ModelCheckpoint(monitor="val_loss", save_last=True),
     ]
     if args.model not in ["AAE", "AAE_v2", "GAN"]:
         callbacks.append(pl.callbacks.stochastic_weight_avg.StochasticWeightAveraging(swa_epoch_start=5))
