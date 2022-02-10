@@ -133,7 +133,7 @@ class MMD_CVAE(pl.LightningModule):
             if self.loss_mode == "deep_own":
                 img_loss = self.get_mse_loss(images, reconstructions)
                 code_mu_loss = self.get_mse_loss(enc_mu, codes_2[0])
-                code_logvar_loss = self.get_mse_loss(enc_mu, codes_2[1])
+                code_logvar_loss = self.get_mse_loss(enc_logvar, codes_2[1])
                 self.log("deep_loss_img", img_loss.item(), batch_size=images.shape[0], logger=True)
                 self.log("deep_loss_code_mu", code_mu_loss.item(), batch_size=images.shape[0], logger=True)
                 self.log("deep_loss_code_logvar", code_logvar_loss.item(), batch_size=images.shape[0], logger=True)

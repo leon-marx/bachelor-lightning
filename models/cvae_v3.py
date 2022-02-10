@@ -91,6 +91,8 @@ class CVAE_v3(pl.LightningModule):
                 self.apply(selu_init)
         if self.loss_mode == "deep_lpips":
             self.lpips = lpips.LPIPS(net="vgg")
+        if self.loss_mode == "deep_own":
+            self.own_weight = 0.0
 
     def loss(self, images, enc_mu, enc_logvar, reconstructions, codes_2=None, split_loss=False):
         """
@@ -103,8 +105,8 @@ class CVAE_v3(pl.LightningModule):
         split_loss: bool, if True, returns kld and rec losses separately
         """
         if self.loss_mode == "l1":
-            loss = torch.abs(images - reconstructions)
-            return loss.mean(dim=[0, 1, 2, 3])
+            loss = torch.abs(images - reconstructions).mean(dim=[0, 1, 2, 3])
+            return loss
         if self.loss_mode == "l2":
             loss = self.get_mse_loss(
                 images, reconstructions)
@@ -116,15 +118,22 @@ class CVAE_v3(pl.LightningModule):
                 return kld + rec, kld.item(), rec.item()
             else:
                 return kld + rec
+        if self.loss_mode == "l1_elbo":
+            kld = self.lamb * 0.5 * (enc_mu ** 2 + enc_logvar.exp() - enc_logvar - 1).mean(dim=[0, 1])
+            rec = torch.abs(images - reconstructions).mean(dim=[0, 1, 2, 3])
+            if split_loss:
+                return kld + rec, kld.item(), rec.item()
+            else:
+                return kld + rec
         if "deep" in self.loss_mode:
             if self.loss_mode == "deep_own":
                 img_loss = self.get_mse_loss(images, reconstructions)
                 code_mu_loss = self.get_mse_loss(enc_mu, codes_2[0])
-                code_logvar_loss = self.get_mse_loss(enc_mu, codes_2[1])
+                code_logvar_loss = self.get_mse_loss(enc_logvar, codes_2[1])
                 self.log("deep_loss_img", img_loss.item(), batch_size=images.shape[0], logger=True)
                 self.log("deep_loss_code_mu", code_mu_loss.item(), batch_size=images.shape[0], logger=True)
                 self.log("deep_loss_code_logvar", code_logvar_loss.item(), batch_size=images.shape[0], logger=True)
-                rec = img_loss + code_mu_loss + code_logvar_loss
+                rec = (1 - self.own_weight) * img_loss + self.own_weight * (code_mu_loss + code_logvar_loss)
             elif self.loss_mode == "deep_lpips":
                 rec = self.lpips(images, reconstructions).mean()
 
@@ -236,6 +245,13 @@ class CVAE_v3(pl.LightningModule):
         if self.lamb < 1.0:
             self.lamb *= 10 ** 0.5
             print(f"New lambda: {self.lamb}")
+            if self.loss_mode == "deep_own":
+                if self.own_weight == 0.0:
+                    self.own_weight = 0.1
+                elif self.own_weight < 1.0:
+                    self.own_weight *= 10 ** 0.5
+                print(f"New own_weight: {self.own_weight}")
+
 
     def reconstruct(self, images, domains, contents):
         """

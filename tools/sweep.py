@@ -51,6 +51,7 @@ if __name__ == "__main__":
     parser.add_argument("--test_mode", action="store_true", default=False)
     parser.add_argument("--gpus", type=str, default="3,")
     parser.add_argument("--max_epochs", type=int, default=25)
+    parser.add_argument("--batch_size", type=int, default=4)
     parser.add_argument("--iov", type=int, default=1)
     args = parser.parse_args()
     #################### EDIT THIS IN ORDER TO CHANGE THE SWEEP
@@ -142,18 +143,18 @@ if __name__ == "__main__":
             "data": ["RMNIST"], 
             "num_domains": [6], 
             "num_contents": [10], 
-            "latent_size": [128], 
+            "latent_size": [32, 64, 128], 
             "lr": [1e-4], 
-            "depth": [1], 
-            "out_channels": ["128,128,256,256,512,512"], 
+            "depth": [1, 2], 
+            "out_channels": ["128,128,256,256,512,512", "64,64,128,128,256,256", "32,32,64,64,128,128"], 
             "kernel_size": [3],
-            "activation": ["elu"],
+            "activation": ["elu", "selu", "relu"],
             "downsampling": ["stride"], 
             "upsampling": ["upsample"], 
             "dropout": [False], 
             "batch_norm": [True], 
-            "loss_mode": ["elbo"],
-            "lamb": [0.0, 1e-4, 1e-2],
+            "loss_mode": ["elbo", "l1_elbo", "deep_own"],
+            "lamb": [1e-2],
             "no_bn_last": [True], 
             "initialize": [True],
             "net": ["vgg"],
@@ -173,7 +174,7 @@ if __name__ == "__main__":
     print(f"    CUDNN: {torch.backends.cudnn.version()}")
 
     # Dataset
-    batch_size = 4
+    batch_size = args.batch_size
     if args.data == "PACS":
         domains = ["art_painting", "cartoon", "photo"]
         contents = ["dog", "elephant", "giraffe", "guitar", "horse", "house", "person"]
