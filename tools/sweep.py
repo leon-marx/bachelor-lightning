@@ -46,6 +46,7 @@ def get_combinations(arg_dict):
 if __name__ == "__main__":
     parser = ArgumentParser()
     parser.add_argument("--data", type=str, default=None)
+    parser.add_argument("--log_name", type=str, default=None)
     parser.add_argument("--models", type=str, default=None)
     parser.add_argument("--restart", action="store_true", default=False)
     parser.add_argument("--test_mode", action="store_true", default=False)
@@ -214,7 +215,7 @@ if __name__ == "__main__":
                     try:
                         print(f"Configuration: {conf}")
                         # Default values
-                        log_dir = f"logs/sweep/{model_name}"
+                        log_dir = f"logs/sweep_{args.log_name}/{model_name}"
 
                         if "latent_size" in conf:
                             latent_size = conf["latent_size"]
