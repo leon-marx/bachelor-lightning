@@ -49,7 +49,6 @@ class RMNISTDataset(Dataset):
         self.content_data = {domain: [] for domain in self.domains}
         for domain in os.listdir(f"{self.data_dir}"):
             domain = int(domain)
-            print(domain)
             image_data_ = ()
             domain_data_ = ()
             content_data_ = ()
@@ -61,8 +60,6 @@ class RMNISTDataset(Dataset):
                         image_data_ += (imgs,)
                         domain_data_ += (torch.nn.functional.one_hot(self.domain_dict[domain], num_classes=len(self.domains)).view(1, -1),) * imgs.shape[0]
                         content_data_ += (torch.nn.functional.one_hot(self.content_dict[content], num_classes=len(self.contents)).view(1, -1),) * imgs.shape[0]
-                print("  ", domain)
-                print("  ", len(image_data_))
                 image_data_ = torch.cat(image_data_, dim=0)
                 domain_data_ = torch.cat(domain_data_, dim=0)
                 content_data_ = torch.cat(content_data_, dim=0)

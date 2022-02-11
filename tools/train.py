@@ -148,9 +148,6 @@ if __name__ == "__main__":
             domains += domain_dict[key]
         domains = sorted(domains)
         contents = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
-        print(domains)
-        print(type(domains[0]))
-        print(argument_domains)
         if args.unbalanced_data:
             dm = RMNISTDataModule(root="data", domains=domains, contents=contents,
                                 batch_size=batch_size, num_workers=args.num_workers)
