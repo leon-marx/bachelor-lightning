@@ -61,19 +61,19 @@ class RMNISTDataset(Dataset):
                         image_data_ += (imgs,)
                         domain_data_ += (torch.nn.functional.one_hot(self.domain_dict[domain], num_classes=len(self.domains)).view(1, -1),) * imgs.shape[0]
                         content_data_ += (torch.nn.functional.one_hot(self.content_dict[content], num_classes=len(self.contents)).view(1, -1),) * imgs.shape[0]
-            print("  ", domain)
-            print("  ", len(image_data_))
-            image_data_ = torch.cat(image_data_, dim=0)
-            domain_data_ = torch.cat(domain_data_, dim=0)
-            content_data_ = torch.cat(content_data_, dim=0)
-            torch.manual_seed(17 + domain)
-            shuffle_inds = torch.randperm(len(image_data_))
-            image_data_ = image_data_[shuffle_inds]
-            domain_data_ = domain_data_[shuffle_inds]
-            content_data_ = content_data_[shuffle_inds]
-            self.image_data[domain] = image_data_
-            self.domain_data[domain] = domain_data_
-            self.content_data[domain] = content_data_
+                print("  ", domain)
+                print("  ", len(image_data_))
+                image_data_ = torch.cat(image_data_, dim=0)
+                domain_data_ = torch.cat(domain_data_, dim=0)
+                content_data_ = torch.cat(content_data_, dim=0)
+                torch.manual_seed(17 + domain)
+                shuffle_inds = torch.randperm(len(image_data_))
+                image_data_ = image_data_[shuffle_inds]
+                domain_data_ = domain_data_[shuffle_inds]
+                content_data_ = content_data_[shuffle_inds]
+                self.image_data[domain] = image_data_
+                self.domain_data[domain] = domain_data_
+                self.content_data[domain] = content_data_
         self.transform = self.get_transform()
 
     def get_transform(self):
