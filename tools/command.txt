@@ -15,8 +15,7 @@ python -m tools.train\
     --loss_mode elbo\
     --lamb 1e-2\
     --no_bn_last\
-    --gpus 3,\
-    --output_dir logs/rmnist_cvae_v3
+    --gpus 3, --output_dir logs/rmnist_loo_exp/01234 --domains 01234
 
     AAE(num_domains=num_domains, num_contents=num_contents,
         latent_size=latent_size, lr=lr, depth=depth, 
