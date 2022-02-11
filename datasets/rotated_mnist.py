@@ -34,6 +34,8 @@ class RMNISTDataset(Dataset):
         self.content_data = ()
         for domain in os.listdir(f"{self.data_dir}"):
             domain = int(domain)
+            print(domain)
+            print(self.domains)
             if domain in self.domains:
                 for content in os.listdir(f"{self.data_dir}/{domain}"):
                     content = int(content)
