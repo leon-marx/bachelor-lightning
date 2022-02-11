@@ -107,8 +107,24 @@ class RMNISTDataModule(pl.LightningDataModule):
     
 
 if __name__ == "__main__":
-    domains = [0, 15, 30, 45, 60, 75]
+    argument_domains = ["0", "1", "2", "3", "4"]
+    domain_dict = {
+            "a": [0, 15, 30, 45, 60, 75],
+            "0": [0],
+            "1": [15],
+            "2": [30],
+            "3": [45],
+            "4": [60],
+            "5": [75],
+        }
+    domains = []
+    for key in argument_domains:
+        domains += domain_dict[key]
+    domains = sorted(domains)
     contents = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+
+    print(domains)
+    print(argument_domains)
     batch_size = 4
     num_workers = 0
     root = "data"
