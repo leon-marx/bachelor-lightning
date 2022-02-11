@@ -49,6 +49,8 @@ class RMNISTDataset(Dataset):
         self.content_data = {domain: [] for domain in self.domains}
         for domain in os.listdir(f"{self.data_dir}"):
             domain = int(domain)
+            print(domain)
+            print(self.domains)
             image_data_ = ()
             domain_data_ = ()
             content_data_ = ()
