@@ -208,7 +208,7 @@ class ClassificationLogger(Callback):
                 images = batch[0].to(pl_module.device)
                 domains = batch[1].to(pl_module.device)
                 contents = batch[2].to(pl_module.device)
-                    latent_data[i] = pl_module(images).cpu()
+                latent_data[i] = pl_module(images).cpu()
                 latent_domains[i] = torch.argmax(domains.cpu(), dim=1)
                 latent_contents[i] = torch.argmax(contents.cpu(), dim=1)
                 if i+1 >= first_dim:
