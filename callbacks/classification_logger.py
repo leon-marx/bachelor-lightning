@@ -98,7 +98,7 @@ class ClassificationLogger(Callback):
             fig = plt.figure(figsize=(10, 10))
             for i in range(min(val_imgs.shape[0], 16)):
                 plt.subplot(4, 4, i+1)
-                plt.imshow(val_imgs[i].view(28, 28))
+                plt.imshow(val_imgs[i].view(28, 28).cpu().numpy())
                 plt.xticks([])
                 plt.yticks([])
                 plt.title(f"Prediction: {torch.argmax(val_preds[i]).item()}")
