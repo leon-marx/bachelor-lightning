@@ -252,7 +252,6 @@ class CVAE_v3(pl.LightningModule):
                     self.own_weight *= 10 ** 0.5
                 print(f"New own_weight: {self.own_weight}")
 
-
     def reconstruct(self, images, domains, contents):
         """
         Calculates codes for the given images and returns their reconstructions.
