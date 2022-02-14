@@ -33,14 +33,13 @@ class ClassificationLogger(Callback):
         self.content_dict = {content: torch.LongTensor([i]) for i, content in enumerate(self.contents)}
 
         self.epoch_counter = -1
-        self.warumup_freq = 10
+        self.umap_freq = 10
         self.iov_flag = False
         self.images_on_val = images_on_val
     
     def on_save_checkpoint(self, trainer, pl_module, checkpoint):
         os.makedirs(f"{self.output_dir}/version_{trainer.logger.version}/images", exist_ok=True)
-        self.log_reconstructions(trainer, pl_module, tensorboard_log=True)
-        self.log_generated(trainer, pl_module, tensorboard_log=True)
+        self.log_classifications(trainer, pl_module, tensorboard_log=True)
         self.log_losses(trainer)
         self.log_grad_flow(trainer, tensorboard_log=True)
 
@@ -48,31 +47,23 @@ class ClassificationLogger(Callback):
 
     def on_train_batch_end(self, trainer, pl_module, outputs, batch, batch_idx, unused=0):
         self.gather_grad_flow_data(pl_module)
-        if isinstance(outputs, list):
-            self.train_loss.append(outputs[0]["loss"].item())
-        else:
-            self.train_loss.append(outputs["loss"].item())
+        self.train_loss.append(outputs.item())
 
         return super().on_train_batch_end(trainer, pl_module, outputs, batch, batch_idx, unused)
 
     def on_epoch_end(self, trainer, pl_module):
         self.iov_flag = True
         self.epoch_counter += 1
-        if self.epoch_counter / 2 >= self.warumup_freq:
+        if self.epoch_counter / 2 >= self.umap_freq:
             self.log_umap(trainer, pl_module)
             self.epoch_counter = 0
-            if getattr(pl_module, "warmer", None) is not None:
-                pl_module.warmer()
         return super().on_epoch_end(trainer, pl_module)
 
     def on_validation_batch_end(self, trainer, pl_module, outputs, batch, batch_idx, dataloader_idx):
         self.val_loss.append(outputs.item())
         if self.images_on_val and self.iov_flag and batch_idx==0:
             os.makedirs(f"{self.output_dir}/version_{trainer.logger.version}/images", exist_ok=True)
-            self.log_reconstructions(trainer, pl_module, tensorboard_log=True)
-            self.log_generated(trainer, pl_module, tensorboard_log=True)
-            self.log_domain_transfers(trainer, pl_module, tensorboard_log=True)
-            self.log_content_transfers(trainer, pl_module, tensorboard_log=True)
+            self.log_classifications(trainer, pl_module, tensorboard_log=True)
             self.log_losses(trainer)
             self.log_grad_flow(trainer, tensorboard_log=True)
 
