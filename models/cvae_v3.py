@@ -406,7 +406,7 @@ class Encoder(torch.nn.Module):
                     downsampling=self.downsampling,
                     dropout=self.dropout,
                     batch_norm=self.batch_norm
-                ),  # (N, [25], 7, 7)
+                ),  # (N, [2], 7, 7)
             )
             self.flatten = torch.nn.Flatten()
             self.get_mu = torch.nn.Linear(49 * self.out_channels[2], self.latent_size)
