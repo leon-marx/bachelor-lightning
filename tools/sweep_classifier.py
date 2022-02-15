@@ -139,6 +139,16 @@ if __name__ == "__main__":
                             activation = conf["activation"]
                             if "activation" in names:
                                 log_dir += f"_{activation}"
+                            if activation == "relu":
+                                activation = torch.nn.ReLU()
+                            if activation == "gelu":
+                                activation = torch.nn.GELU()
+                            if activation == "lrelu":
+                                activation = torch.nn.LeakyReLU()
+                            if activation == "elu":
+                                activation = torch.nn.ELU()
+                            if activation == "selu":
+                                activation = torch.nn.SELU()
                         if "downsampling" in conf:
                             downsampling = conf["downsampling"]
                             if "downsampling" in names:
@@ -155,6 +165,7 @@ if __name__ == "__main__":
                             out_channels = conf["out_channels"]
                             if "out_channels" in names:
                                 log_dir += f"_{out_channels.replace(',', '-')}"
+                            out_channels = list(map(int, out_channels.split(",")))
                         if "initialize" in conf:
                             initialize = conf["initialize"]
                             if "initialize" in names:
@@ -190,18 +201,6 @@ if __name__ == "__main__":
                                 print(f"    {k}: {v}")
 
                             # Model
-                            if out_channels is not None:
-                                out_channels = list(map(int, out_channels.split(",")))
-                            if activation == "relu":
-                                activation = torch.nn.ReLU()
-                            if activation == "gelu":
-                                activation = torch.nn.GELU()
-                            if activation == "lrelu":
-                                activation = torch.nn.LeakyReLU()
-                            if activation == "elu":
-                                activation = torch.nn.ELU()
-                            if activation == "selu":
-                                activation = torch.nn.SELU()
                             if model_name == "CNN":
                                 model = CNN(
                                     data=data,
