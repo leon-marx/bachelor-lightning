@@ -366,9 +366,9 @@ class Logger(Callback):
 
             # comparing whole training set with generated images
             for batch in tqdm(self.log_dm.train_dataloader()):
-                images = batch[0]
-                domains = batch[1]
-                contents = batch[2]
+                images = batch[0].to(pl_module.device)
+                domains = batch[1].to(pl_module.device)
+                contents = batch[2].to(pl_module.device)
                 reconstructions = pl_module.reconstruct(images, domains, contents)
                 domains = torch.argmax(domains, dim=1)
                 contents = torch.argmax(contents, dim=1)
