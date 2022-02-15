@@ -374,7 +374,7 @@ class Logger(Callback):
                 contents = torch.argmax(contents, dim=1)
                 for i in range(self.batch_size):
                     img = images[i]
-                    dom = int(domains[i].item())
+                    dom = int(domains[i].item() * 15)
                     cont = int(contents[i].item())
                     rec = reconstructions[i]
                     for j in range(bs):
