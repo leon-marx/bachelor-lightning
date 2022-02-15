@@ -139,7 +139,7 @@ if __name__ == "__main__":
                         data[int(torch.argmax(dec_contents[j]).item())].append(transfers[j])
                 for content in contents:
                     data_save_dir = f"data/variants/RMNIST_augmented/RMNIST_train_{domain_string}/{domain}/{content}/data.pt"
-                    os.makedirs(data_save_dir, exist_ok=True)
+                    os.makedirs(data_save_dir[:-8], exist_ok=True)
                     data[content] = torch.cat(data[content], dim=0)
                     print(data[content].shape)
                     torch.save(data[content], data_save_dir)
@@ -157,7 +157,7 @@ if __name__ == "__main__":
                         data[int(torch.argmax(dec_contents[j]).item())].append(transfers[j])
                 for domain in domains:
                     data_save_dir = f"data/variants/RMNIST_augmented/RMNIST_train_{domain_string}/{domain}/{content}/data.pt"
-                    os.makedirs(data_save_dir, exist_ok=True)
+                    os.makedirs(data_save_dir[:-8], exist_ok=True)
                     data[domain] = torch.cat(data[domain], dim=0)
                     print(data[domain].shape)
                     torch.save(data[domain], data_save_dir)
@@ -174,7 +174,7 @@ if __name__ == "__main__":
                         transfers = model.transfer(batch[0], batch[1], batch[2], dec_domains, dec_contents)
                         data.append(transfers)
                     data_save_dir = f"data/variants/RMNIST_augmented/RMNIST_train_{domain_string}/{domain}/{content}/data.pt"
-                    os.makedirs(data_save_dir, exist_ok=True)
+                    os.makedirs(data_save_dir[:-8], exist_ok=True)
                     data = torch.cat(data, dim=0)
                     print(data.shape)
                     torch.save(data, data_save_dir)
