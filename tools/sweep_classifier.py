@@ -182,7 +182,7 @@ if __name__ == "__main__":
                             iov = args.iov == 1
                             print(f"Images on val: {iov}")
                             callbacks = [
-                                Logger(log_dir, log_dm, train_batch, val_batch, domains, contents, images_on_val=iov)
+                                ClassificationLogger(log_dir, log_dm, train_batch, val_batch, domains, contents, images_on_val=iov)
                             ]
                             
                             print("Args:")
@@ -219,7 +219,7 @@ if __name__ == "__main__":
                             if model_name == "ERM":
                                 model = ERM(
                                     input_shape=input_shape,
-                                    num_classes=num_classes,
+                                    num_classes=num_contents,
                                     nonlinear_classifier=nonlinear_classifier,
                                     lr=lr,
                                     weight_decay=weight_decay)
