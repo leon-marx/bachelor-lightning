@@ -138,7 +138,7 @@ class CVAE_v3(pl.LightningModule):
                 rec = self.lpips(images, reconstructions).mean()
 
             kld = self.lamb * 0.5 * (enc_mu ** 2 + enc_logvar.exp() - enc_logvar - 1).mean(dim=[0, 1])
-            
+
             if split_loss:
                 return kld + rec, kld.item(), rec.item()
             else:
@@ -456,7 +456,7 @@ class Encoder(torch.nn.Module):
                 seq.append(activation)
                 if dropout:
                     seq.append(torch.nn.Dropout2d())
-                seq_list += seq       
+                seq_list += seq
         return seq_list
 
     def forward(self, images, domains, contents):
@@ -650,7 +650,7 @@ class Decoder(torch.nn.Module):
                 if dropout:
                     if not (i == depth - 1 and last_block):
                         seq.append(torch.nn.Dropout2d())
-                seq_list += seq       
+                seq_list += seq
         return seq_list
 
     def reshape(self, x):
@@ -658,7 +658,7 @@ class Decoder(torch.nn.Module):
 
     def forward(self, codes, domains, contents):
         """
-        Calculates reconstructions of the given latent-space encodings. 
+        Calculates reconstructions of the given latent-space encodings.
 
         codes: Tensor of shape (batch_size, latent_size)
         domains: Tensor of shape (batch_size, num_domains)
@@ -675,7 +675,7 @@ if __name__ == "__main__":
     batch_size = 4
     num_domains = 3
     num_contents = 7
-    
+
     lr = 1e-4
     out_channels = [128, 256, 512, 512, 1024, 1024]
 
@@ -699,7 +699,7 @@ if __name__ == "__main__":
         (f"pic_{i}" for i in range(batch_size))
     ]
     model = CVAE_v3(data="PACS", num_domains=num_domains, num_contents=num_contents,
-        latent_size=latent_size, lr=lr, depth=depth, 
+        latent_size=latent_size, lr=lr, depth=depth,
         out_channels=out_channels, kernel_size=kernel_size, activation=activation,
         downsampling=downsampling, upsampling=upsampling, dropout=dropout,
         batch_norm=batch_norm, loss_mode=loss_mode, lamb=lamb)

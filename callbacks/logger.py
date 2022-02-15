@@ -11,6 +11,10 @@ import umap
 from models.cvae_v3 import CVAE_v3
 from models.mmd_cvae import MMD_CVAE
 
+def shift(image):
+    image = (image + 1.0) / 2.0
+    return torch.clamp(image, 0.0, 1.0)
+
 
 class Logger(Callback):
     def __init__(self, output_dir, log_dm, train_batch, val_batch, domains, contents, images_on_val=False):
@@ -92,8 +96,8 @@ class Logger(Callback):
             train_domains = self.train_batch[1].to(pl_module.device)
             train_contents = self.train_batch[2].to(pl_module.device)
             train_recs = pl_module.reconstruct(train_imgs, train_domains, train_contents)
-            train_imgs = (train_imgs + 1.0) / 2.0
-            train_recs = (train_recs + 1.0) / 2.0
+            train_imgs = shift(train_imgs)
+            train_recs = shift(train_recs)
             train_grid = torchvision.utils.make_grid(torch.stack((train_imgs, train_recs), dim=1).view(-1, self.num_channels, self.image_size, self.image_size))
             torchvision.utils.save_image(train_grid, f"{self.output_dir}/version_{trainer.logger.version}/images/train_reconstructions.png")
 
@@ -101,8 +105,8 @@ class Logger(Callback):
             val_domains = self.val_batch[1][:max(8, len(self.val_batch[0]))].to(pl_module.device)
             val_contents = self.val_batch[2][:max(8, len(self.val_batch[0]))].to(pl_module.device)
             val_recs = pl_module.reconstruct(val_imgs, val_domains, val_contents)
-            val_imgs = (val_imgs + 1.0) / 2.0
-            val_recs = (val_recs + 1.0) / 2.0
+            val_imgs = shift(val_imgs)
+            val_recs = shift(val_recs)
             val_grid = torchvision.utils.make_grid(torch.stack((val_imgs, val_recs), dim=1).view(-1, self.num_channels, self.image_size, self.image_size))
             torchvision.utils.save_image(val_grid, f"{self.output_dir}/version_{trainer.logger.version}/images/val_reconstructions.png")
 
@@ -124,8 +128,8 @@ class Logger(Callback):
                 dec_domains = torch.cat((torch.nn.functional.one_hot(self.domain_dict[decoder_domain], num_classes=len(self.domains)),) * train_domains.shape[0], dim=0).to(pl_module.device)
 
                 transfers = pl_module.transfer(train_imgs, train_domains, train_contents, dec_domains, train_contents).cpu()
-                train_imgs_to_plot = (train_imgs.cpu() + 1.0) / 2.0
-                transfers = (transfers + 1.0) / 2.0
+                train_imgs_to_plot = shift(train_imgs.cpu())
+                transfers = shift(transfers)
                 transfer_grid = torchvision.utils.make_grid(torch.stack((train_imgs_to_plot, transfers), dim=1).view(-1, self.num_channels, self.image_size, self.image_size))
                 torchvision.utils.save_image(transfer_grid, f"{self.output_dir}/version_{trainer.logger.version}/images/domain_transfer_to_{decoder_domain}.png")
 
@@ -146,8 +150,8 @@ class Logger(Callback):
                 dec_contents = torch.cat((torch.nn.functional.one_hot(self.content_dict[decoder_content], num_classes=len(self.contents)),) * train_contents.shape[0], dim=0).to(pl_module.device)
 
                 transfers = pl_module.transfer(train_imgs, train_domains, train_contents, train_domains, dec_contents).cpu()
-                train_imgs_to_plot = (train_imgs.cpu() + 1.0) / 2.0
-                transfers = (transfers + 1.0) / 2.0
+                train_imgs_to_plot = shift(train_imgs.cpu())
+                transfers = shift(transfers)
                 transfer_grid = torchvision.utils.make_grid(torch.stack((train_imgs_to_plot, transfers), dim=1).view(-1, self.num_channels, self.image_size, self.image_size))
                 torchvision.utils.save_image(transfer_grid, f"{self.output_dir}/version_{trainer.logger.version}/images/content_transfer_to_{decoder_content}.png")
 
@@ -245,7 +249,7 @@ class Logger(Callback):
                     domains = torch.nn.functional.one_hot(self.domain_dict[domain_name], num_classes=len(self.domains)).repeat(codes.shape[0], 1).to(pl_module.device)
                     contents = torch.nn.functional.one_hot(self.content_dict[content_name], num_classes=len(self.contents)).repeat(codes.shape[0], 1).to(pl_module.device)
                     reconstructions = pl_module.generate(codes, domains, contents)
-                    reconstructions = (reconstructions + 1.0) / 2.0
+                    reconstructions = shift(reconstructions)
                     gen_grid = torchvision.utils.make_grid(reconstructions)
                     torchvision.utils.save_image(gen_grid, f"{self.output_dir}/version_{trainer.logger.version}/images/generated_{domain_name}_{content_name}.png")
 
@@ -392,9 +396,9 @@ class Logger(Callback):
             for dom in self.domains:
                 for cont in self.contents:
                     canvas = torch.stack((
-                        (generated_dict[dom][cont].cpu() + 1.0) / 2.0,
-                        (best_reconstruction_dict[dom][cont].cpu() + 1.0) / 2.0,
-                        (best_original_dict[dom][cont].cpu() + 1.0) / 2.0),
+                        shift(generated_dict[dom][cont].cpu()),
+                        shift(best_reconstruction_dict[dom][cont].cpu()),
+                        shift(best_original_dict[dom][cont].cpu())),
                         dim=1).view(-1, 1, 28, 28)
                     gen_grid = torchvision.utils.make_grid(canvas, nrow=3)
                     torchvision.utils.save_image(gen_grid, f"{self.output_dir}/version_{trainer.logger.version}/images/generated_{dom}_{cont}_comparison.png")

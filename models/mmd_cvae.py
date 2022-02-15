@@ -176,6 +176,13 @@ class MMD_CVAE(pl.LightningModule):
                 return kld + rec, kld.item(), rec.item()
             else:
                 return kld + rec
+        if self.loss_mode == "l1_elbo":
+            kld = self.lamb * 0.5 * (enc_mu ** 2 + enc_logvar.exp() - enc_logvar - 1).mean(dim=[0, 1])
+            rec = torch.abs(images - reconstructions).mean(dim=[0, 1, 2, 3])
+            if split_loss:
+                return kld + rec, kld.item(), rec.item()
+            else:
+                return kld + rec
 
     def forward(self, images, domains, contents):
         """
@@ -283,11 +290,12 @@ class MMD_CVAE(pl.LightningModule):
         return optimizer
 
     def warmer(self):
-        if self.lamb < 1e-2:
+        if self.lamb < 1.0:
             self.lamb *= 10 ** 0.5
             print(f"New lambda: {self.lamb}")
-        self.beta *= 10 ** 0.5
-        print(f"New beta: {self.beta}")
+        if self.beta < 1.0
+            self.beta *= 10 ** 0.5
+            print(f"New beta: {self.beta}")
 
     def reconstruct(self, images, domains, contents):
         """
@@ -505,7 +513,7 @@ class Encoder(torch.nn.Module):
                 seq.append(activation)
                 if dropout:
                     seq.append(torch.nn.Dropout2d())
-                seq_list += seq       
+                seq_list += seq
         return seq_list
 
     def forward(self, images, domains, contents):
@@ -702,12 +710,12 @@ class Decoder(torch.nn.Module):
                 if dropout:
                     if not (i == depth - 1 and last_block):
                         seq.append(torch.nn.Dropout2d())
-                seq_list += seq       
+                seq_list += seq
         return seq_list
 
     def forward(self, codes, domains, contents):
         """
-        Calculates reconstructions of the given latent-space encodings. 
+        Calculates reconstructions of the given latent-space encodings.
 
         codes: Tensor of shape (batch_size, latent_size)
         domains: Tensor of shape (batch_size, num_domains)
@@ -724,7 +732,7 @@ if __name__ == "__main__":
     batch_size = 4
     num_domains = 6
     num_contents = 10
-    
+
     lr = 1e-4
     out_channels = [128, 256, 512, 512, 1024, 1024]
 
@@ -749,7 +757,7 @@ if __name__ == "__main__":
     ]
     model = MMD_CVAE(data="RMNIST",
         num_domains=num_domains, num_contents=num_contents,
-        latent_size=latent_size, lr=lr, depth=depth, 
+        latent_size=latent_size, lr=lr, depth=depth,
         out_channels=out_channels, kernel_size=kernel_size, activation=activation,
         downsampling=downsampling, upsampling=upsampling, dropout=dropout,
         batch_norm=batch_norm, loss_mode=loss_mode, lamb=lamb, beta=beta
