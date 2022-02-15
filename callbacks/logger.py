@@ -372,7 +372,7 @@ class Logger(Callback):
                 reconstructions = pl_module.reconstruct(images, domains, contents)
                 domains = torch.argmax(domains, dim=1)
                 contents = torch.argmax(contents, dim=1)
-                for i in range(self.batch_size):
+                for i in range(images.shape[0]):
                     img = images[i]
                     dom = int(domains[i].item() * 15)
                     cont = int(contents[i].item())
