@@ -129,6 +129,8 @@ if __name__ == "__main__":
         if args.domain_transfer and not args.content_transfer:
             for domain in domains:
                 data = {content: [] for content in contents}
+                print("")
+                print(f"Transferring to {domain} degrees:")
                 for batch in tqdm(dm.train_dataloader()):
                     dec_domains = torch.cat((torch.nn.functional.one_hot(domain_dict[domain], num_classes=len(domains)),) * batch[1].shape[0], dim=0).to(model.device)
                     dec_contents = batch[2]
@@ -137,7 +139,7 @@ if __name__ == "__main__":
                         data[int(torch.argmax(dec_contents[j]).item())].append(transfers[j])
                 for content in contents:
                     data_save_dir = f"data/variants/RMNIST_augmented/RMNIST_train_{domain_string}/{domain}/{content}/data.pt"
-                    os.makedirs(data_save_dir, exis_ok=True)
+                    os.makedirs(data_save_dir, exist_ok=True)
                     data[content] = torch.cat(data[content], dim=0)
                     print(data[content].shape)
                     torch.save(data[content], data_save_dir)
@@ -145,6 +147,8 @@ if __name__ == "__main__":
         if not args.domain_transfer and args.content_transfer:
             for content in contents:
                 data = {domain: [] for domain in domains}
+                print("")
+                print(f"Transferring to number {content}:")
                 for batch in tqdm(dm.train_dataloader()):
                     dec_domains = batch[1]
                     dec_contents = torch.cat((torch.nn.functional.one_hot(content_dict[content], num_classes=len(contents)),) * batch[1].shape[0], dim=0).to(model.device)
@@ -153,7 +157,7 @@ if __name__ == "__main__":
                         data[int(torch.argmax(dec_contents[j]).item())].append(transfers[j])
                 for domain in domains:
                     data_save_dir = f"data/variants/RMNIST_augmented/RMNIST_train_{domain_string}/{domain}/{content}/data.pt"
-                    os.makedirs(data_save_dir, exis_ok=True)
+                    os.makedirs(data_save_dir, exist_ok=True)
                     data[domain] = torch.cat(data[domain], dim=0)
                     print(data[domain].shape)
                     torch.save(data[domain], data_save_dir)
@@ -162,13 +166,15 @@ if __name__ == "__main__":
             for domain in domains:
                 for content in contents:
                     data = []
+                    print("")
+                    print(f"Transferring to {domain} degrees and number {content}:")
                     for batch in tqdm(dm.train_dataloader()):
                         dec_domains = torch.cat((torch.nn.functional.one_hot(domain_dict[domain], num_classes=len(domains)),) * batch[1].shape[0], dim=0).to(model.device)
                         dec_contents = torch.cat((torch.nn.functional.one_hot(content_dict[content], num_classes=len(contents)),) * batch[1].shape[0], dim=0).to(model.device)
                         transfers = model.transfer(batch[0], batch[1], batch[2], dec_domains, dec_contents)
                         data.append(transfers)
                     data_save_dir = f"data/variants/RMNIST_augmented/RMNIST_train_{domain_string}/{domain}/{content}/data.pt"
-                    os.makedirs(data_save_dir, exis_ok=True)
+                    os.makedirs(data_save_dir, exist_ok=True)
                     data = torch.cat(data, dim=0)
                     print(data.shape)
                     torch.save(data, data_save_dir)
