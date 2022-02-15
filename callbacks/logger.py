@@ -391,7 +391,7 @@ class Logger(Callback):
             for dom in [0, 15, 30, 45, 60, 75]:
                 for cont in [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]:
                     canvas = torch.stack((generated_dict[dom][cont].cpu(), best_reconstruction_dict[dom][cont].cpu(), best_original_dict[dom][cont].cpu()), dim=1).view(-1, 1, 28, 28)
-                    gen_grid = torchvision.utils.make_grid(canvas)
+                    gen_grid = torchvision.utils.make_grid(canvas, nrow=3)
                     torchvision.utils.save_image(gen_grid, f"{self.output_dir}/version_{trainer.logger.version}/images/generated_{dom}_{cont}_comparison.png")
                     trainer.logger.experiment.add_image(f"generated_{dom}_{cont}_comparison.png", gen_grid)
 
