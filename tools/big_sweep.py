@@ -56,60 +56,120 @@ if __name__ == "__main__":
     args = parser.parse_args()
     #################### EDIT THIS IN ORDER TO CHANGE THE SWEEP
     configs = {
-        "CVAE_v3": {
+        "CVAE_v3_small": {
             "data": ["PACS"],
             "num_domains": [3],
             "num_contents": [7],
-            "latent_size": [128, 1024],
+            "latent_size": [128],
             "lr": [1e-4],
-            "depth": [1, 2, 3],
-            "out_channels": ["128,128,256,256,512,512", "512,512,1024,1024,2048,2048"],
+            "depth": [1, 2],
+            "out_channels": ["128,128,256,256,512,512"],
             "kernel_size": [3],
             "activation": ["elu", "selu"],
             "downsampling": ["stride"],
             "upsampling": ["upsample"],
             "dropout": [False],
             "batch_norm": [True],
-            "loss_mode": ["elbo", "l1_elbo"],
+            "loss_mode": ["elbo"],
             "lamb": [1e-6, 1e-2],
             "no_bn_last": [True],
             "initialize": [True]
             },
-        "MMD_CVAE": {
+        "CVAE_v3_big": {
             "data": ["PACS"],
             "num_domains": [3],
             "num_contents": [7],
-            "latent_size": [128, 1024],
+            "latent_size": [1024],
             "lr": [1e-4],
-            "depth": [1, 2, 3],
-            "out_channels": ["128,128,256,256,512,512", "512,512,1024,1024,2048,2048"],
+            "depth": [1, 2],
+            "out_channels": ["512,512,1024,1024,2048,2048"],
             "kernel_size": [3],
-            "activation": ["elu", "selu"],
+            "activation": ["selu"],
             "downsampling": ["stride"],
             "upsampling": ["upsample"],
             "dropout": [False],
             "batch_norm": [True],
-            "loss_mode": ["elbo", "l1_elbo", "mmd"],
+            "loss_mode": ["elbo"],
+            "lamb": [1e-6, 1e-2],
+            "no_bn_last": [True],
+            "initialize": [True]
+            },
+        "MMD_CVAE_small": {
+            "data": ["PACS"],
+            "num_domains": [3],
+            "num_contents": [7],
+            "latent_size": [128],
+            "lr": [1e-4],
+            "depth": [1, 2],
+            "out_channels": ["128,128,256,256,512,512"],
+            "kernel_size": [3],
+            "activation": ["selu"],
+            "downsampling": ["stride"],
+            "upsampling": ["upsample"],
+            "dropout": [False],
+            "batch_norm": [True],
+            "loss_mode": ["elbo", "mmd"],
             "lamb": [1e-6, 1e-2],
             "beta": [1e-6, 1e-2],
             "no_bn_last": [True],
             "initialize": [True]
             },
-        "AAE_v2": {
+        "MMD_CVAE_big": {
             "data": ["PACS"],
             "num_domains": [3],
             "num_contents": [7],
-            "latent_size": [128, 1024],
+            "latent_size": [1024],
             "lr": [1e-4],
-            "depth": [1, 2, 3],
-            "out_channels": ["128,128,256,256,512,512", "512,512,1024,1024,2048,2048"],
+            "depth": [1, 2],
+            "out_channels": ["512,512,1024,1024,2048,2048"],
             "kernel_size": [3],
-            "activation": ["elu", "selu"],
+            "activation": ["selu"],
             "downsampling": ["stride"],
             "upsampling": ["upsample"],
             "dropout": [False],
             "batch_norm": [True],
-            "loss_mode": ["elbo", "l1_elbo"],
+            "loss_mode": ["elbo", "mmd"],
+            "lamb": [1e-6, 1e-2],
+            "beta": [1e-6, 1e-2],
+            "no_bn_last": [True],
+            "initialize": [True]
+            },
+        "AAE_v2_small": {
+            "data": ["PACS"],
+            "num_domains": [3],
+            "num_contents": [7],
+            "latent_size": [128],
+            "lr": [1e-4],
+            "depth": [1, 2],
+            "out_channels": ["128,128,256,256,512,512"],
+            "kernel_size": [3],
+            "activation": ["selu"],
+            "downsampling": ["stride"],
+            "upsampling": ["upsample"],
+            "dropout": [False],
+            "batch_norm": [True],
+            "loss_mode": ["elbo"],
+            "lamb": [1e-6, 1e-2],
+            "no_bn_last": [True],
+            "initialize": [True],
+            "net": ["vgg"],
+            "calibration": [True]
+            },
+        "AAE_v2_big": {
+            "data": ["PACS"],
+            "num_domains": [3],
+            "num_contents": [7],
+            "latent_size": [1024],
+            "lr": [1e-4],
+            "depth": [1, 2],
+            "out_channels": ["512,512,1024,1024,2048,2048"],
+            "kernel_size": [3],
+            "activation": ["selu"],
+            "downsampling": ["stride"],
+            "upsampling": ["upsample"],
+            "dropout": [False],
+            "batch_norm": [True],
+            "loss_mode": ["elbo"],
             "lamb": [1e-6, 1e-2],
             "no_bn_last": [True],
             "initialize": [True],
@@ -280,46 +340,19 @@ if __name__ == "__main__":
                                 activation = torch.nn.ELU()
                             if activation == "selu":
                                 activation = torch.nn.SELU()
-                            if model_name == "CVAE":
-                                model = CVAE(num_domains=num_domains, num_contents=num_contents,
-                                            latent_size=latent_size, lamb=lamb, lr=lr)
-                            if model_name == "AE":
-                                model = AE(num_domains=num_domains, num_contents=num_contents,
-                                            latent_size=latent_size, lr=lr)
-                            if model_name == "AE_v2":
-                                model = AE_v2(num_domains=num_domains, num_contents=num_contents,
-                                            latent_size=latent_size, lr=lr)
-                            if model_name == "AE_v3":
-                                model = AE_v3(num_domains=num_domains, num_contents=num_contents,
-                                            latent_size=latent_size, lr=lr, depth=depth, out_channels=out_channels,
-                                            kernel_size=kernel_size, activation=activation, downsampling=downsampling,
-                                            upsampling=upsampling, dropout=dropout, batch_norm=batch_norm, loss_mode=loss_mode)
-                            if model_name == "DCCVAE":
-                                model = DCCVAE(num_domains=num_domains, num_contents=num_contents, lr=lr,
-                                            latent_size=latent_size, feature_size=feature_size, loss_mode=loss_mode, lamb=lamb)
-                            if model_name == "trVAE":
-                                model = trVAE(num_domains=num_domains, num_contents=num_contents, latent_size=latent_size,
-                                            feature_size=feature_size, mmd_size=mmd_size, dropout_rate=dropout_rate,
-                                            lr=lr, lamb=lamb, beta=beta)
-                            if model_name == "CVAE_v3":
+                            if "CVAE_v3" in model_name:
                                 model = CVAE_v3(data=args.data, num_domains=num_domains, num_contents=num_contents,
                                             latent_size=latent_size, lr=lr, depth=depth,
                                             out_channels=out_channels, kernel_size=kernel_size, activation=activation,
                                             downsampling=downsampling, upsampling=upsampling, dropout=dropout,
                                             batch_norm=batch_norm, loss_mode=loss_mode, lamb=lamb, initialize=True)
-                            if model_name == "MMD_CVAE":
+                            if "MMD_CVAE" in model_name:
                                 model = MMD_CVAE(data=args.data, num_domains=num_domains, num_contents=num_contents,
                                             latent_size=latent_size, lr=lr, depth=depth,
                                             out_channels=out_channels, kernel_size=kernel_size, activation=activation,
                                             downsampling=downsampling, upsampling=upsampling, dropout=dropout,
                                             batch_norm=batch_norm, loss_mode=loss_mode, lamb=lamb, beta=beta, initialize=True)
-                            if model_name == "AAE":
-                                model = AAE(data=args.data, num_domains=num_domains, num_contents=num_contents,
-                                            latent_size=latent_size, lr=lr, depth=depth,
-                                            out_channels=out_channels, kernel_size=kernel_size, activation=activation,
-                                            downsampling=downsampling, upsampling=upsampling, dropout=dropout,
-                                            batch_norm=batch_norm, loss_mode=loss_mode, initialize=True)
-                            if model_name == "AAE_v2":
+                            if "AAE_v2" in model_name:
                                 model = AAE_v2(data=args.data, num_domains=num_domains, num_contents=num_contents,
                                             latent_size=latent_size, lr=lr, depth=depth,
                                             out_channels=out_channels, kernel_size=kernel_size, activation=activation,
