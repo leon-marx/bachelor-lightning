@@ -190,7 +190,8 @@ if __name__ == "__main__":
                                 print(f"    {k}: {v}")
 
                             # Model
-                            out_channels = list(map(int, out_channels.split(",")))
+                            if out_channels is not None:
+                                out_channels = list(map(int, out_channels.split(",")))
                             if activation == "relu":
                                 activation = torch.nn.ReLU()
                             if activation == "gelu":
