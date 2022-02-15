@@ -1,6 +1,7 @@
 from argparse import ArgumentParser
 import os
 import torch
+from tqdm import tqdm
 
 from datasets.rotated_mnist import RMNISTDataModule
 from models.cvae_v3 import CVAE_v3
@@ -128,44 +129,49 @@ if __name__ == "__main__":
         if args.domain_transfer and not args.content_transfer:
             for domain in domains:
                 data = {content: [] for content in contents}
-                for batch in dm.train_dataloader():
+                for batch in tqdm(dm.train_dataloader()):
                     dec_domains = torch.cat((torch.nn.functional.one_hot(domain_dict[domain], num_classes=len(domains)),) * batch[1].shape[0], dim=0).to(model.device)
                     dec_contents = batch[2]
                     transfers = model.transfer(batch[0], batch[1], batch[2], dec_domains, dec_contents)
                     for j in range(args.batch_size):
                         data[int(torch.argmax(dec_contents[j]).item())].append(transfers[j])
                 for content in contents:
+                    data_save_dir = f"data/variants/RMNIST_augmented/RMNIST_train_{domain_string}/{domain}/{content}/data.pt"
+                    os.makedirs(data_save_dir, exis_ok=True)
                     data[content] = torch.cat(data[content], dim=0)
                     print(data[content].shape)
-                    torch.save(data[content], f"data/variants/RMNIST_augmented/RMNIST_train_{domain_string}/{domain}/{content}/data.pt")
+                    torch.save(data[content], data_save_dir)
 
         if not args.domain_transfer and args.content_transfer:
             for content in contents:
                 data = {domain: [] for domain in domains}
-                for batch in dm.train_dataloader():
+                for batch in tqdm(dm.train_dataloader()):
                     dec_domains = batch[1]
                     dec_contents = torch.cat((torch.nn.functional.one_hot(content_dict[content], num_classes=len(contents)),) * batch[1].shape[0], dim=0).to(model.device)
                     transfers = model.transfer(batch[0], batch[1], batch[2], dec_domains, dec_contents)
                     for j in range(args.batch_size):
                         data[int(torch.argmax(dec_contents[j]).item())].append(transfers[j])
                 for domain in domains:
+                    data_save_dir = f"data/variants/RMNIST_augmented/RMNIST_train_{domain_string}/{domain}/{content}/data.pt"
+                    os.makedirs(data_save_dir, exis_ok=True)
                     data[domain] = torch.cat(data[domain], dim=0)
                     print(data[domain].shape)
-                    torch.save(data[domain], f"data/variants/RMNIST_augmented/RMNIST_train_{domain_string}/{domain}/{content}/data.pt")
+                    torch.save(data[domain], data_save_dir)
                     
         if args.domain_transfer and args.content_transfer:
             for domain in domains:
                 for content in contents:
                     data = []
-                    for batch in dm.train_dataloader():
+                    for batch in tqdm(dm.train_dataloader()):
                         dec_domains = torch.cat((torch.nn.functional.one_hot(domain_dict[domain], num_classes=len(domains)),) * batch[1].shape[0], dim=0).to(model.device)
                         dec_contents = torch.cat((torch.nn.functional.one_hot(content_dict[content], num_classes=len(contents)),) * batch[1].shape[0], dim=0).to(model.device)
                         transfers = model.transfer(batch[0], batch[1], batch[2], dec_domains, dec_contents)
                         data.append(transfers)
-
+                    data_save_dir = f"data/variants/RMNIST_augmented/RMNIST_train_{domain_string}/{domain}/{content}/data.pt"
+                    os.makedirs(data_save_dir, exis_ok=True)
                     data = torch.cat(data, dim=0)
                     print(data.shape)
-                    torch.save(data, f"data/variants/RMNIST_augmented/RMNIST_train_{domain_string}/{domain}/{content}/data.pt")
+                    torch.save(data, data_save_dir)
 
         model.train()
 
