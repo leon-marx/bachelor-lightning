@@ -785,19 +785,19 @@ if __name__ == "__main__":
 
     lr = 1e-4
     # out_channels = [128, 256, 512, 512, 1024, 1024, 2048]
-    out_channels = [512, 512, 512, 512, 512, 512, 512]
+    out_channels = [128,128,256,256,512,512]
 #
 
     latent_size = 128
     depth = 1
     kernel_size = 3
-    activation = torch.nn.ELU()
-    downsampling = "maxpool"
-    upsampling = "stride"
+    activation = torch.nn.SELU()
+    downsampling = "stride"
+    upsampling = "upsample"
     dropout = False
     batch_norm = True
-    loss_mode = "deep_lpips"
-    lamb = 0.1
+    loss_mode = "elbo"
+    lamb = 1e-6
     net = "alex"
     calibration = True
 
