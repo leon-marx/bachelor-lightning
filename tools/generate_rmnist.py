@@ -81,6 +81,24 @@ if __name__ == "__main__":
                 except ValueError:
                     print("ValueError:", line[1])
     
+    print("Loading Model with:")
+    print(f"  data: {data}")
+    print(f"  num_domains: {num_domains}")
+    print(f"  num_contents: {num_contents}")
+    print(f"  latent_size: {latent_size}")
+    print(f"  lr: {1e-4}")
+    print(f"  depth: {depth}")
+    print(f"  out_channels: {out_channels}")
+    print(f"  kernel_size: {kernel_size}")
+    print(f"  activation: {activation}")
+    print(f"  downsampling: {downsampling}")
+    print(f"  upsampling: {upsampling}")
+    print(f"  dropout: {dropout}")
+    print(f"  batch_norm: {batch_norm}")
+    print(f"  loss_mode: {loss_mode}")
+    print(f"  lamb: {lamb}")
+    print(f"  no_n_last: {no_bn_last}")
+
     if args.model == "CVAE_v3":
         model = CVAE_v3.load_from_checkpoint(
             args.ckpt_path,
