@@ -91,7 +91,7 @@ def check_overfit(trainer, pl_module):
         # making grids for each domain-content pair and all 4 generated images
         for dom in [0, 15, 30, 45, 60, 75]:
             for cont in [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]:
-                canvas = torch.stack((generated_dict[dom][cont], best_reconstruction_dict[dom][cont], best_original_dict[dom][cont]), dim=1).view(-1, 1, 28, 28)
+                canvas = torch.stack((generated_dict[dom][cont].cpu(), best_reconstruction_dict[dom][cont].cpu(), best_original_dict[dom][cont].cpu()), dim=1).view(-1, 1, 28, 28)
                 gen_grid = torchvision.utils.make_grid(canvas)
                 torchvision.utils.save_image(gen_grid, f"{output_dir}/version_{trainer.logger.version}/images/generated_{dom}_{cont}_comparison.png")
                 trainer.logger.experiment.add_image(f"generated_{dom}_{cont}_comparison.png", gen_grid)
