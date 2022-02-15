@@ -116,7 +116,7 @@ class AAE_v2(pl.LightningModule):
                 self.log("deep_loss_img", img_loss.item(), batch_size=images.shape[0], logger=True)
                 self.log("deep_loss_code", code_loss.item(), batch_size=images.shape[0], logger=True)
                 loss = img_loss + code_loss
-                
+
             elif self.loss_mode == "deep_lpips":
                 lpips_loss = self.lamb * self.lpips(images, reconstructions).mean()
                 image_loss = (1 - self.lamb) * self.get_mse_loss(images, reconstructions)
@@ -132,7 +132,7 @@ class AAE_v2(pl.LightningModule):
                 return loss, loss.item()
             else:
                 return loss
-   
+
     def disc_loss(self, pred, truth, split_loss=False):
         """
         Calculates the discriminator loss.
@@ -198,7 +198,7 @@ class AAE_v2(pl.LightningModule):
             real_pred = self.discriminator(real_latent_noise)
             real_truth = torch.ones_like(real_pred).to(self.device) * 0.9
             real_loss, real_value = self.disc_loss(real_pred, real_truth, split_loss=True)
-            
+
             fake_pred = self.discriminator(codes.detach())
             fake_truth = torch.ones_like(fake_pred).to(self.device) * 0.1
             fake_loss, fake_value = self.disc_loss(fake_pred, fake_truth, split_loss=True)
@@ -211,7 +211,7 @@ class AAE_v2(pl.LightningModule):
 
         # Train Encoder for confusion
         if optimizer_idx == 2:
-            
+
             confusion_pred = self.discriminator(codes)
             confusion_truth = torch.ones_like(confusion_pred).to(self.device) * 0.9
             loss, value = self.disc_loss(confusion_pred, confusion_truth, split_loss=True)
@@ -503,7 +503,7 @@ class Encoder(torch.nn.Module):
                 seq.append(activation)
                 if dropout:
                     seq.append(torch.nn.Dropout2d())
-                seq_list += seq       
+                seq_list += seq
         return seq_list
 
     def forward(self, images, domains, contents):
@@ -724,12 +724,12 @@ class Decoder(torch.nn.Module):
                 if dropout:
                     if not (i == depth - 1 and last_block):
                         seq.append(torch.nn.Dropout2d())
-                seq_list += seq       
+                seq_list += seq
         return seq_list
 
     def forward(self, codes, domains, contents):
         """
-        Calculates reconstructions of the given latent-space encodings. 
+        Calculates reconstructions of the given latent-space encodings.
 
         codes: Tensor of shape (batch_size, latent_size)
         domains: Tensor of shape (batch_size, num_domains)
@@ -777,23 +777,23 @@ class Discriminator(torch.nn.Module):
         logits = self.sequential(codes)
         return logits
 
-    
+
 if __name__ == "__main__":
     batch_size = 4
     num_domains = 3
     num_contents = 7
-    
+
     lr = 1e-4
     # out_channels = [128, 256, 512, 512, 1024, 1024, 2048]
     out_channels = [512, 512, 512, 512, 512, 512, 512]
-# 
+#
 
     latent_size = 128
     depth = 1
     kernel_size = 3
     activation = torch.nn.ELU()
-    downsampling = "stride"
-    upsampling = "upsample"
+    downsampling = "maxpool"
+    upsampling = "stride"
     dropout = False
     batch_norm = True
     loss_mode = "deep_lpips"
@@ -810,7 +810,7 @@ if __name__ == "__main__":
         (f"pic_{i}" for i in range(batch_size))
     ]
     model = AAE_v2(data="PACS", num_domains=num_domains, num_contents=num_contents,
-        latent_size=latent_size, lr=lr, depth=depth, 
+        latent_size=latent_size, lr=lr, depth=depth,
         out_channels=out_channels, kernel_size=kernel_size, activation=activation,
         downsampling=downsampling, upsampling=upsampling, dropout=dropout, loss_mode=loss_mode,
         lamb=lamb, net=net, calibration=calibration, batch_norm=batch_norm)

@@ -668,7 +668,7 @@ class Decoder(torch.nn.Module):
             if i == 0: # upsampling in first layer of block
                 if upsampling == "stride":
                     seq.append(torch.nn.ConvTranspose2d(in_channels=in_channels, out_channels=out_channels, kernel_size=4,
-                                        padding=int((kernel_size-1)/2), output_padding=1, stride=2, bias=not batch_norm))
+                                        padding=int((kernel_size-1)/2), output_padding=0, stride=2, bias=not batch_norm))
                     if batch_norm:
                         if not (i == depth - 1 and last_block):
                             seq.append(torch.nn.BatchNorm2d(num_features=out_channels))
@@ -740,8 +740,8 @@ if __name__ == "__main__":
     depth = 2
     kernel_size = 3
     activation = torch.nn.ELU()
-    downsampling = "stride"
-    upsampling = "upsample"
+    downsampling = "maxpool"
+    upsampling = "stride"
     dropout = False
     batch_norm = True
     loss_mode = "mmd"
@@ -749,11 +749,11 @@ if __name__ == "__main__":
     beta = 0.1
 
     batch = [
-        torch.randn(size=(batch_size, 1, 28, 28)),
+        torch.randn(size=(3*batch_size, 1, 28, 28)),
         torch.nn.functional.one_hot(torch.randint(
-            low=0, high=num_domains, size=(batch_size,)), num_classes=num_domains),
+            low=0, high=num_domains, size=(3*batch_size,)), num_classes=num_domains),
         torch.nn.functional.one_hot(torch.randint(
-            low=0, high=num_contents, size=(batch_size,)), num_classes=num_contents)
+            low=0, high=num_contents, size=(3*batch_size,)), num_classes=num_contents)
     ]
     model = MMD_CVAE(data="RMNIST",
         num_domains=num_domains, num_contents=num_contents,

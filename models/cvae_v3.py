@@ -509,7 +509,7 @@ class Decoder(torch.nn.Module):
                     activation=self.activation,
                     upsampling="none",
                     dropout=self.dropout,
-                    batch_norm=self.batch_norm
+                    batch_norm=self.batch_norm,
                 ),  # (N, [1], 7, 7)
                 *self.block(
                     depth=self.depth,
@@ -519,7 +519,7 @@ class Decoder(torch.nn.Module):
                     activation=self.activation,
                     upsampling=self.upsampling,
                     dropout=self.dropout,
-                    batch_norm=self.batch_norm
+                    batch_norm=self.batch_norm,
                 ),  # (N, [2], 14, 14)
                 *self.block(
                     depth=self.depth,
@@ -608,7 +608,7 @@ class Decoder(torch.nn.Module):
             if i == 0: # upsampling in first layer of block
                 if upsampling == "stride":
                     seq.append(torch.nn.ConvTranspose2d(in_channels=in_channels, out_channels=out_channels, kernel_size=4,
-                                        padding=int((kernel_size-1)/2), output_padding=1, stride=2, bias=not batch_norm))
+                                        padding=int((kernel_size-1)/2), output_padding=0, stride=2, bias=not batch_norm))
                     if batch_norm:
                         if not (i == depth - 1 and last_block):
                             seq.append(torch.nn.BatchNorm2d(num_features=out_channels))
@@ -683,12 +683,12 @@ if __name__ == "__main__":
     depth = 1
     kernel_size = 3
     activation = torch.nn.ELU()
-    downsampling = "stride"
-    upsampling = "upsample"
+    downsampling = "maxpool"
+    upsampling = "stride"
     dropout = False
     batch_norm = True
-    loss_mode = "deep_lpips"
-    lamb = 10
+    loss_mode = "elbo"
+    lamb = 0.1
 
     batch = [
         torch.randn(size=(batch_size, 3, 224, 224)),
@@ -703,6 +703,30 @@ if __name__ == "__main__":
         out_channels=out_channels, kernel_size=kernel_size, activation=activation,
         downsampling=downsampling, upsampling=upsampling, dropout=dropout,
         batch_norm=batch_norm, loss_mode=loss_mode, lamb=lamb)
+
+    # Analyzing the model layers and outputs
+    images = batch[0]
+    domains = batch[1]
+    contents = batch[2]
+    domain_panels = torch.ones(size=(images.shape[0], num_domains, 224, 224)).to(
+        images.device) * domains.view(images.shape[0], num_domains, 1, 1)
+    content_panels = torch.ones(size=(images.shape[0], num_contents, 224, 224)).to(
+        images.device) * contents.view(images.shape[0], num_contents, 1, 1)
+    output = torch.cat((images, domain_panels, content_panels), dim=1)
+    for i, m in enumerate(model.encoder.enc_conv_sequential.children()):
+        output = m(output)
+        print(m, output.shape)
+    output = model.encoder.flatten(output)
+    enc_mu = model.encoder.get_mu(output)
+    enc_logvar = model.encoder.get_logvar(output)
+    codes = enc_mu + torch.randn_like(enc_mu) * (0.5 * enc_logvar).exp()
+    output = torch.cat((codes, domains, contents), dim=1)
+    output = model.decoder.linear(output)
+    output = model.decoder.reshape(output)
+    for i, m in enumerate(model.decoder.dec_conv_sequential.children()):
+        output = m(output)
+        print(m, output.shape)
+
     ae_loss = model.training_step(batch, 0)
     print(ae_loss)
     print("Done!")
