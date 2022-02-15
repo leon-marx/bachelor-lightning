@@ -18,6 +18,7 @@ if __name__ == "__main__":
     parser.add_argument("--batch_size", type=int, default=None)
     args = parser.parse_args()
 
+    domain_string = args.domains
     domains = sorted([int(char) for char in args.domains])
     contents = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
 
@@ -44,7 +45,7 @@ if __name__ == "__main__":
                 for content in contents:
                     data[content] = torch.cat(data[content], dim=0)
                     print(data[content].shape)
-                    torch.save(data[content], f"data/variants/RMNIST_augmented/RMNIST_train/{domain}/{content}/data.pt")
+                    torch.save(data[content], f"data/variants/RMNIST_augmented/RMNIST_train_{domain_string}/{domain}/{content}/data.pt")
 
         if not args.domain_transfer and args.content_transfer:
             for content in contents:
@@ -58,7 +59,7 @@ if __name__ == "__main__":
                 for domain in domains:
                     data[domain] = torch.cat(data[domain], dim=0)
                     print(data[domain].shape)
-                    torch.save(data[domain], f"data/variants/RMNIST_augmented/RMNIST_train/{domain}/{content}/data.pt")
+                    torch.save(data[domain], f"data/variants/RMNIST_augmented/RMNIST_train_{domain_string}/{domain}/{content}/data.pt")
                     
         if args.domain_transfer and args.content_transfer:
             for domain in domains:
@@ -72,7 +73,7 @@ if __name__ == "__main__":
 
                     data = torch.cat(data, dim=0)
                     print(data.shape)
-                    torch.save(data, f"data/variants/RMNIST_augmented/RMNIST_train/{domain}/{content}/data.pt")
+                    torch.save(data, f"data/variants/RMNIST_augmented/RMNIST_train_{domain_string}/{domain}/{content}/data.pt")
 
         model.train()
 
