@@ -36,6 +36,7 @@ if __name__ == "__main__":
     dm.setup()
 
     out_channels = []
+    lr = 1e-4
     hparam_path = ""
     for dir in args.ckpt_path.split("/")[:-2]:
         hparam_path += dir + "/"
@@ -86,7 +87,7 @@ if __name__ == "__main__":
     print(f"  num_domains: {num_domains}")
     print(f"  num_contents: {num_contents}")
     print(f"  latent_size: {latent_size}")
-    print(f"  lr: {1e-4}")
+    print(f"  lr: {lr}")
     print(f"  depth: {depth}")
     print(f"  out_channels: {out_channels}")
     print(f"  kernel_size: {kernel_size}")
@@ -97,16 +98,16 @@ if __name__ == "__main__":
     print(f"  batch_norm: {batch_norm}")
     print(f"  loss_mode: {loss_mode}")
     print(f"  lamb: {lamb}")
-    print(f"  no_n_last: {no_bn_last}")
+    print(f"  no_bn_last: {no_bn_last}")
 
     if args.model == "CVAE_v3":
         model = CVAE_v3.load_from_checkpoint(
             args.ckpt_path,
-            data="PACS",
+            data=data,
             num_domains=num_domains,
             num_contents=num_contents,
             latent_size=latent_size,
-            lr=1e-4,
+            lr=lr,
             depth=depth, 
             out_channels=out_channels,
             kernel_size=kernel_size,
