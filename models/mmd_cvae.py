@@ -293,7 +293,7 @@ class MMD_CVAE(pl.LightningModule):
         if self.lamb < 1.0:
             self.lamb *= 10 ** 0.5
             print(f"New lambda: {self.lamb}")
-        if self.beta < 1.0
+        if self.beta < 1.0:
             self.beta *= 10 ** 0.5
             print(f"New beta: {self.beta}")
 
