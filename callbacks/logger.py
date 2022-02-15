@@ -334,42 +334,54 @@ class Logger(Callback):
             plt.close(fig)
             pl_module.train()
 
-    # def check_overfit(self, trainer, pl_module):
-    #     with torch.no_grad():
-    #         pl_module.eval()
-    #         codes = torch.randn(size=(4, pl_module.latent_size)).to(pl_module.device)
-    #         domain_name = 0
-    #         content_name = 4
-    #         domains = torch.nn.functional.one_hot(self.domain_dict[domain_name], num_classes=len(self.domains)).repeat(codes.shape[0], 1).to(pl_module.device)
-    #         contents = torch.nn.functional.one_hot(self.content_dict[content_name], num_classes=len(self.contents)).repeat(codes.shape[0], 1).to(pl_module.device)
-    #         reconstructions = pl_module.generate(codes, domains, contents)
-    #         best_original = torch.zeros_like(reconstructions)
-    #         best_reconstruction = torch.zeros_like(reconstructions)
-    #         original_scores = torch.ones(size=(4,))
-    #         reconstruction_scores = torch.ones(size=(4,))
+    def check_overfit(self, trainer, pl_module):
+        with torch.no_grad():
+            pl_module.eval()
+            bs = 4
+            codes = torch.randn(size=(bs, pl_module.latent_size)).to(pl_module.device)
+            reconstruction_dict = {
+                domain: {content: torch.zeros(size=(bs, 1, 28, 28)) for content in [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]} for domain in [0, 15, 30, 45, 60, 75]
+            }
+            best_reconstruction_dict = {
+                domain: {content: torch.zeros(size=(bs, 1, 28, 28)) for content in [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]} for domain in [0, 15, 30, 45, 60, 75]
+            }
+            best_original_dict = {
+                domain: {content: torch.zeros(size=(bs, 1, 28, 28)) for content in [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]} for domain in [0, 15, 30, 45, 60, 75]
+            }
+            reconstruction_score_dict = {
+                domain: {content: torch.ones(size=(bs,)) * 1000000 for content in [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]} for domain in [0, 15, 30, 45, 60, 75]
+            }
+            original_score_dict = {
+                domain: {content: torch.ones(size=(bs,)) * 1000000 for content in [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]} for domain in [0, 15, 30, 45, 60, 75]
+            }
+            for domain_name = [0, 15, 30, 45, 60, 75]:
+                for content_name = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]:
+                    domains = torch.nn.functional.one_hot(self.domain_dict[domain_name], num_classes=len(self.domains)).repeat(codes.shape[0], 1).to(pl_module.device)
+                    contents = torch.nn.functional.one_hot(self.content_dict[content_name], num_classes=len(self.contents)).repeat(codes.shape[0], 1).to(pl_module.device)
+                    reconstructions = pl_module.generate(codes, domains, contents)
+                    reconstructions_dict[domain_name][content_name] = reconstructions
 
-    #         four_encoding = torch.Tensor([0, 0, 0, 0, 1, 0, 0, 0, 0, 0])
-    #         for (imgs, doms, conts) in tqdm(self.log_dm.train_dataloader()):
-    #             if four_encoding in conts:
-    #                 imgs = imgs[conts == four_encoding]
-    #                 doms = doms[conts == four_encoding]
-    #                 conts = conts[conts == four_encoding]
-    #                 recs = pl_module.reconstruct(imgs, doms, conts)
-    #                 for i, (imgs_, recs_) in enumerate(zip(imgs, recs)):
-    #                     for j, r in enumerate(reconstructions):
-    #                         rec_score = torch.nn.functional.mse_loss(r, recs_)
-    #                         if rec_score < reconstruction_scores[j]:
-    #                             reconstruction_scores[j] = rec_score
-    #                             best_reconstruction[j] = recs_.view(1, 28, 28)
-    #                         orig_score = torch.nn.functional.mse_loss(r, imgs_)
-    #                         if orig_score < original_scores[j]:
-    #                             original_scores[j] = orig_score
-    #                             best_original[j] = imgs_.view(1, 28, 28)
-    #         big_rec = (big_rec + 1.0) / 2.0
-    #         gen_grid = torchvision.utils.make_grid(big_rec)
-    #         torchvision.utils.save_image(gen_grid, f"{self.output_dir}/version_{trainer.logger.version}/images/generated_{domain_name}_{content_name}.png")
+            for batch in tqdm(self.log_dm.train_dataloader()):
+                for i in range(self.log_dm.train_dataloader)
+                    imgs = imgs[conts == four_encoding]
+                    doms = doms[conts == four_encoding]
+                    conts = conts[conts == four_encoding]
+                    recs = pl_module.reconstruct(imgs, doms, conts)
+                    for i, (imgs_, recs_) in enumerate(zip(imgs, recs)):
+                        for j, r in enumerate(reconstructions):
+                            rec_score = torch.nn.functional.mse_loss(r, recs_)
+                            if rec_score < reconstruction_scores[j]:
+                                reconstruction_scores[j] = rec_score
+                                best_reconstruction[j] = recs_.view(1, 28, 28)
+                            orig_score = torch.nn.functional.mse_loss(r, imgs_)
+                            if orig_score < original_scores[j]:
+                                original_scores[j] = orig_score
+                                best_original[j] = imgs_.view(1, 28, 28)
+            big_rec = (big_rec + 1.0) / 2.0
+            gen_grid = torchvision.utils.make_grid(big_rec)
+            torchvision.utils.save_image(gen_grid, f"{self.output_dir}/version_{trainer.logger.version}/images/generated_{domain_name}_{content_name}.png")
 
-    #             if tensorboard_log:
-    #                 trainer.logger.experiment.add_image(f"generated_{domain_name}_{content_name}", gen_grid)
+                if tensorboard_log:
+                    trainer.logger.experiment.add_image(f"generated_{domain_name}_{content_name}", gen_grid)
 
-    #         pl_module.train()
+                    pl_module.train()

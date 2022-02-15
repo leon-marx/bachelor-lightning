@@ -1,7 +1,6 @@
 from argparse import ArgumentParser
 import os
 from tkinter import Image
-from xml.etree.ElementPath import prepare_child
 import pytorch_lightning as pl
 import torch
 import copy
