@@ -33,6 +33,7 @@ class Logger(Callback):
 
         self.domains = domains
         self.domain_dict = {domain: torch.LongTensor([i]) for i, domain in enumerate(self.domains)}
+        self.domain_backwards_dict = {i: domain for i, domain in enumerate(self.domains)}
         self.contents = contents
         self.content_dict = {content: torch.LongTensor([i]) for i, content in enumerate(self.contents)}
 
@@ -40,7 +41,7 @@ class Logger(Callback):
         self.warumup_freq = 1
         self.iov_flag = False
         self.images_on_val = images_on_val
-    
+
     def on_save_checkpoint(self, trainer, pl_module, checkpoint):
         os.makedirs(f"{self.output_dir}/version_{trainer.logger.version}/images", exist_ok=True)
         self.log_reconstructions(trainer, pl_module, tensorboard_log=True)
@@ -154,13 +155,13 @@ class Logger(Callback):
                     trainer.logger.experiment.add_image(f"content_transfer_to_{decoder_content}", transfer_grid)
 
             pl_module.train()
-    
+
     def log_grad_flow(self, trainer, tensorboard_log=False):
         """
         Plots the gradients flowing through different layers in the net during training.
         Can be used for checking for possible gradient vanishing / exploding problems.
-        
-        Usage: Plug this function in Trainer class after loss.backwards() as 
+
+        Usage: Plug this function in Trainer class after loss.backwards() as
         "plot_grad_flow(self.model.named_parameters())" to visualize the gradient flow
         """
         fig = plt.figure(figsize=(24, 16))
@@ -252,7 +253,7 @@ class Logger(Callback):
                         trainer.logger.experiment.add_image(f"generated_{domain_name}_{content_name}", gen_grid)
 
             pl_module.train()
-    
+
     def log_umap(self, trainer, pl_module):
         with torch.no_grad():
             pl_module.eval()
@@ -342,23 +343,23 @@ class Logger(Callback):
             bs = 4
             codes = torch.randn(size=(bs, pl_module.latent_size)).to(pl_module.device)
             generated_dict = {
-                domain: {content: torch.zeros(size=(bs, 1, 28, 28)) for content in [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]} for domain in [0, 15, 30, 45, 60, 75]
+                domain: {content: torch.zeros(size=(bs, 1, 28, 28)) for content in self.contents} for domain in self.domains
             }
             best_reconstruction_dict = {
-                domain: {content: torch.zeros(size=(bs, 1, 28, 28)) for content in [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]} for domain in [0, 15, 30, 45, 60, 75]
+                domain: {content: torch.zeros(size=(bs, 1, 28, 28)) for content in self.contents} for domain in self.domains
             }
             best_original_dict = {
-                domain: {content: torch.zeros(size=(bs, 1, 28, 28)) for content in [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]} for domain in [0, 15, 30, 45, 60, 75]
+                domain: {content: torch.zeros(size=(bs, 1, 28, 28)) for content in self.contents} for domain in self.domains
             }
             reconstruction_score_dict = {
-                domain: {content: torch.ones(size=(bs,)) * 1000000 for content in [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]} for domain in [0, 15, 30, 45, 60, 75]
+                domain: {content: torch.ones(size=(bs,)) * 1000000 for content in self.contents} for domain in self.domains
             }
             original_score_dict = {
-                domain: {content: torch.ones(size=(bs,)) * 1000000 for content in [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]} for domain in [0, 15, 30, 45, 60, 75]
+                domain: {content: torch.ones(size=(bs,)) * 1000000 for content in self.contents} for domain in self.domains
             }
             # generating all possible domain-content combinations (times 4)
-            for domain_name in [0, 15, 30, 45, 60, 75]:
-                for content_name in [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]:
+            for domain_name in self.domains:
+                for content_name in self.contents:
                     domains = torch.nn.functional.one_hot(self.domain_dict[domain_name], num_classes=len(self.domains)).repeat(codes.shape[0], 1).to(pl_module.device)
                     contents = torch.nn.functional.one_hot(self.content_dict[content_name], num_classes=len(self.contents)).repeat(codes.shape[0], 1).to(pl_module.device)
                     generated_images = pl_module.generate(codes, domains, contents)
@@ -374,7 +375,7 @@ class Logger(Callback):
                 contents = torch.argmax(contents, dim=1)
                 for i in range(images.shape[0]):
                     img = images[i]
-                    dom = int(domains[i].item() * 15)
+                    dom = self.domain_backwards_dict[int(domains[i].item())]
                     cont = int(contents[i].item())
                     rec = reconstructions[i]
                     for j in range(bs):
@@ -386,10 +387,10 @@ class Logger(Callback):
                         if orig_score < original_score_dict[dom][cont][j]:
                             original_score_dict[dom][cont][j] = orig_score
                             best_original_dict[dom][cont][j] = img
-            
+
             # making grids for each domain-content pair and all 4 generated images
-            for dom in [0, 15, 30, 45, 60, 75]:
-                for cont in [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]:
+            for dom in self.domains:
+                for cont in self.contents:
                     canvas = torch.stack((generated_dict[dom][cont].cpu(), best_reconstruction_dict[dom][cont].cpu(), best_original_dict[dom][cont].cpu()), dim=1).view(-1, 1, 28, 28)
                     gen_grid = torchvision.utils.make_grid(canvas, nrow=3)
                     torchvision.utils.save_image(gen_grid, f"{self.output_dir}/version_{trainer.logger.version}/images/generated_{dom}_{cont}_comparison.png")

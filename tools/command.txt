@@ -15,8 +15,27 @@ python -m tools.train_classifier\
     --weight_decay 0.0\
     --gpus 2, --output_dir logs/rmnist_loo_erm/012345 --domains 012345
 
+python -m tools.train\
+    --data RMNIST\
+    --batch_size 32\
+    --unbalanced_data\
+    --model CVAE_v3\
+    --latent_size 128\
+    --lamb 0.01\
+    --lr 1e-4\
+    --depth 1\
+    --out_channels 128,128,256,256,512,512\
+    --kernel_size 3\
+    --activation elu\
+    --downsampling stride\
+    --upsampling upsample\
+    --batch_norm\
+    --no_bn_last\
+    --loss_mode elbo\
+    --output_dir logs/rmnist_loo_vaes/01234 --gpus 2, --ckpt_path logs/rmnist_loo_vaes/01234/version_0/checkpoints/epoch=*.ckpt --domains 01234
+
     AAE(num_domains=num_domains, num_contents=num_contents,
-        latent_size=latent_size, lr=lr, depth=depth, 
+        latent_size=latent_size, lr=lr, depth=depth,
         out_channels=out_channels, kernel_size=kernel_size, activation=activation,
         downsampling=downsampling, upsampling=upsampling, dropout=dropout,
         batch_norm=batch_norm
