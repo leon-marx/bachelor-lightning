@@ -354,15 +354,16 @@ class Logger(Callback):
             original_score_dict = {
                 domain: {content: torch.ones(size=(bs,)) * 1000000 for content in [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]} for domain in [0, 15, 30, 45, 60, 75]
             }
-            for domain_name = [0, 15, 30, 45, 60, 75]:
-                for content_name = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]:
+            for domain_name in [0, 15, 30, 45, 60, 75]:
+                for content_name in [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]:
                     domains = torch.nn.functional.one_hot(self.domain_dict[domain_name], num_classes=len(self.domains)).repeat(codes.shape[0], 1).to(pl_module.device)
                     contents = torch.nn.functional.one_hot(self.content_dict[content_name], num_classes=len(self.contents)).repeat(codes.shape[0], 1).to(pl_module.device)
                     reconstructions = pl_module.generate(codes, domains, contents)
-                    reconstructions_dict[domain_name][content_name] = reconstructions
+                    reconstruction_dict[domain_name][content_name] = reconstructions
 
             for batch in tqdm(self.log_dm.train_dataloader()):
-                for i in range(self.log_dm.train_dataloader)
+                for i in range(self.log_dm.train_dataloader):
+                    four_encoding = None
                     imgs = imgs[conts == four_encoding]
                     doms = doms[conts == four_encoding]
                     conts = conts[conts == four_encoding]

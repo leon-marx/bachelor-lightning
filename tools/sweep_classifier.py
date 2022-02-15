@@ -85,16 +85,16 @@ if __name__ == "__main__":
     if args.data == "PACS":
         domains = ["art_painting", "cartoon", "photo"]
         contents = ["dog", "elephant", "giraffe", "guitar", "horse", "house", "person"]
-        dm = BalancedPACSDataModule(root="data/variants/PACS_small", domains=domains, contents=contents,
+        dm = PACSDataModule(root="data/variants/PACS_small", domains=domains, contents=contents,
                             batch_size=batch_size, num_workers=20)
-        log_dm = BalancedPACSDataModule(root="data/variants/PACS_small", domains=domains, contents=contents,
+        log_dm = PACSDataModule(root="data/variants/PACS_small", domains=domains, contents=contents,
                             batch_size=batch_size, num_workers=20, shuffle_all=True)
     elif args.data == "RMNIST":
         domains = [0, 15, 30, 45, 60, 75]
         contents = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
-        dm = BalancedRMNISTDataModule(root="data", domains=domains, contents=contents,
+        dm = RMNISTDataModule(root="data", domains=domains, contents=contents,
                             batch_size=batch_size, num_workers=20)
-        log_dm = BalancedRMNISTDataModule(root="data", domains=domains, contents=contents,
+        log_dm = RMNISTDataModule(root="data", domains=domains, contents=contents,
                             batch_size=batch_size, num_workers=20, shuffle_all=True)
     num_domains = len(domains)
     num_contents = len(contents)
