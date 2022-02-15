@@ -65,7 +65,7 @@ if __name__ == "__main__":
             "depth": [1, 2],
             "out_channels": ["128,128,256,256,512,512"],
             "kernel_size": [3],
-            "activation": ["elu", "selu"],
+            "activation": ["selu"],
             "downsampling": ["stride"],
             "upsampling": ["upsample"],
             "dropout": [False],
