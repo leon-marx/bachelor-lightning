@@ -36,7 +36,11 @@ if __name__ == "__main__":
     dm.setup()
 
     out_channels = []
-    with open("logs/hparams.yaml", "r") as f:
+    hparam_path = ""
+    for dir in args.ckpt_path.split("/")[:-2]:
+        hparam_path += dir + "/"
+    hparam_path += "hparams.yaml"
+    with open(hparam_path, "r") as f:
         lines = f.readlines()
         for line in lines:
             line = line.strip()
