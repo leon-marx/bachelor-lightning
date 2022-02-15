@@ -69,7 +69,8 @@ class Logger(Callback):
         self.epoch_counter += 1
         if self.epoch_counter / 2 >= self.warumup_freq:
             self.log_umap(trainer, pl_module)
-            self.check_overfit(trainer, pl_module)
+            if self.image_size == 28:
+                self.check_overfit(trainer, pl_module)
             self.epoch_counter = 0
             if getattr(pl_module, "warmer", None) is not None:
                 pl_module.warmer()
