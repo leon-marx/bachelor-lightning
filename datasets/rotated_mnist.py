@@ -28,7 +28,13 @@ class RMNISTDataset(Dataset):
         self.contents = contents
         self.domain_dict = {domain: torch.LongTensor([i]) for i, domain in enumerate(self.domains)}
         self.content_dict = {content: torch.LongTensor([i]) for i, content in enumerate(self.contents)}
-        self.data_dir = f"{root}/RMNIST_{mode}"
+        if "augmented" in root and mode == "train":
+            domain_string = ""
+            for dom in self.domains:
+                domain_string += str(int(dom/15))
+            self.data_dir = f"{root}/RMNIST_{mode}_{domain_string}"
+        else:
+            self.data_dir = f"{root}/RMNIST_{mode}"
         self.image_data = ()
         self.domain_data = ()
         self.content_data = ()
@@ -67,7 +73,7 @@ class RMNISTDataset(Dataset):
         content = self.content_data[idx]
         return image, domain, content
 
-        
+
 class RMNISTDataModule(pl.LightningDataModule):
     def __init__(self, root, domains, contents, batch_size, num_workers, shuffle_all=False):
         """
@@ -98,13 +104,13 @@ class RMNISTDataModule(pl.LightningDataModule):
 
     def train_dataloader(self):
         return DataLoader(self.rmnist_train, batch_size=self.batch_size, shuffle=True, num_workers=self.num_workers)
-    
+
     def val_dataloader(self):
         return DataLoader(self.rmnist_val, batch_size=self.batch_size, shuffle=self.shuffle_all, num_workers=self.num_workers)
-    
+
     def test_dataloader(self):
         return DataLoader(self.rmnist_test, batch_size=self.batch_size, shuffle=self.shuffle_all, num_workers=self.num_workers)
-    
+
 
 if __name__ == "__main__":
     argument_domains = ["0", "1", "2", "3", "4"]
