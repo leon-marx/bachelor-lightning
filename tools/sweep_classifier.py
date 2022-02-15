@@ -57,8 +57,8 @@ if __name__ == "__main__":
             "kernel_size": [3],
             "activation": ["elu", "selu", "relu"],
             "downsampling": ["stride"],
-            "dropout": [True, False],
-            "batch_norm": [True, False],
+            "dropout": [False],
+            "batch_norm": [True],
             "initialize": [True]
             },
         "ERM": {
