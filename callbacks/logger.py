@@ -23,6 +23,7 @@ class Logger(Callback):
         self.val_batch = val_batch
         self.num_channels = self.train_batch[0].shape[1]
         self.image_size = self.train_batch[0].shape[2]
+        self.batch_size = train_batch[0].shape[0]
 
         self.ave_grad_list = [[], [], [], [], [], [], [], [], [], []]
         self.max_grad_list = [[], [], [], [], [], [], [], [], [], []]
@@ -63,6 +64,7 @@ class Logger(Callback):
         self.epoch_counter += 1
         if self.epoch_counter / 2 >= self.warumup_freq:
             self.log_umap(trainer, pl_module)
+            self.check_overfit(trainer, pl_module)
             self.epoch_counter = 0
             if getattr(pl_module, "warmer", None) is not None:
                 pl_module.warmer()
@@ -334,55 +336,63 @@ class Logger(Callback):
             plt.close(fig)
             pl_module.train()
 
-    # def check_overfit(self, trainer, pl_module):
-    #     with torch.no_grad():
-    #         pl_module.eval()
-    #         bs = 4
-    #         codes = torch.randn(size=(bs, pl_module.latent_size)).to(pl_module.device)
-    #         reconstruction_dict = {
-    #             domain: {content: torch.zeros(size=(bs, 1, 28, 28)) for content in [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]} for domain in [0, 15, 30, 45, 60, 75]
-    #         }
-    #         best_reconstruction_dict = {
-    #             domain: {content: torch.zeros(size=(bs, 1, 28, 28)) for content in [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]} for domain in [0, 15, 30, 45, 60, 75]
-    #         }
-    #         best_original_dict = {
-    #             domain: {content: torch.zeros(size=(bs, 1, 28, 28)) for content in [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]} for domain in [0, 15, 30, 45, 60, 75]
-    #         }
-    #         reconstruction_score_dict = {
-    #             domain: {content: torch.ones(size=(bs,)) * 1000000 for content in [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]} for domain in [0, 15, 30, 45, 60, 75]
-    #         }
-    #         original_score_dict = {
-    #             domain: {content: torch.ones(size=(bs,)) * 1000000 for content in [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]} for domain in [0, 15, 30, 45, 60, 75]
-    #         }
-    #         for domain_name in [0, 15, 30, 45, 60, 75]:
-    #             for content_name in [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]:
-    #                 domains = torch.nn.functional.one_hot(self.domain_dict[domain_name], num_classes=len(self.domains)).repeat(codes.shape[0], 1).to(pl_module.device)
-    #                 contents = torch.nn.functional.one_hot(self.content_dict[content_name], num_classes=len(self.contents)).repeat(codes.shape[0], 1).to(pl_module.device)
-    #                 reconstructions = pl_module.generate(codes, domains, contents)
-    #                 reconstruction_dict[domain_name][content_name] = reconstructions
+    def check_overfit(self, trainer, pl_module):
+        with torch.no_grad():
+            pl_module.eval()
+            bs = 4
+            codes = torch.randn(size=(bs, pl_module.latent_size)).to(pl_module.device)
+            generated_dict = {
+                domain: {content: torch.zeros(size=(bs, 1, 28, 28)) for content in [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]} for domain in [0, 15, 30, 45, 60, 75]
+            }
+            best_reconstruction_dict = {
+                domain: {content: torch.zeros(size=(bs, 1, 28, 28)) for content in [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]} for domain in [0, 15, 30, 45, 60, 75]
+            }
+            best_original_dict = {
+                domain: {content: torch.zeros(size=(bs, 1, 28, 28)) for content in [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]} for domain in [0, 15, 30, 45, 60, 75]
+            }
+            reconstruction_score_dict = {
+                domain: {content: torch.ones(size=(bs,)) * 1000000 for content in [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]} for domain in [0, 15, 30, 45, 60, 75]
+            }
+            original_score_dict = {
+                domain: {content: torch.ones(size=(bs,)) * 1000000 for content in [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]} for domain in [0, 15, 30, 45, 60, 75]
+            }
+            # generating all possible domain-content combinations (times 4)
+            for domain_name in [0, 15, 30, 45, 60, 75]:
+                for content_name in [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]:
+                    domains = torch.nn.functional.one_hot(self.domain_dict[domain_name], num_classes=len(self.domains)).repeat(codes.shape[0], 1).to(pl_module.device)
+                    contents = torch.nn.functional.one_hot(self.content_dict[content_name], num_classes=len(self.contents)).repeat(codes.shape[0], 1).to(pl_module.device)
+                    generated_images = pl_module.generate(codes, domains, contents)
+                    generated_dict[domain_name][content_name] = generated_images
 
-    #         for batch in tqdm(self.log_dm.train_dataloader()):
-    #             for i in range(self.log_dm.train_dataloader):
-    #                 four_encoding = None
-    #                 imgs = imgs[conts == four_encoding]
-    #                 doms = doms[conts == four_encoding]
-    #                 conts = conts[conts == four_encoding]
-    #                 recs = pl_module.reconstruct(imgs, doms, conts)
-    #                 for i, (imgs_, recs_) in enumerate(zip(imgs, recs)):
-    #                     for j, r in enumerate(reconstructions):
-    #                         rec_score = torch.nn.functional.mse_loss(r, recs_)
-    #                         if rec_score < reconstruction_scores[j]:
-    #                             reconstruction_scores[j] = rec_score
-    #                             best_reconstruction[j] = recs_.view(1, 28, 28)
-    #                         orig_score = torch.nn.functional.mse_loss(r, imgs_)
-    #                         if orig_score < original_scores[j]:
-    #                             original_scores[j] = orig_score
-    #                             best_original[j] = imgs_.view(1, 28, 28)
-    #         big_rec = (big_rec + 1.0) / 2.0
-    #         gen_grid = torchvision.utils.make_grid(big_rec)
-    #         torchvision.utils.save_image(gen_grid, f"{self.output_dir}/version_{trainer.logger.version}/images/generated_{domain_name}_{content_name}.png")
+            # comparing whole training set with generated images
+            for batch in tqdm(self.log_dm.train_dataloader()):
+                images = batch[0]
+                domains = batch[1]
+                contents = batch[2]
+                reconstructions = pl_module.reconstruct(images, domains, contents)
+                domains = torch.argmax(domains, dim=1)
+                contents = torch.argmax(contents, dim=1)
+                for i in range(self.batch_size):
+                    img = images[i]
+                    dom = int(domains[i].item())
+                    cont = int(contents[i].item())
+                    rec = reconstructions[i]
+                    for j in range(bs):
+                        rec_score = torch.nn.functional.mse_loss(generated_dict[dom][cont][j], rec)
+                        if rec_score < reconstruction_score_dict[dom][cont][j]:
+                            reconstruction_score_dict[dom][cont][j] = rec_score
+                            best_reconstruction_dict[dom][cont][j] = rec
+                        orig_score = torch.nn.functional.mse_loss(generated_dict[dom][cont][j], img)
+                        if orig_score < original_score_dict[dom][cont][j]:
+                            original_score_dict[dom][cont][j] = orig_score
+                            best_original_dict[dom][cont][j] = img
+            
+            # making grids for each domain-content pair and all 4 generated images
+            for dom in [0, 15, 30, 45, 60, 75]:
+                for cont in [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]:
+                    canvas = torch.stack((generated_dict[dom][cont], best_reconstruction_dict[dom][cont], best_original_dict[dom][cont]), dim=1).view(-1, 1, 28, 28)
+                    gen_grid = torchvision.utils.make_grid(canvas)
+                    torchvision.utils.save_image(gen_grid, f"{self.output_dir}/version_{trainer.logger.version}/images/generated_{dom}_{cont}_comparison.png")
+                    trainer.logger.experiment.add_image(f"generated_{dom}_{cont}_comparison.png", gen_grid)
 
-    #             if tensorboard_log:
-    #                 trainer.logger.experiment.add_image(f"generated_{domain_name}_{content_name}", gen_grid)
-
-    #                 pl_module.train()
+            pl_module.train()
