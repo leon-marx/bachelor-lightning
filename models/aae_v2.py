@@ -272,7 +272,9 @@ class AAE_v2(pl.LightningModule):
             self.lamb *= 10 ** 0.5
             print(f"New lambda: {self.lamb}")
 
-    def configure_optimizers(self):
+    def configure_optimizers(self, reduce_lr=False):
+        if reduce_lr:
+            self.lr /= 10 ** 0.5
         opt_ae = torch.optim.Adam(params=list(self.encoder.parameters()) + list(self.decoder.parameters()), lr=self.lr, betas=(0.5, 0.999))
         opt_d = torch.optim.Adam(self.discriminator.parameters(), lr=self.lr, betas=(0.5, 0.999))
         opt_e = torch.optim.Adam(self.encoder.parameters(), lr=self.lr, betas=(0.5, 0.999))

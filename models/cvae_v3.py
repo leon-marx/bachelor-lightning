@@ -237,7 +237,9 @@ class CVAE_v3(pl.LightningModule):
 
         return self.loss(images, enc_mu, enc_logvar, reconstructions)
 
-    def configure_optimizers(self):
+    def configure_optimizers(self, reduce_lr=False):
+        if reduce_lr:
+            self.lr /= 10 ** 0.5
         optimizer = torch.optim.Adam(self.parameters(), lr=self.lr)
         return optimizer
 
