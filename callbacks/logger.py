@@ -72,17 +72,17 @@ class Logger(Callback):
         self.iov_flag = True
         self.epoch_counter += 1
         if self.epoch_counter / 2 >= self.warumup_freq:
+            if not self.images_on_val:
+                os.makedirs(f"{self.output_dir}/version_{trainer.logger.version}/images", exist_ok=True)
+                self.log_reconstructions(trainer, pl_module, tensorboard_log=True)
+                self.log_generated(trainer, pl_module, tensorboard_log=True)
+                self.log_domain_transfers(trainer, pl_module, tensorboard_log=True)
+                self.log_content_transfers(trainer, pl_module, tensorboard_log=True)
+                self.log_losses(trainer)
+                self.log_grad_flow(trainer, tensorboard_log=True)
             self.log_umap(trainer, pl_module)
             if self.image_size == 28:
                 self.check_overfit(trainer, pl_module)
-                if not self.images_on_val:
-                    os.makedirs(f"{self.output_dir}/version_{trainer.logger.version}/images", exist_ok=True)
-                    self.log_reconstructions(trainer, pl_module, tensorboard_log=True)
-                    self.log_generated(trainer, pl_module, tensorboard_log=True)
-                    self.log_domain_transfers(trainer, pl_module, tensorboard_log=True)
-                    self.log_content_transfers(trainer, pl_module, tensorboard_log=True)
-                    self.log_losses(trainer)
-                    self.log_grad_flow(trainer, tensorboard_log=True)
             self.epoch_counter = 0
             if getattr(pl_module, "warmer", None) is not None:
                 pl_module.warmer()
