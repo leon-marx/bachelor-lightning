@@ -60,7 +60,7 @@ class Logger(Callback):
         if isinstance(outputs, list):
             self.train_loss.append(outputs[0]["loss"].item())
             if torch.isnan(outputs[0]["loss"]).item():
-                pl_module.optimizer = pl_module.configure_optimizers(reduce_lr=True)
+                trainer.optimizer = pl_module.configure_optimizers(reduce_lr=True)
         else:
             self.train_loss.append(outputs["loss"].item())
             if torch.isnan(outputs["loss"]).item():
