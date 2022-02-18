@@ -29,8 +29,10 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     argument_domains = args.domains.split(",")
-    for arg_domain in argument_domains:
+    argument_ckpt_paths = args.ckpt_path.split(",")
+    for i, arg_domain in enumerate(argument_domains):
         print(f"Starting transfer on {arg_domain}")
+        arg_ckpt_path = argument_ckpt_paths[i]
         domain_string = arg_domain
         domains = sorted([int(char) for char in arg_domain])
         contents = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
@@ -42,7 +44,7 @@ if __name__ == "__main__":
         out_channels = []
         lr = 1e-4
         hparam_path = ""
-        for dir in args.ckpt_path.split("/")[:-2]:
+        for dir in arg_ckpt_path.split("/")[:-2]:
             hparam_path += dir + "/"
         hparam_path += "hparams.yaml"
         with open(hparam_path, "r") as f:
@@ -106,7 +108,7 @@ if __name__ == "__main__":
 
         if args.model == "CVAE_v3":
             model = CVAE_v3.load_from_checkpoint(
-                args.ckpt_path,
+                arg_ckpt_path,
                 data=data,
                 num_domains=num_domains,
                 num_contents=num_contents,
