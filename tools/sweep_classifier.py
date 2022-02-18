@@ -80,29 +80,10 @@ if __name__ == "__main__":
     print(f"    CUDA: {torch.version.cuda}")
     print(f"    CUDNN: {torch.backends.cudnn.version()}")
 
-    # Dataset
-    batch_size = args.batch_size
     if args.data == "PACS":
         domains = ["art_painting", "cartoon", "photo"]
-        contents = ["dog", "elephant", "giraffe", "guitar", "horse", "house", "person"]
-        dm = PACSDataModule(root="data/variants/PACS_small", domains=domains, contents=contents,
-                            batch_size=batch_size, num_workers=20)
-        log_dm = PACSDataModule(root="data/variants/PACS_small", domains=domains, contents=contents,
-                            batch_size=batch_size, num_workers=20, shuffle_all=True)
     elif args.data == "RMNIST":
         domains = [0, 15, 30, 45, 60, 75]
-        contents = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
-        dm = RMNISTDataModule(root="data", domains=domains, contents=contents,
-                            batch_size=batch_size, num_workers=20)
-        log_dm = RMNISTDataModule(root="data", domains=domains, contents=contents,
-                            batch_size=batch_size, num_workers=20, shuffle_all=True)
-    num_domains = len(domains)
-    num_contents = len(contents)
-
-    # Callbacks
-    log_dm.setup()
-    train_batch = next(iter(log_dm.train_dataloader()))
-    val_batch = next(iter(log_dm.val_dataloader()))
 
     step = 0
     try:
@@ -184,8 +165,36 @@ if __name__ == "__main__":
                             data = conf["data"]
                             if "data" in names:
                                 log_dir += f"_{data}"
+                        if "domains" in conf:
+                            domains = [int(d) for d in conf["domains"]]
+                            if "domains" in names:
+                                log_dir += f"_{conf['domains']}"
 
-                            
+                        # Dataset
+                        batch_size = args.batch_size
+                        if args.data == "PACS":
+                            domains = ["art_painting", "cartoon", "photo"]
+                            contents = ["dog", "elephant", "giraffe", "guitar", "horse", "house", "person"]
+                            dm = PACSDataModule(root="data/variants/PACS_small", domains=domains, contents=contents,
+                                                batch_size=batch_size, num_workers=20)
+                            log_dm = PACSDataModule(root="data/variants/PACS_small", domains=domains, contents=contents,
+                                                batch_size=batch_size, num_workers=20, shuffle_all=True)
+                        elif args.data == "RMNIST":
+                            domains = [0, 15, 30, 45, 60, 75]
+                            contents = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+                            dm = RMNISTDataModule(root="data", domains=domains, contents=contents,
+                                                batch_size=batch_size, num_workers=20)
+                            log_dm = RMNISTDataModule(root="data", domains=domains, contents=contents,
+                                                batch_size=batch_size, num_workers=20, shuffle_all=True)
+                        num_domains = len(domains)
+                        num_contents = len(contents)
+
+                        # Callbacks
+                        log_dm.setup()
+                        train_batch = next(iter(log_dm.train_dataloader()))
+                        val_batch = next(iter(log_dm.val_dataloader()))
+
+
 
                         if args.restart or not os.path.isdir(f"{log_dir}"):
                             # Configuration
@@ -195,7 +204,7 @@ if __name__ == "__main__":
                             callbacks = [
                                 ClassificationLogger(log_dir, log_dm, train_batch, val_batch, domains, contents, images_on_val=iov)
                             ]
-                            
+
                             print("Args:")
                             for k, v in sorted(conf.items()):
                                 print(f"    {k}: {v}")
@@ -208,7 +217,7 @@ if __name__ == "__main__":
                                     num_contents=num_contents,
                                     latent_size=latent_size,
                                     lr=lr,
-                                    depth=depth, 
+                                    depth=depth,
                                     out_channels=out_channels,
                                     kernel_size=kernel_size,
                                     activation=activation,
