@@ -113,7 +113,7 @@ class RMNISTDataModule(pl.LightningDataModule):
 
 
 if __name__ == "__main__":
-    argument_domains = ["0", "1", "2", "3", "4"]
+    argument_domains = ["1", "2", "3", "4", "5"]
     domain_dict = {
             "a": [0, 15, 30, 45, 60, 75],
             "0": [0],
@@ -154,3 +154,4 @@ if __name__ == "__main__":
             plt.xticks([])
             plt.yticks([])
         plt.show()
+
