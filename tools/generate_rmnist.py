@@ -30,6 +30,7 @@ if __name__ == "__main__":
 
     argument_domains = args.domains.split(",")
     for arg_domain in argument_domains:
+        print(f"Starting transfer on {arg_domain}")
         domain_string = arg_domain
         domains = sorted([int(char) for char in arg_domain])
         contents = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
