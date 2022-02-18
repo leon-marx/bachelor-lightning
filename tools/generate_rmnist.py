@@ -145,7 +145,7 @@ if __name__ == "__main__":
                         data_save_dir = f"data/variants/RMNIST_augmented/RMNIST_train_{domain_string}/{domain}/{content}/data.pt"
                         os.makedirs(data_save_dir[:-8], exist_ok=True)
                         data[content] = torch.cat(data[content], dim=0)
-                        print(f"  Saving {data[content].shape[0].item()} transfers to {data_save_dir}")
+                        print(f"  Saving {data[content].shape[0]} transfers to {data_save_dir}")
                         torch.save(data[content], data_save_dir)
 
             if not args.domain_transfer and args.content_transfer:
@@ -162,7 +162,7 @@ if __name__ == "__main__":
                         data_save_dir = f"data/variants/RMNIST_augmented/RMNIST_train_{domain_string}/{domain}/{content}/data.pt"
                         os.makedirs(data_save_dir[:-8], exist_ok=True)
                         data[domain] = torch.cat(data[domain], dim=0)
-                        print(f"  Saving {data[domain].shape[0].item()} transfers to {data_save_dir}")
+                        print(f"  Saving {data[domain].shape[0]} transfers to {data_save_dir}")
                         torch.save(data[domain], data_save_dir)
 
             if args.domain_transfer and args.content_transfer:
@@ -178,7 +178,7 @@ if __name__ == "__main__":
                         data_save_dir = f"data/variants/RMNIST_augmented/RMNIST_train_{domain_string}/{domain}/{content}/data.pt"
                         os.makedirs(data_save_dir[:-8], exist_ok=True)
                         data = torch.cat(data, dim=0)
-                        print(f"  Saving {data.shape[0].item()} transfers to {data_save_dir}")
+                        print(f"  Saving {data.shape[0]} transfers to {data_save_dir}")
                         torch.save(data, data_save_dir)
 
             model.train()
