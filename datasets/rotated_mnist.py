@@ -123,10 +123,10 @@ if __name__ == "__main__":
             "4": [60],
             "5": [75],
         }
-    domains = sorted([int(char) for char in argument_domains])
-    # for key in argument_domains:
-    #     domains += domain_dict[key]
-    # domains = sorted(domains)
+    domains = []
+    for key in argument_domains:
+        domains += domain_dict[key]
+    domains = sorted(domains)
     contents = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
 
     print(domains)
