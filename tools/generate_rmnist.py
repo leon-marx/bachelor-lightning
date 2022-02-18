@@ -29,10 +29,18 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     print("")
-    print(f"Starting transfer on {args.domains}")
     domain_string = args.domains
-    domains = sorted([int(char) for char in args.domains])
+    domain_dict = {
+            "0": 0,
+            "1": 15,
+            "2": 30,
+            "3": 45,
+            "4": 60,
+            "5": 75,
+        }
+    domains = sorted([domain_dict[char] for char in args.domains])
     contents = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+    print(f"Starting transfer on {domains}")
 
     dm = RMNISTDataModule(root="data", domains=domains, contents=contents,
                         batch_size=args.batch_size, num_workers=20)

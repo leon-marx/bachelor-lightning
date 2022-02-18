@@ -113,7 +113,7 @@ class RMNISTDataModule(pl.LightningDataModule):
 
 
 if __name__ == "__main__":
-    argument_domains = ["1", "2", "3", "4", "5"]
+    argument_domains = "01234"
     domain_dict = {
             "a": [0, 15, 30, 45, 60, 75],
             "0": [0],
@@ -123,10 +123,10 @@ if __name__ == "__main__":
             "4": [60],
             "5": [75],
         }
-    domains = []
-    for key in argument_domains:
-        domains += domain_dict[key]
-    domains = sorted(domains)
+    domains = sorted([int(char) for char in argument_domains])
+    # for key in argument_domains:
+    #     domains += domain_dict[key]
+    # domains = sorted(domains)
     contents = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
 
     print(domains)
@@ -139,13 +139,13 @@ if __name__ == "__main__":
     import numpy as np
     import matplotlib.pyplot as plt
     for (img, domain, content) in dm.train_dataloader():
-        print(img)
-        print(domain)
-        print(content)
-        print(img.shape)
-        print(domain.shape)
-        print(content.shape)
-        print(img.min(), img.max())
+        # print(img)
+        # print(domain)
+        # print(content)
+        # print(img.shape)
+        # print(domain.shape)
+        # print(content.shape)
+        # print(img.min(), img.max())
         for i in range(4):
             plt.subplot(2, 2, i+1)
             plt.imshow(img[i].view(28, 28))
