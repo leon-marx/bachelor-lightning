@@ -50,22 +50,26 @@ if __name__ == "__main__":
             "data": ["RMNIST"],
             "num_domains": [6],
             "num_contents": [10],
-            "latent_size": [32, 64, 128],
+            "latent_size": [128],
             "lr": [1e-4],
-            "depth": [1, 2],
-            "out_channels": ["128,128,256,256,512,512", "64,64,128,128,256,256", "32,32,64,64,128,128"],
+            "depth": [2],
+            "out_channels": ["128,128,256,256,512,512"],
             "kernel_size": [3],
-            "activation": ["elu", "selu", "relu"],
+            "activation": ["relu"],
             "downsampling": ["stride"],
             "dropout": [False],
             "batch_norm": [True],
-            "initialize": [True]
+            "initialize": [True],
+            "domains": ["01234", "01235", "01245", "01345", "02345", "12345"],
+            "root": ["data", "data/variants/RMNIST_augmented"]
             },
         "ERM": {
             "input_shape": [(1, 28, 28)],
-            "nonlinear_classifier": [True, False],
+            "nonlinear_classifier": [False],
             "lr": [1e-4],
-            "weight_decay": [0.0, 0.01, 0.1],
+            "weight_decay": [0.0],
+            "domains": ["01234", "01235", "01245", "01345", "02345", "12345"],
+            "root": ["data", "data/variants/RMNIST_augmented"]
             },
     }
     ####################
@@ -82,8 +86,14 @@ if __name__ == "__main__":
 
     if args.data == "PACS":
         domains = ["art_painting", "cartoon", "photo"]
-    elif args.data == "RMNIST":
-        domains = [0, 15, 30, 45, 60, 75]
+    domain_dict = {
+            "0": 0,
+            "1": 15,
+            "2": 30,
+            "3": 45,
+            "4": 60,
+            "5": 75,
+    }
 
     step = 0
     try:
@@ -166,9 +176,17 @@ if __name__ == "__main__":
                             if "data" in names:
                                 log_dir += f"_{data}"
                         if "domains" in conf:
-                            domains = [int(d) for d in conf["domains"]]
+                            domains = [domain_dict[d] for d in conf["domains"]]
                             if "domains" in names:
                                 log_dir += f"_{conf['domains']}"
+                        if "root" in conf:
+                            root = conf["root"]
+                            if "root" in names:
+                                if "augmented" in conf["root"]:
+                                    rootlog = "augmented"
+                                else:
+                                    rootlog = "normal"
+                                log_dir += f"_{rootlog}"
 
                         # Dataset
                         batch_size = args.batch_size
@@ -180,11 +198,10 @@ if __name__ == "__main__":
                             log_dm = PACSDataModule(root="data/variants/PACS_small", domains=domains, contents=contents,
                                                 batch_size=batch_size, num_workers=20, shuffle_all=True)
                         elif args.data == "RMNIST":
-                            domains = [0, 15, 30, 45, 60, 75]
                             contents = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
-                            dm = RMNISTDataModule(root="data", domains=domains, contents=contents,
+                            dm = RMNISTDataModule(root=root, domains=domains, contents=contents,
                                                 batch_size=batch_size, num_workers=20)
-                            log_dm = RMNISTDataModule(root="data", domains=domains, contents=contents,
+                            log_dm = RMNISTDataModule(root=root, domains=domains, contents=contents,
                                                 batch_size=batch_size, num_workers=20, shuffle_all=True)
                         num_domains = len(domains)
                         num_contents = len(contents)
