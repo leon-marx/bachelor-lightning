@@ -98,9 +98,9 @@ class CNN(pl.LightningModule):
         """
         images = batch[0]
         contents = batch[2]
-        
+
         loss = torch.nn.functional.cross_entropy(self(images), torch.argmax(contents, dim=1))
-        self.log("train_loss", loss)
+        # self.log("train_loss", loss)
         return loss
 
     def validation_step(self, batch, batch_idx):
@@ -116,9 +116,9 @@ class CNN(pl.LightningModule):
         """
         images = batch[0]
         contents = batch[2]
-        
+
         loss = torch.nn.functional.cross_entropy(self(images), torch.argmax(contents, dim=1))
-        self.log("val_loss", loss)
+        # self.log("val_loss", loss)
         return loss
 
     def test_step(self, batch, batch_idx):
@@ -134,9 +134,9 @@ class CNN(pl.LightningModule):
         """
         images = batch[0]
         contents = batch[2]
-        
+
         loss = torch.nn.functional.cross_entropy(self(images), torch.argmax(contents, dim=1))
-        self.log("test_loss", loss)
+        # self.log("test_loss", loss)
         return loss
 
     def configure_optimizers(self):
@@ -305,7 +305,7 @@ class Encoder(torch.nn.Module):
                 seq.append(activation)
                 if dropout:
                     seq.append(torch.nn.Dropout2d())
-                seq_list += seq       
+                seq_list += seq
         return seq_list
 
     def forward(self, images):
@@ -325,7 +325,7 @@ if __name__ == "__main__":
     batch_size = 4
     num_domains = 6
     num_contents = 10
-    
+
     lr = 1e-4
     out_channels = [128, 256, 512, 512, 1024, 1024]
 
@@ -337,20 +337,33 @@ if __name__ == "__main__":
     dropout = False
     batch_norm = True
 
-    batch = [
-        torch.randn(size=(batch_size, 1, 28, 28)),
-        torch.nn.functional.one_hot(torch.randint(
-            low=0, high=num_domains, size=(batch_size,)), num_classes=num_domains),
-        torch.nn.functional.one_hot(torch.randint(
-            low=0, high=num_contents, size=(batch_size,)), num_classes=num_contents),
-        (f"pic_{i}" for i in range(batch_size))
-    ]
+    # batch = [
+    #     torch.randn(size=(batch_size, 1, 28, 28)),
+    #     torch.nn.functional.one_hot(torch.randint(
+    #         low=0, high=num_domains, size=(batch_size,)), num_classes=num_domains),
+    #     torch.nn.functional.one_hot(torch.randint(
+    #         low=0, high=num_contents, size=(batch_size,)), num_classes=num_contents),
+    #     (f"pic_{i}" for i in range(batch_size))
+    # ]
 
     model = CNN(data="RMNIST", num_domains=num_domains, num_contents=num_contents,
-        latent_size=latent_size, lr=lr, depth=depth, 
+        latent_size=latent_size, lr=lr, depth=depth,
         out_channels=out_channels, kernel_size=kernel_size, activation=activation,
         downsampling=downsampling, dropout=dropout,
         batch_norm=batch_norm)
-    ae_loss = model.training_step(batch, 0)
-    print(ae_loss)
+    # ae_loss = model.training_step(batch, 0)
+    # print(ae_loss)
+    # print("Done!")
+
+
+    from datasets.rotated_mnist import RMNISTDataModule
+    root = "data"#/variants/RMNIST_augmented"
+    domains = [0, 15, 30, 45, 75]
+    contents = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+    dm = RMNISTDataModule(root=root, domains=domains, contents=contents,
+                        batch_size=batch_size, num_workers=0)
+    dm.setup()
+    batch = next(iter(dm.train_dataloader()))
+    loss = model.training_step(batch, 0)
+    print(loss)
     print("Done!")

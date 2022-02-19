@@ -84,7 +84,7 @@ class ERM(pl.LightningModule):
         contents = batch[2]
 
         loss = torch.nn.functional.cross_entropy(self(images), torch.argmax(contents, dim=1))
-        self.log("train_loss", loss)
+        # self.log("train_loss", loss)
         return loss
 
     def validation_step(self, batch, batch_idx):
@@ -93,7 +93,7 @@ class ERM(pl.LightningModule):
         contents = batch[2]
 
         loss = torch.nn.functional.cross_entropy(self(images), torch.argmax(contents, dim=1))
-        self.log("val_loss", loss)
+        # self.log("val_loss", loss)
         return loss
 
     def test_step(self, batch, batch_idx):
@@ -101,7 +101,7 @@ class ERM(pl.LightningModule):
         contents = batch[2]
 
         loss = torch.nn.functional.cross_entropy(self(images), torch.argmax(contents, dim=1))
-        self.log("test_loss", loss)
+        # self.log("test_loss", loss)
         return loss
 
     def configure_optimizers(self):
@@ -120,14 +120,14 @@ if __name__ == "__main__":
     weight_decay = 0
     hparams=None
 
-    batch = [
-        torch.randn(size=(batch_size, 1, 28, 28)),
-        torch.nn.functional.one_hot(torch.randint(
-            low=0, high=num_domains, size=(batch_size,)), num_classes=num_domains),
-        torch.nn.functional.one_hot(torch.randint(
-            low=0, high=num_contents, size=(batch_size,)), num_classes=num_contents),
-        (f"pic_{i}" for i in range(batch_size))
-    ]
+    # batch = [
+    #     torch.randn(size=(batch_size, 1, 28, 28)),
+    #     torch.nn.functional.one_hot(torch.randint(
+    #         low=0, high=num_domains, size=(batch_size,)), num_classes=num_domains),
+    #     torch.nn.functional.one_hot(torch.randint(
+    #         low=0, high=num_contents, size=(batch_size,)), num_classes=num_contents),
+    #     (f"pic_{i}" for i in range(batch_size))
+    # ]
 
     model = ERM(
         input_shape=input_shape,
@@ -135,6 +135,19 @@ if __name__ == "__main__":
         nonlinear_classifier=nonlinear_classifier,
         lr=lr,
         weight_decay=weight_decay)
+    # loss = model.training_step(batch, 0)
+    # print(loss)
+    # print("Done!")
+
+
+    from datasets.rotated_mnist import RMNISTDataModule
+    root = "data/variants/RMNIST_augmented"
+    domains = [0, 15, 30, 45, 75]
+    contents = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+    dm = RMNISTDataModule(root=root, domains=domains, contents=contents,
+                        batch_size=batch_size, num_workers=0)
+    dm.setup()
+    batch = next(iter(dm.train_dataloader()))
     loss = model.training_step(batch, 0)
     print(loss)
     print("Done!")
