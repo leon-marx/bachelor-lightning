@@ -48,7 +48,7 @@ if __name__ == "__main__":
     configs = {
         "CNN": {
             "data": ["RMNIST"],
-            "num_domains": [6],
+            "num_domains": [5],
             "num_contents": [10],
             "latent_size": [128],
             "lr": [1e-4],
