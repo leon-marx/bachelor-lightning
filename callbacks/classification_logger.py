@@ -36,7 +36,7 @@ class ClassificationLogger(Callback):
         self.umap_freq = 10
         self.iov_flag = False
         self.images_on_val = images_on_val
-    
+
     def on_save_checkpoint(self, trainer, pl_module, checkpoint):
         os.makedirs(f"{self.output_dir}/version_{trainer.logger.version}/images", exist_ok=True)
         self.log_classifications(trainer, pl_module, tensorboard_log=True)
@@ -84,7 +84,7 @@ class ClassificationLogger(Callback):
                 plt.imshow(train_imgs[i].view(28, 28).cpu().numpy())
                 plt.xticks([])
                 plt.yticks([])
-                plt.title(f"Prediction: {torch.argmax(train_preds[i]).item()}")
+                plt.title(f"Pred: {torch.argmax(train_preds[i]).item()}, Truth: {torch.argmax(train_contents[i]).item()}")
             plt.savefig(f"{self.output_dir}/version_{trainer.logger.version}/images/train_classification.png")
             if tensorboard_log:
                 trainer.logger.experiment.add_figure("train_classification", fig, close=False)
@@ -101,7 +101,7 @@ class ClassificationLogger(Callback):
                 plt.imshow(val_imgs[i].view(28, 28).cpu().numpy())
                 plt.xticks([])
                 plt.yticks([])
-                plt.title(f"Prediction: {torch.argmax(val_preds[i]).item()}")
+                plt.title(f"Pred: {torch.argmax(val_preds[i]).item()}, Truth: {torch.argmax(val_contents[i]).item()}")
             plt.savefig(f"{self.output_dir}/version_{trainer.logger.version}/images/val_classification.png")
             if tensorboard_log:
                 trainer.logger.experiment.add_figure("val_classification", fig, close=False)
@@ -113,8 +113,8 @@ class ClassificationLogger(Callback):
         """
         Plots the gradients flowing through different layers in the net during training.
         Can be used for checking for possible gradient vanishing / exploding problems.
-        
-        Usage: Plug this function in Trainer class after loss.backwards() as 
+
+        Usage: Plug this function in Trainer class after loss.backwards() as
         "plot_grad_flow(self.model.named_parameters())" to visualize the gradient flow
         """
         fig = plt.figure(figsize=(24, 16))
