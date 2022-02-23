@@ -32,31 +32,64 @@ class RMNISTDataset(Dataset):
             domain_string = ""
             for dom in self.domains:
                 domain_string += str(int(dom/15))
-            self.data_dir = f"{root}/RMNIST_{mode}_{domain_string}"
+            self.augmented_data_dir = f"{root}/RMNIST_{mode}_{domain_string}"
+            self.normal_data_dir = f"{root}/RMNIST_{mode}"
+            self.image_data = ()
+            self.domain_data = ()
+            self.content_data = ()
+            for domain in os.listdir(f"{self.augmented_data_dir}"):
+                domain = int(domain)
+                if domain in self.domains:
+                    for content in os.listdir(f"{self.augmented_data_dir}/{domain}"):
+                        content = int(content)
+                        if content in self.contents:
+                            imgs = torch.load(f"{self.augmented_data_dir}/{domain}/{content}/data.pt")
+                            self.image_data += (imgs,)
+                            self.domain_data += (torch.nn.functional.one_hot(self.domain_dict[domain], num_classes=len(self.domains)).view(1, -1),) * imgs.shape[0]
+                            self.content_data += (torch.nn.functional.one_hot(self.content_dict[content], num_classes=len(self.contents)).view(1, -1),) * imgs.shape[0]
+            for domain in os.listdir(f"{self.normal_data_dir}"):
+                domain = int(domain)
+                if domain in self.domains:
+                    for content in os.listdir(f"{self.normal_data_dir}/{domain}"):
+                        content = int(content)
+                        if content in self.contents:
+                            imgs = torch.load(f"{self.normal_data_dir}/{domain}/{content}/data.pt")
+                            self.image_data += (imgs,) * 5
+                            self.domain_data += (torch.nn.functional.one_hot(self.domain_dict[domain], num_classes=len(self.domains)).view(1, -1),) * imgs.shape[0] * 5
+                            self.content_data += (torch.nn.functional.one_hot(self.content_dict[content], num_classes=len(self.contents)).view(1, -1),) * imgs.shape[0] * 5
+            self.image_data = torch.cat(self.image_data, dim=0)
+            self.domain_data = torch.cat(self.domain_data, dim=0)
+            self.content_data = torch.cat(self.content_data, dim=0)
+            torch.manual_seed(17 + domain)
+            shuffle_inds = torch.randperm(len(self.image_data))
+            self.image_data = self.image_data[shuffle_inds]
+            self.domain_data = self.domain_data[shuffle_inds]
+            self.content_data = self.content_data[shuffle_inds]
+            self.transform = self.get_transform()
         else:
             self.data_dir = f"{root}/RMNIST_{mode}"
-        self.image_data = ()
-        self.domain_data = ()
-        self.content_data = ()
-        for domain in os.listdir(f"{self.data_dir}"):
-            domain = int(domain)
-            if domain in self.domains:
-                for content in os.listdir(f"{self.data_dir}/{domain}"):
-                    content = int(content)
-                    if content in self.contents:
-                        imgs = torch.load(f"{self.data_dir}/{domain}/{content}/data.pt")
-                        self.image_data += (imgs,)
-                        self.domain_data += (torch.nn.functional.one_hot(self.domain_dict[domain], num_classes=len(self.domains)).view(1, -1),) * imgs.shape[0]
-                        self.content_data += (torch.nn.functional.one_hot(self.content_dict[content], num_classes=len(self.contents)).view(1, -1),) * imgs.shape[0]
-        self.image_data = torch.cat(self.image_data, dim=0)
-        self.domain_data = torch.cat(self.domain_data, dim=0)
-        self.content_data = torch.cat(self.content_data, dim=0)
-        torch.manual_seed(17 + domain)
-        shuffle_inds = torch.randperm(len(self.image_data))
-        self.image_data = self.image_data[shuffle_inds]
-        self.domain_data = self.domain_data[shuffle_inds]
-        self.content_data = self.content_data[shuffle_inds]
-        self.transform = self.get_transform()
+            self.image_data = ()
+            self.domain_data = ()
+            self.content_data = ()
+            for domain in os.listdir(f"{self.data_dir}"):
+                domain = int(domain)
+                if domain in self.domains:
+                    for content in os.listdir(f"{self.data_dir}/{domain}"):
+                        content = int(content)
+                        if content in self.contents:
+                            imgs = torch.load(f"{self.data_dir}/{domain}/{content}/data.pt")
+                            self.image_data += (imgs,)
+                            self.domain_data += (torch.nn.functional.one_hot(self.domain_dict[domain], num_classes=len(self.domains)).view(1, -1),) * imgs.shape[0]
+                            self.content_data += (torch.nn.functional.one_hot(self.content_dict[content], num_classes=len(self.contents)).view(1, -1),) * imgs.shape[0]
+            self.image_data = torch.cat(self.image_data, dim=0)
+            self.domain_data = torch.cat(self.domain_data, dim=0)
+            self.content_data = torch.cat(self.content_data, dim=0)
+            torch.manual_seed(17 + domain)
+            shuffle_inds = torch.randperm(len(self.image_data))
+            self.image_data = self.image_data[shuffle_inds]
+            self.domain_data = self.domain_data[shuffle_inds]
+            self.content_data = self.content_data[shuffle_inds]
+            self.transform = self.get_transform()
 
     def get_transform(self):
         transform = transforms.Compose([
