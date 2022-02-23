@@ -56,6 +56,26 @@ if __name__ == "__main__":
     args = parser.parse_args()
     #################### EDIT THIS IN ORDER TO CHANGE THE SWEEP
     configs = {
+        "CVAE_v3_beta": {
+            "data": ["PACS"],
+            "num_domains": [3],
+            "num_contents": [7],
+            "latent_size": [128, 512, 1024],
+            "lr": [1e-5],
+            "depth": [1, 2],
+            "out_channels": ["128,128,256,256,512,512", "256,256,512,512,1024,1024","512,512,1024,1024,2048,2048"],
+            "kernel_size": [3],
+            "activation": ["selu"],
+            "downsampling": ["stride"],
+            "upsampling": ["upsample"],
+            "dropout": [False],
+            "batch_norm": [True],
+            "loss_mode": ["elbo"],
+            "lamb": [1e-4],
+            "max_lamb": [0.5, 0.1, 0.05],
+            "no_bn_last": [True],
+            "initialize": [True]
+            },
         "CVAE_v3_small": {
             "data": ["PACS"],
             "num_domains": [3],
@@ -250,6 +270,14 @@ if __name__ == "__main__":
                             lamb_string = lamb_string.replace(".", "-")
                             if "lamb" in names:
                                 log_dir += f"_{lamb_string}"
+                        if "max_lamb" in conf:
+                            max_lamb = conf["max_lamb"]
+                            max_lamb_string = "{:f}".format(max_lamb)
+                            max_lamb_string = max_lamb_string.replace(".", "-")
+                            if "max_lamb" in names:
+                                log_dir += f"_{max_lamb_string}"
+                        else:
+                            max_lamb = 1.0
                         if "beta" in conf:
                             beta = conf["beta"]
                             beta_string = "{:f}".format(beta)
@@ -345,7 +373,7 @@ if __name__ == "__main__":
                                             latent_size=latent_size, lr=lr, depth=depth,
                                             out_channels=out_channels, kernel_size=kernel_size, activation=activation,
                                             downsampling=downsampling, upsampling=upsampling, dropout=dropout,
-                                            batch_norm=batch_norm, loss_mode=loss_mode, lamb=lamb, initialize=True)
+                                            batch_norm=batch_norm, loss_mode=loss_mode, lamb=lamb, initialize=True, max_lamb=max_lamb)
                             if "MMD_CVAE" in model_name:
                                 model = MMD_CVAE(data=args.data, num_domains=num_domains, num_contents=num_contents,
                                             latent_size=latent_size, lr=lr, depth=depth,

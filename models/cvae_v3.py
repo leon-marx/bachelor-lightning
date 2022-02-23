@@ -22,7 +22,7 @@ def selu_init(m):
 
 
 class CVAE_v3(pl.LightningModule):
-    def __init__(self, data, num_domains, num_contents, latent_size, lr, depth, out_channels, kernel_size, activation, downsampling, upsampling, dropout, batch_norm, loss_mode, lamb, no_bn_last=True, initialize=False):
+    def __init__(self, data, num_domains, num_contents, latent_size, lr, depth, out_channels, kernel_size, activation, downsampling, upsampling, dropout, batch_norm, loss_mode, lamb, no_bn_last=True, initialize=False, max_lamb=1.0):
         super().__init__()
 
         self.data = data
@@ -41,6 +41,7 @@ class CVAE_v3(pl.LightningModule):
         self.lamb = lamb
         self.no_bn_last = no_bn_last
         self.get_mse_loss = torch.nn.MSELoss(reduction="mean")
+        self.max_lamb = max_lamb
         self.hyper_param_dict = {
             "data": self.data,
             "num_domains": self.num_domains,
@@ -57,6 +58,7 @@ class CVAE_v3(pl.LightningModule):
             "loss_mode": self.loss_mode,
             "lamb": self.lamb,
             "no_bn_last": self.no_bn_last,
+            "max_lamb": self.max_lamb,
         }
 
         self.encoder = Encoder(data=self.data,
@@ -244,7 +246,7 @@ class CVAE_v3(pl.LightningModule):
         return optimizer
 
     def warmer(self):
-        if self.lamb < 1.0:
+        if self.lamb < self.max_lamb:
             self.lamb *= 10 ** 0.5
             print(f"New lambda: {self.lamb}")
             if self.loss_mode == "deep_own":

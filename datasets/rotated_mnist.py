@@ -131,14 +131,17 @@ if __name__ == "__main__":
 
     print(domains)
     print(argument_domains)
-    batch_size = 4
+    batch_size = 1
     num_workers = 0
-    root = "data"
+    root = f"data/variants/RMNIST_augmented"
     dm = RMNISTDataModule(root=root, domains=domains, contents=contents, batch_size=batch_size, num_workers=num_workers)
     dm.setup()
     import numpy as np
+    from tqdm import tqdm
     import matplotlib.pyplot as plt
-    for (img, domain, content) in dm.train_dataloader():
+    doms = []
+    conts = []
+    for (img, domain, content) in tqdm(dm.train_dataloader()):
         # print(img)
         # print(domain)
         # print(content)
@@ -146,12 +149,25 @@ if __name__ == "__main__":
         # print(domain.shape)
         # print(content.shape)
         # print(img.min(), img.max())
-        for i in range(4):
-            plt.subplot(2, 2, i+1)
-            plt.imshow(img[i].view(28, 28))
-            plt.title([char.item() for char in domain[i]])
-            plt.ylabel([char.item() for char in content[i]])
-            plt.xticks([])
-            plt.yticks([])
-        plt.show()
+        # for i in range(4):
+        #     plt.subplot(2, 2, i+1)
+        #     plt.imshow(img[i].view(28, 28))
+        #     plt.title([char.item() for char in domain[i]])
+        #     plt.ylabel([char.item() for char in content[i]])
+        #     plt.xticks([])
+        #     plt.yticks([])
+        # plt.show()
+        doms.append(torch.argmax(domain).item())
+        conts.append(torch.argmax(content).item())
+    doms = np.array(doms) * 15
+    conts = np.array(conts)
+    plt.figure(figsize=(12, 16))
+    plt.subplot(2,1,1)
+    plt.scatter(np.arange(len(doms)), doms)
+    plt.title("domains")
+    plt.subplot(2,1,2)
+    plt.scatter(np.arange(len(conts)), conts)
+    plt.title("contents")
+    plt.show()
+    print("done")
 
