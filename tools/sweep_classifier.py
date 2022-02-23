@@ -41,6 +41,7 @@ if __name__ == "__main__":
     parser.add_argument("--test_mode", action="store_true", default=False)
     parser.add_argument("--gpus", type=str, default="3,")
     parser.add_argument("--max_epochs", type=int, default=25)
+    parser.add_argument("--max_steps", type=int, default=-1)
     parser.add_argument("--batch_size", type=int, default=4)
     parser.add_argument("--iov", type=int, default=1)
     args = parser.parse_args()
@@ -264,7 +265,8 @@ if __name__ == "__main__":
                                 max_epochs=args.max_epochs,
                                 enable_checkpointing=False,
                                 log_every_n_steps=5,
-                                fast_dev_run=args.test_mode
+                                fast_dev_run=args.test_mode,
+                                max_steps = args.max_steps
                             )
 
                             # Main
