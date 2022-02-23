@@ -33,7 +33,7 @@ class RMNISTDataset(Dataset):
             for dom in self.domains:
                 domain_string += str(int(dom/15))
             self.augmented_data_dir = f"{root}/RMNIST_{mode}_{domain_string}"
-            self.normal_data_dir = f"{root}/RMNIST_{mode}"
+            self.normal_data_dir = f"data/RMNIST_{mode}"
             self.image_data = ()
             self.domain_data = ()
             self.content_data = ()
