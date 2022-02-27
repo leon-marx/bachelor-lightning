@@ -61,7 +61,7 @@ if __name__ == "__main__":
             "num_domains": [3],
             "num_contents": [7],
             "latent_size": [128],
-            "lr": [1e-6],
+            "lr": [1e-5],
             "depth": [1],
             "out_channels": ["128,128,256,256,512,512"],
             "kernel_size": [3],
