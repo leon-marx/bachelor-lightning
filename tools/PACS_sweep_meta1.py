@@ -135,9 +135,9 @@ if __name__ == "__main__":
     if args.data == "PACS":
         domains = ["art_painting", "cartoon", "photo"]
         contents = ["dog", "elephant", "giraffe", "guitar", "horse", "house", "person"]
-        dm = BalancedPACSDataModule(root="data", domains=domains, contents=contents,
+        dm = BalancedPACSDataModule(root="data/variants/PACS_small", domains=domains, contents=contents,
                             batch_size=batch_size, num_workers=20)
-        log_dm = BalancedPACSDataModule(root="data", domains=domains, contents=contents,
+        log_dm = BalancedPACSDataModule(root="data/variants/PACS_small", domains=domains, contents=contents,
                             batch_size=batch_size, num_workers=20, shuffle_all=True)
     elif args.data == "RMNIST":
         domains = [0, 15, 30, 45, 60, 75]
