@@ -68,7 +68,7 @@ if __name__ == "__main__":
             "activation": ["relu", "lrelu", "elu", "selu"],
             "downsampling": ["stride", "maxpool"],
             "upsampling": ["stride", "upsample"],
-            "dropout": [False, True],
+            "dropout": [False],
             "batch_norm": [False, True],
             "loss_mode": ["elbo"],
             "lamb": [0],
