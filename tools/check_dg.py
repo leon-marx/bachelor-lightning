@@ -40,6 +40,7 @@ if __name__ == "__main__":
     parser.add_argument("--restart", action="store_true", default=False)
     parser.add_argument("--test_mode", action="store_true", default=False)
     parser.add_argument("--gpus", type=str, default="3,")
+    parser.add_argument("--mode", type=str, default="ood")
     parser.add_argument("--max_epochs", type=int, default=25)
     parser.add_argument("--max_steps", type=int, default=-1)
     parser.add_argument("--batch_size", type=int, default=4)
@@ -178,7 +179,10 @@ if __name__ == "__main__":
                                 log_dir += f"_{data}"
                         if "domains" in conf:
                             domains = [domain_dict[d] for d in conf["domains"]]
-                            test_domains = [i for i in [0, 15, 30, 45, 60, 75] if i not in domains]
+                            if args.mode == "ood":
+                                test_domains = [i for i in [0, 15, 30, 45, 60, 75] if i not in domains]
+                            if args.mode == "id":
+                                test_domains = [i for i in domains]
                             if "domains" in names:
                                 log_dir += f"_{conf['domains']}"
                         if "root" in conf:
@@ -220,6 +224,9 @@ if __name__ == "__main__":
                             os.makedirs(log_dir, exist_ok=True)
                             iov = args.iov == 1
                             print(f"Images on val: {iov}")
+                            print(f"Testing {args.mode} performance:")
+                            print(f"Training Domains: {domains}")
+                            print(f"Test Domains: {test_domains}")
                             callbacks = [
                                 ClassificationLogger(log_dir, log_dm, train_batch, val_batch, test_domains, contents, images_on_val=iov)
                             ]
@@ -229,8 +236,10 @@ if __name__ == "__main__":
                                 print(f"    {k}: {v}")
 
                             # Model
+                            ckpt_path = f"{log_dir}/version_0/checkpoints/last.ckpt"
                             if model_name == "CNN":
-                                model = CNN(
+                                model = CNN.load_from_checkpoint(
+                                    checkpoint_path=ckpt_path,
                                     data=data,
                                     num_domains=num_domains,
                                     num_contents=num_contents,
@@ -245,7 +254,8 @@ if __name__ == "__main__":
                                     batch_norm=batch_norm,
                                     initialize=initialize)
                             if model_name == "ERM":
-                                model = ERM(
+                                model = ERM.load_from_checkpoint(
+                                    checkpoint_path=ckpt_path,
                                     input_shape=input_shape,
                                     num_classes=num_contents,
                                     nonlinear_classifier=nonlinear_classifier,
