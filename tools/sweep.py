@@ -86,6 +86,63 @@ if __name__ == "__main__":
             "data": ["RMNIST"],
             "num_domains": [6],
             "num_contents": [10],
+            "latent_size": [128, 512, 1024],
+            "lr": [1e-4],
+            "depth": [1, 2],
+            "out_channels": ["128,256,512", "256,512,1024", "512,1024,2048"],
+            "kernel_size": [3],
+            "activation": ["elu"],
+            "downsampling": ["stride"],
+            "upsampling": ["upsample"],
+            "dropout": [False],
+            "batch_norm": [True],
+            "loss_mode": ["elbo"],
+            "lamb": [1e-2],
+            "no_bn_last": [True],
+            "initialize": [True]
+            },
+        "MMD_CVAE": {
+            "data": ["RMNIST"],
+            "num_domains": [6],
+            "num_contents": [10],
+            "latent_size": [128],
+            "lr": [1e-4],
+            "depth": [1],
+            "out_channels": ["128,128,256,256,512,512"],
+            "kernel_size": [3],
+            "activation": ["elu"],
+            "downsampling": ["stride"],
+            "upsampling": ["upsample"],
+            "dropout": [False],
+            "batch_norm": [True],
+            "loss_mode": ["mmd", "elbo"],
+            "lamb": [0.0, 1e-4, 1e-2],
+            "beta": [0.0, 1e-4, 1e-2],
+            "no_bn_last": [True],
+            "initialize": [True]
+            },
+        "AAE": {
+            "data": ["RMNIST"],
+            "num_domains": [6],
+            "num_contents": [10],
+            "latent_size": [128],
+            "lr": [1e-4],
+            "depth": [1],
+            "out_channels": ["128,128,256,256,512,512"],
+            "kernel_size": [3],
+            "activation": ["elu"],
+            "downsampling": ["stride"],
+            "upsampling": ["upsample"],
+            "dropout": [False],
+            "batch_norm": [True],
+            "loss_mode": ["elbo"],
+            "no_bn_last": [True],
+            "initialize": [True]
+            },
+        "AAE_v2": {
+            "data": ["RMNIST"],
+            "num_domains": [6],
+            "num_contents": [10],
             "latent_size": [32, 64, 128],
             "lr": [1e-4],
             "depth": [1, 2],
@@ -94,68 +151,11 @@ if __name__ == "__main__":
             "activation": ["elu", "selu", "relu"],
             "downsampling": ["stride"],
             "upsampling": ["upsample"],
-            "dropout": [False], 
-            "batch_norm": [True], 
+            "dropout": [False],
+            "batch_norm": [True],
             "loss_mode": ["elbo", "l1_elbo", "deep_own"],
             "lamb": [1e-2],
             "no_bn_last": [True],
-            "initialize": [True]
-            },
-        "MMD_CVAE": {
-            "data": ["RMNIST"], 
-            "num_domains": [6], 
-            "num_contents": [10], 
-            "latent_size": [128], 
-            "lr": [1e-4], 
-            "depth": [1], 
-            "out_channels": ["128,128,256,256,512,512"], 
-            "kernel_size": [3],
-            "activation": ["elu"],
-            "downsampling": ["stride"], 
-            "upsampling": ["upsample"], 
-            "dropout": [False], 
-            "batch_norm": [True], 
-            "loss_mode": ["mmd", "elbo"],
-            "lamb": [0.0, 1e-4, 1e-2], 
-            "beta": [0.0, 1e-4, 1e-2], 
-            "no_bn_last": [True], 
-            "initialize": [True]
-            },
-        "AAE": {
-            "data": ["RMNIST"], 
-            "num_domains": [6], 
-            "num_contents": [10], 
-            "latent_size": [128], 
-            "lr": [1e-4], 
-            "depth": [1], 
-            "out_channels": ["128,128,256,256,512,512"], 
-            "kernel_size": [3],
-            "activation": ["elu"],
-            "downsampling": ["stride"], 
-            "upsampling": ["upsample"], 
-            "dropout": [False], 
-            "batch_norm": [True], 
-            "loss_mode": ["elbo"],
-            "no_bn_last": [True], 
-            "initialize": [True]
-            },
-        "AAE_v2": {
-            "data": ["RMNIST"], 
-            "num_domains": [6], 
-            "num_contents": [10], 
-            "latent_size": [32, 64, 128], 
-            "lr": [1e-4], 
-            "depth": [1, 2], 
-            "out_channels": ["128,128,256,256,512,512", "64,64,128,128,256,256", "32,32,64,64,128,128"], 
-            "kernel_size": [3],
-            "activation": ["elu", "selu", "relu"],
-            "downsampling": ["stride"], 
-            "upsampling": ["upsample"], 
-            "dropout": [False], 
-            "batch_norm": [True], 
-            "loss_mode": ["elbo", "l1_elbo", "deep_own"],
-            "lamb": [1e-2],
-            "no_bn_last": [True], 
             "initialize": [True],
             "net": ["vgg"],
             "calibration": [True]
@@ -297,7 +297,7 @@ if __name__ == "__main__":
                             if "calibration" in names:
                                 log_dir += f"_{calibration}"
 
-                            
+
 
                         if args.restart or not os.path.isdir(f"{log_dir}"):
                             # Configuration
@@ -307,7 +307,7 @@ if __name__ == "__main__":
                             callbacks = [
                                 Logger(log_dir, log_dm, train_batch, val_batch, domains, contents, images_on_val=iov)
                             ]
-                            
+
                             print("Args:")
                             for k, v in sorted(conf.items()):
                                 print(f"    {k}: {v}")
@@ -334,9 +334,9 @@ if __name__ == "__main__":
                                 model = AE_v2(num_domains=num_domains, num_contents=num_contents,
                                             latent_size=latent_size, lr=lr)
                             if model_name == "AE_v3":
-                                model = AE_v3(num_domains=num_domains, num_contents=num_contents, 
-                                            latent_size=latent_size, lr=lr, depth=depth, out_channels=out_channels, 
-                                            kernel_size=kernel_size, activation=activation, downsampling=downsampling, 
+                                model = AE_v3(num_domains=num_domains, num_contents=num_contents,
+                                            latent_size=latent_size, lr=lr, depth=depth, out_channels=out_channels,
+                                            kernel_size=kernel_size, activation=activation, downsampling=downsampling,
                                             upsampling=upsampling, dropout=dropout, batch_norm=batch_norm, loss_mode=loss_mode)
                             if model_name == "DCCVAE":
                                 model = DCCVAE(num_domains=num_domains, num_contents=num_contents, lr=lr,
@@ -347,25 +347,25 @@ if __name__ == "__main__":
                                             lr=lr, lamb=lamb, beta=beta)
                             if model_name == "CVAE_v3":
                                 model = CVAE_v3(data=args.data, num_domains=num_domains, num_contents=num_contents,
-                                            latent_size=latent_size, lr=lr, depth=depth, 
+                                            latent_size=latent_size, lr=lr, depth=depth,
                                             out_channels=out_channels, kernel_size=kernel_size, activation=activation,
                                             downsampling=downsampling, upsampling=upsampling, dropout=dropout,
                                             batch_norm=batch_norm, loss_mode=loss_mode, lamb=lamb, initialize=True)
                             if model_name == "MMD_CVAE":
                                 model = MMD_CVAE(data=args.data, num_domains=num_domains, num_contents=num_contents,
-                                            latent_size=latent_size, lr=lr, depth=depth, 
+                                            latent_size=latent_size, lr=lr, depth=depth,
                                             out_channels=out_channels, kernel_size=kernel_size, activation=activation,
                                             downsampling=downsampling, upsampling=upsampling, dropout=dropout,
                                             batch_norm=batch_norm, loss_mode=loss_mode, lamb=lamb, beta=beta, initialize=True)
                             if model_name == "AAE":
                                 model = AAE(data=args.data, num_domains=num_domains, num_contents=num_contents,
-                                            latent_size=latent_size, lr=lr, depth=depth, 
+                                            latent_size=latent_size, lr=lr, depth=depth,
                                             out_channels=out_channels, kernel_size=kernel_size, activation=activation,
                                             downsampling=downsampling, upsampling=upsampling, dropout=dropout,
                                             batch_norm=batch_norm, loss_mode=loss_mode, initialize=True)
                             if model_name == "AAE_v2":
                                 model = AAE_v2(data=args.data, num_domains=num_domains, num_contents=num_contents,
-                                            latent_size=latent_size, lr=lr, depth=depth, 
+                                            latent_size=latent_size, lr=lr, depth=depth,
                                             out_channels=out_channels, kernel_size=kernel_size, activation=activation,
                                             downsampling=downsampling, upsampling=upsampling, dropout=dropout,
                                             batch_norm=batch_norm, loss_mode=loss_mode, lamb=lamb, net=net, calibration=calibration, initialize=True)
