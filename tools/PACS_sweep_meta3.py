@@ -210,9 +210,9 @@ if __name__ == "__main__":
                         if "max_beta" in conf:
                             max_beta = conf["max_beta"]
                             max_beta_string = "{:f}".format(max_beta)
-                            max_beta_string = max_beta.replace(".", "-")
+                            max_beta_string = max_beta_string.replace(".", "-")
                             if "max_beta" in names:
-                                log_dir += f"_{max_beta}"
+                                log_dir += f"_{max_beta_string}"
                         else:
                             max_beta = 1.0
                         if "dropout_rate" in conf:
