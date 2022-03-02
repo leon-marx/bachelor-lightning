@@ -36,6 +36,7 @@ if __name__ == "__main__":
     parser = ArgumentParser()
     parser.add_argument("--data", type=str, default=None)
     parser.add_argument("--log_name", type=str, default=None)
+    parser.add_argument("--ckpt_dir", type=str, default=None)
     parser.add_argument("--models", type=str, default=None)
     parser.add_argument("--restart", action="store_true", default=False)
     parser.add_argument("--test_mode", action="store_true", default=False)
@@ -235,8 +236,17 @@ if __name__ == "__main__":
                             for k, v in sorted(conf.items()):
                                 print(f"    {k}: {v}")
 
+                            ckpt_dir_parts = log_dir.split("/")
+                            ckpt_dir = ""
+                            for i, s in enumerate(ckpt_dir_parts):
+                                if i != 1:
+                                    ckpt_dir += s
+                                else:
+                                    ckpt_dir += args.ckpt_dir
+
+
                             # Model
-                            ckpt_path = f"{log_dir}/version_0/checkpoints/last.ckpt"
+                            ckpt_path = f"{ckpt_dir}/version_0/checkpoints/last.ckpt"
                             if model_name == "CNN":
                                 model = CNN.load_from_checkpoint(
                                     checkpoint_path=ckpt_path,
