@@ -247,7 +247,7 @@ if __name__ == "__main__":
 
 
                             # Model
-                            ckpt_path = f"{ckpt_dir}/version_0/checkpoints/last.ckpt"
+                            ckpt_path = f"{ckpt_dir}/version_0/checkpoints/*.ckpt"
                             if model_name == "CNN":
                                 model = CNN.load_from_checkpoint(
                                     checkpoint_path=ckpt_path,
