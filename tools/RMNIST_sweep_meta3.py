@@ -62,7 +62,7 @@ if __name__ == "__main__":
             "num_contents": [10],
             "latent_size": [512, 1024, 2048],
             "lr": [1e-4],
-            "depth": [1, 2, 3],
+            "depth": [1, 2],
             "out_channels": ["128,256,512", "256,512,1024", "512,1024,2048"],
             "kernel_size": [3],
             "activation": ["elu"],
