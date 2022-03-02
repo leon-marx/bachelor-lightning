@@ -22,7 +22,7 @@ def selu_init(m):
 
 
 class MMD_CVAE(pl.LightningModule):
-    def __init__(self, data, num_domains, num_contents, latent_size, lr, depth, out_channels, kernel_size, activation, downsampling, upsampling, dropout, batch_norm, loss_mode, lamb, beta, no_bn_last=True, initialize=False):
+    def __init__(self, data, num_domains, num_contents, latent_size, lr, depth, out_channels, kernel_size, activation, downsampling, upsampling, dropout, batch_norm, loss_mode, lamb, beta, no_bn_last=True, initialize=False, max_lamb=1, max_beta=1):
         super().__init__()
 
         self.data = data
@@ -41,6 +41,8 @@ class MMD_CVAE(pl.LightningModule):
         self.lamb = lamb
         self.beta = beta
         self.no_bn_last = no_bn_last
+        self.max_lamb = max_lamb
+        self.max_beta = max_beta
         self.get_mse_loss = torch.nn.MSELoss(reduction="mean")
         self.hyper_param_dict = {
             "data": self.data,
@@ -59,6 +61,8 @@ class MMD_CVAE(pl.LightningModule):
             "lamb": self.lamb,
             "beta": self.beta,
             "no_bn_last": self.no_bn_last,
+            "max_lamb": self.max_lamb,
+            "max_beta": self.max_beta,
         }
 
         self.encoder = Encoder(data=self.data,
@@ -292,10 +296,10 @@ class MMD_CVAE(pl.LightningModule):
         return optimizer
 
     def warmer(self):
-        if self.lamb < 1.0:
+        if self.lamb < self.max_lamb:
             self.lamb *= 10 ** 0.5
             print(f"New lambda: {self.lamb}")
-        if self.beta < 1.0:
+        if self.beta < self.max_beta:
             self.beta *= 10 ** 0.5
             print(f"New beta: {self.beta}")
 

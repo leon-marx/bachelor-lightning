@@ -42,7 +42,7 @@ class Logger(Callback):
         self.content_dict = {content: torch.LongTensor([i]) for i, content in enumerate(self.contents)}
 
         self.epoch_counter = -1
-        self.warumup_freq = 10
+        self.warumup_freq = 5
         self.iov_flag = False
         self.images_on_val = images_on_val
 
