@@ -276,7 +276,7 @@ if __name__ == "__main__":
                                 gradient_clip_val=0.5,
                                 gradient_clip_algorithm="value",
                                 max_epochs=args.max_epochs,
-                                enable_checkpointing=False,
+                                enable_checkpointing=True,
                                 log_every_n_steps=5,
                                 fast_dev_run=args.test_mode
                             )
