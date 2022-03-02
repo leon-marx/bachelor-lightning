@@ -72,7 +72,7 @@ if __name__ == "__main__":
             "batch_norm": [True],
             "loss_mode": ["elbo"],
             "lamb": [1e-2],
-            "max_lamb": [1.0],
+            "max_lamb": [1.0, 0.1],
             "no_bn_last": [True],
             "initialize": [True]
         }
