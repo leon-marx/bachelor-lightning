@@ -404,7 +404,8 @@ class Encoder(torch.nn.Module):
                     activation=self.activation,
                     downsampling=self.downsampling,
                     dropout=self.dropout,
-                    batch_norm=self.batch_norm
+                    batch_norm=self.batch_norm,
+                    last_special=True
                 ),  # (N, [6], 4, 4)
             )
             self.flatten = torch.nn.Flatten()
@@ -461,7 +462,7 @@ class Encoder(torch.nn.Module):
                 self.activation,
             )
 
-    def block(self, depth, in_channels, out_channels, kernel_size, activation, downsampling="stride", dropout=False, batch_norm=False):
+    def block(self, depth, in_channels, out_channels, kernel_size, activation, downsampling="stride", dropout=False, batch_norm=False, last_special=False):
         seq_list = []
         if isinstance(activation, torch.nn.SELU):
             dropout = False
@@ -484,7 +485,10 @@ class Encoder(torch.nn.Module):
                     if batch_norm:
                         seq.append(torch.nn.BatchNorm2d(num_features=out_channels))
                     seq.append(activation)
-                    seq.append(torch.nn.MaxPool2d(kernel_size=2))
+                    if last_special:
+                        seq.append(torch.nn.MaxPool2d(kernel_size=2, padding=1))
+                    else:
+                        seq.append(torch.nn.MaxPool2d(kernel_size=2))
                     if dropout:
                         seq.append(torch.nn.Dropout2d())
                     seq_list += seq
@@ -787,20 +791,20 @@ if __name__ == "__main__":
 
     lr = 1e-4
     # out_channels = [128, 256, 512, 512, 1024, 1024, 2048]
-    out_channels = [128,128,256,256,512,512]
+    out_channels = [256,256,512,512,1024,1024,1024]
 #
 
-    latent_size = 128
+    latent_size = 1024
     depth = 1
     kernel_size = 3
-    activation = torch.nn.SELU()
-    downsampling = "stride"
+    activation = torch.nn.ELU()
+    downsampling = "maxpool"
     upsampling = "upsample"
     dropout = False
     batch_norm = True
-    loss_mode = "elbo"
-    lamb = 1e-6
-    net = "alex"
+    loss_mode = "l2"
+    lamb = 0
+    net = "vgg"
     calibration = True
 
     batch = [
