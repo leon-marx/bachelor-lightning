@@ -60,7 +60,7 @@ if __name__ == "__main__":
             "data": ["RMNIST"],
             "num_domains": [6],
             "num_contents": [10],
-            "latent_size": [512, 1024, 2048],
+            "latent_size": [512, 1024],
             "lr": [1e-4],
             "depth": [1, 2],
             "out_channels": ["128,256,512", "256,512,1024"],
