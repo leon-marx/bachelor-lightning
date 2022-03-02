@@ -206,9 +206,9 @@ if __name__ == "__main__":
                                                 batch_size=batch_size, num_workers=20, shuffle_all=True)
                         elif args.data == "RMNIST":
                             contents = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
-                            dm = RMNISTDataModule(root=root, domains=test_domains, contents=contents,
+                            dm = RMNISTDataModule(root="data", domains=test_domains, contents=contents,
                                                 batch_size=batch_size, num_workers=20)
-                            log_dm = RMNISTDataModule(root=root, domains=test_domains, contents=contents,
+                            log_dm = RMNISTDataModule(root="data", domains=test_domains, contents=contents,
                                                 batch_size=batch_size, num_workers=20, shuffle_all=True)
                         num_domains = len(test_domains)
                         num_contents = len(contents)
