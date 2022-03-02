@@ -240,9 +240,10 @@ if __name__ == "__main__":
                             ckpt_dir = ""
                             for i, s in enumerate(ckpt_dir_parts):
                                 if i != 1:
-                                    ckpt_dir += s
+                                    ckpt_dir += s +"/"
                                 else:
-                                    ckpt_dir += args.ckpt_dir
+                                    ckpt_dir += args.ckpt_dir + "/"
+                            ckpt_dir = ckpt_dir[:-1]
 
 
                             # Model
