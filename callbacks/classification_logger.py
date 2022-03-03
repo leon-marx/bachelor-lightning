@@ -7,6 +7,11 @@ from matplotlib.lines import Line2D
 import numpy as np
 from tqdm import tqdm
 import umap
+plt.gray()
+
+def shift(image):
+    image = (image + 1.0) / 2.0
+    return torch.clamp(image, 0.0, 1.0)
 
 
 class ClassificationLogger(Callback):
@@ -76,7 +81,7 @@ class ClassificationLogger(Callback):
             train_imgs = self.train_batch[0].to(pl_module.device)
             train_contents = self.train_batch[2].to(pl_module.device)
             train_preds = pl_module(train_imgs)
-            train_imgs = (train_imgs + 1.0) / 2.0
+            train_imgs = shift(train_imgs)
 
             fig = plt.figure(figsize=(10, 10))
             for i in range(min(train_imgs.shape[0], 16)):
@@ -93,7 +98,7 @@ class ClassificationLogger(Callback):
             val_imgs = self.val_batch[0].to(pl_module.device)
             val_contents = self.val_batch[2].to(pl_module.device)
             val_preds = pl_module(val_imgs)
-            val_imgs = (val_imgs + 1.0) / 2.0
+            val_imgs = shift(val_imgs)
 
             fig = plt.figure(figsize=(10, 10))
             for i in range(min(val_imgs.shape[0], 16)):
