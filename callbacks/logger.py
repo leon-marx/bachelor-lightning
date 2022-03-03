@@ -60,13 +60,15 @@ class Logger(Callback):
         if isinstance(outputs, list):
             self.train_loss.append(outputs[0]["loss"].item())
             if torch.isnan(outputs[0]["loss"]).item():
-                print("NaN Loss")
+                print("NaN Loss, raising KeyboardInterrupt")
+                raise KeyboardInterrupt
                 # print("REDUCING LEARNING RATE!")
                 # trainer.optimizer = pl_module.configure_optimizers(reduce_lr=True)
         else:
             self.train_loss.append(outputs["loss"].item())
             if torch.isnan(outputs["loss"]).item():
-                print("NaN Loss")
+                print("NaN Loss, raising KeyboardInterrupt")
+                raise KeyboardInterrupt
                 # print("REDUCING LEARNING RATE!")
                 # pl_module.optimizer = pl_module.configure_optimizers(reduce_lr=True)
 
