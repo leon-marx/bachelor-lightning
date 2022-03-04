@@ -280,7 +280,8 @@ if __name__ == "__main__":
                             iov = args.iov == 1
                             print(f"Images on val: {iov}")
                             callbacks = [
-                                Logger(log_dir, log_dm, train_batch, val_batch, domains, contents, images_on_val=iov)
+                                Logger(log_dir, log_dm, train_batch, val_batch, domains, contents, images_on_val=iov),
+                                pl.callbacks.ModelCheckpoint(monitor="val_loss", save_last=True),
                             ]
 
                             print("Args:")
@@ -331,7 +332,7 @@ if __name__ == "__main__":
                                 gradient_clip_val=0.5,
                                 gradient_clip_algorithm="value",
                                 max_epochs=args.max_epochs,
-                                enable_checkpointing=False,
+                                enable_checkpointing=True,
                                 log_every_n_steps=5,
                                 fast_dev_run=args.test_mode
                             )
