@@ -17,7 +17,7 @@ def shift(image):
 
 
 class Logger(Callback):
-    def __init__(self, output_dir, log_dm, train_batch, val_batch, domains, contents, images_on_val=False):
+    def __init__(self, output_dir, log_dm, train_batch, val_batch, domains, contents, images_on_val=False, NB_flag=False):
         super().__init__()
         self.output_dir = output_dir
 
@@ -45,6 +45,8 @@ class Logger(Callback):
         self.warumup_freq = 5
         self.iov_flag = False
         self.images_on_val = images_on_val
+
+        self.NB_flag = NB_flag
 
     def on_save_checkpoint(self, trainer, pl_module, checkpoint):
         os.makedirs(f"{self.output_dir}/version_{trainer.logger.version}/images", exist_ok=True)
@@ -429,7 +431,7 @@ class Logger(Callback):
             pl_module.train()
 
     def latent_neighbourhood(self, trainer, pl_module, tensorboard_log=False):
-        if False:  # We do not want to use this at the moment, this is a cheap flag in order to allow this easily
+        if self.NB_flag:
             with torch.no_grad():
                 pl_module.eval()
 

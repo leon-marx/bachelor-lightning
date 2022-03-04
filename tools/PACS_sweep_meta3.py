@@ -280,7 +280,7 @@ if __name__ == "__main__":
                             iov = args.iov == 1
                             print(f"Images on val: {iov}")
                             callbacks = [
-                                Logger(log_dir, log_dm, train_batch, val_batch, domains, contents, images_on_val=iov),
+                                Logger(log_dir, log_dm, train_batch, val_batch, domains, contents, images_on_val=iov, NB_flag=True),
                                 pl.callbacks.ModelCheckpoint(monitor="val_loss", save_last=True),
                             ]
 
