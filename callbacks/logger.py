@@ -49,6 +49,7 @@ class Logger(Callback):
     def on_save_checkpoint(self, trainer, pl_module, checkpoint):
         os.makedirs(f"{self.output_dir}/version_{trainer.logger.version}/images", exist_ok=True)
         self.log_reconstructions(trainer, pl_module, tensorboard_log=True)
+        self.latent_neighbourhood(trainer, pl_module, tensorboard_log=True)
         self.log_generated(trainer, pl_module, tensorboard_log=True)
         self.log_losses(trainer)
         self.log_grad_flow(trainer, tensorboard_log=True)
@@ -81,6 +82,7 @@ class Logger(Callback):
             if not self.images_on_val:
                 os.makedirs(f"{self.output_dir}/version_{trainer.logger.version}/images", exist_ok=True)
                 self.log_reconstructions(trainer, pl_module, tensorboard_log=True)
+                self.latent_neighbourhood(trainer, pl_module, tensorboard_log=True)
                 self.log_generated(trainer, pl_module, tensorboard_log=True)
                 self.log_domain_transfers(trainer, pl_module, tensorboard_log=True)
                 self.log_content_transfers(trainer, pl_module, tensorboard_log=True)
@@ -99,6 +101,7 @@ class Logger(Callback):
         if self.images_on_val and self.iov_flag and batch_idx==0:
             os.makedirs(f"{self.output_dir}/version_{trainer.logger.version}/images", exist_ok=True)
             self.log_reconstructions(trainer, pl_module, tensorboard_log=True)
+            self.latent_neighbourhood(trainer, pl_module, tensorboard_log=True)
             self.log_generated(trainer, pl_module, tensorboard_log=True)
             self.log_domain_transfers(trainer, pl_module, tensorboard_log=True)
             self.log_content_transfers(trainer, pl_module, tensorboard_log=True)
@@ -422,5 +425,63 @@ class Logger(Callback):
                     gen_grid = torchvision.utils.make_grid(canvas, nrow=3)
                     torchvision.utils.save_image(gen_grid, f"{self.output_dir}/version_{trainer.logger.version}/images/generated_{dom}_{cont}_comparison.png")
                     trainer.logger.experiment.add_image(f"generated_{dom}_{cont}_comparison.png", gen_grid)
+
+            pl_module.train()
+
+    def latent_neighbourhood(self, trainer, pl_module, tensorboard_log=False):
+        with torch.no_grad():
+            pl_module.eval()
+
+            train_imgs = self.train_batch[0].to(pl_module.device)
+            train_domains = self.train_batch[1].to(pl_module.device)
+            train_contents = self.train_batch[2].to(pl_module.device)
+
+            train_enc_mu, train_enc_logvar = pl_module.encoder(train_imgs, train_domains, train_contents)
+            train_noise = torch.normal(mean=torch.zeros_like(train_enc_mu), std=torch.ones_like(train_enc_mu) * 5).to(pl_module.device)
+            train_z_list = [
+                train_enc_mu,
+                train_enc_mu + torch.randn_like(train_enc_mu) * (0.5 * train_enc_logvar).exp(),
+                train_enc_mu + train_noise * (0.5 * train_enc_logvar).exp() * 0.1,
+                train_enc_mu + train_noise * (0.5 * train_enc_logvar).exp() * 0.2,
+                train_enc_mu + train_noise * (0.5 * train_enc_logvar).exp() * 0.5,
+                train_enc_mu + train_noise * (0.5 * train_enc_logvar).exp(),
+                train_enc_mu + torch.ones_like(train_enc_mu) * (0.5 * train_enc_logvar).exp() * 0.1,
+                train_enc_mu + torch.ones_like(train_enc_mu) * (0.5 * train_enc_logvar).exp() * 0.5,
+                train_enc_mu + torch.ones_like(train_enc_mu) * (0.5 * train_enc_logvar).exp(),
+            ]
+            train_reconstructions = tuple()
+            for z in train_z_list:
+                train_reconstructions += (shift(pl_module.decoder(z, train_domains, train_contents)),)
+            train_imgs = shift(train_imgs)
+            train_grid = torchvision.utils.make_grid(torch.stack((train_imgs,) + train_reconstructions, dim=1).view(-1, self.num_channels, self.image_size, self.image_size))
+            torchvision.utils.save_image(train_grid, f"{self.output_dir}/version_{trainer.logger.version}/images/train_latent_neighbourhood.png")
+
+            val_imgs = self.val_batch[0][:max(8, len(self.val_batch[0]))].to(pl_module.device)
+            val_domains = self.val_batch[1][:max(8, len(self.val_batch[0]))].to(pl_module.device)
+            val_contents = self.val_batch[2][:max(8, len(self.val_batch[0]))].to(pl_module.device)
+
+            val_enc_mu, val_enc_logvar = pl_module.encoder(val_imgs, val_domains, val_contents)
+            val_noise = torch.normal(mean=torch.zeros_like(val_enc_mu), std=torch.ones_like(val_enc_mu) * 5).to(pl_module.device)
+            val_z_list = [
+                val_enc_mu,
+                val_enc_mu + torch.randn_like(val_enc_mu) * (0.5 * val_enc_logvar).exp(),
+                val_enc_mu + val_noise * (0.5 * val_enc_logvar).exp() * 0.1,
+                val_enc_mu + val_noise * (0.5 * val_enc_logvar).exp() * 0.2,
+                val_enc_mu + val_noise * (0.5 * val_enc_logvar).exp() * 0.5,
+                val_enc_mu + val_noise * (0.5 * val_enc_logvar).exp(),
+                val_enc_mu + torch.ones_like(val_enc_mu) * (0.5 * val_enc_logvar).exp() * 0.1,
+                val_enc_mu + torch.ones_like(val_enc_mu) * (0.5 * val_enc_logvar).exp() * 0.5,
+                val_enc_mu + torch.ones_like(val_enc_mu) * (0.5 * val_enc_logvar).exp(),
+            ]
+            val_reconstructions = tuple()
+            for z in val_z_list:
+                val_reconstructions += (shift(pl_module.decoder(z, val_domains, val_contents)),)
+            val_imgs = shift(val_imgs)
+            val_grid = torchvision.utils.make_grid(torch.stack((val_imgs,) + val_reconstructions, dim=1).view(-1, self.num_channels, self.image_size, self.image_size))
+            torchvision.utils.save_image(val_grid, f"{self.output_dir}/version_{trainer.logger.version}/images/val_latent_neighbourhood.png")
+
+            if tensorboard_log:
+                trainer.logger.experiment.add_image("train_latent_neighbourhood", train_grid)
+                trainer.logger.experiment.add_image("val_latent_neighbourhood", val_grid)
 
             pl_module.train()
