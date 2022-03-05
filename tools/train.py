@@ -63,6 +63,7 @@ if __name__ == "__main__":
     parser.add_argument("--log_every_n_steps", type=int, default=50)
     parser.add_argument("--random_seed", type=int, default=17)
     parser.add_argument("--iov", type=str, default="1")
+    parser.add_argument("--resume", type=str, default="0")
 
     args = parser.parse_args()
 
@@ -84,6 +85,7 @@ if __name__ == "__main__":
 
     # Dataset
     iov = args.iov == "1"
+    resume_flag = args.resume == "1"
     batch_size = args.batch_size
     if args.domains is None:
         argument_domains = ["a"]
@@ -363,4 +365,7 @@ if __name__ == "__main__":
     # Main
     trainer.logger.log_hyperparams(model.hyper_param_dict)
     print(model)
-    trainer.fit(model, dm)
+    if resume_flag:
+        trainer.fit(model, dm, ckpt_path=args.ckpt_path)
+    else:
+        trainer.fit(model, dm)
