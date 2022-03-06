@@ -88,7 +88,8 @@ if __name__ == "__main__":
             "initialize": [True],
             # "domains": ["01234", "01235", "01245", "01345", "02345", "12345"],
             # "domains": ["01234", "01235"],
-            "domains": ["01245"],
+            # "domains": ["01245"],
+            "domains": ["01345", "02345", "12345"],
             "root": ["data/variants/RMNIST_augmented"]
             },
         "ERM_augmented": {
@@ -98,7 +99,8 @@ if __name__ == "__main__":
             "weight_decay": [0.0],
             # "domains": ["01234", "01235", "01245", "01345", "02345", "12345"],
             # "domains": ["01234", "01235"],
-            "domains": ["01245"],
+            # "domains": ["01245"],
+            "domains": ["01345", "02345", "12345"],
             "root": ["data/variants/RMNIST_augmented"]
             },
     }

@@ -5,7 +5,8 @@ if __name__ == "__main__":
     root = "data/variants/RMNIST_augmented"
     # dom_groups = ["01234", "01235", "01245", "01345", "02345", "12345"]
     # dom_groups = ["01234", "01235"]
-    dom_groups = ["01245"]
+    # dom_groups = ["01245"]
+    dom_groups = ["01345", "02345", "12345"]
     for dg in dom_groups:
         print(f"{dg}")
         for dom_dir in os.listdir(f"{root}/RMNIST_train_{dg}"):
