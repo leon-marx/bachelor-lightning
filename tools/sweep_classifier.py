@@ -255,7 +255,7 @@ if __name__ == "__main__":
                                 print(f"    {k}: {v}")
 
                             # Model
-                            if model_name == "CNN":
+                            if "CNN" in model_name:
                                 model = CNN(
                                     data=data,
                                     num_domains=num_domains,
@@ -270,7 +270,7 @@ if __name__ == "__main__":
                                     dropout=dropout,
                                     batch_norm=batch_norm,
                                     initialize=initialize)
-                            if model_name == "ERM":
+                            if "ERM" in model_name:
                                 model = ERM(
                                     input_shape=input_shape,
                                     num_classes=num_contents,
