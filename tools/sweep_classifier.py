@@ -86,7 +86,8 @@ if __name__ == "__main__":
             "dropout": [False],
             "batch_norm": [True],
             "initialize": [True],
-            "domains": ["01234", "01235", "01245", "01345", "02345", "12345"],
+            # "domains": ["01234", "01235", "01245", "01345", "02345", "12345"],
+            "domains": ["01234", "01235"],
             "root": ["data/variants/RMNIST_augmented"]
             },
         "ERM_augmented": {
@@ -94,7 +95,8 @@ if __name__ == "__main__":
             "nonlinear_classifier": [False],
             "lr": [1e-4],
             "weight_decay": [0.0],
-            "domains": ["01234", "01235", "01245", "01345", "02345", "12345"],
+            # "domains": ["01234", "01235", "01245", "01345", "02345", "12345"],
+            "domains": ["01234", "01235"],
             "root": ["data/variants/RMNIST_augmented"]
             },
     }

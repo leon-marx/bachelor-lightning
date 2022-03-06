@@ -1,3 +1,6 @@
+#####
+# This code was adapted from https://github.com/facebookresearch/DomainBed/tree/main/domainbed
+#####
 import torch
 import pytorch_lightning as pl
 
