@@ -15,7 +15,7 @@ class SetToTanhRange(object):
 
 
 class RMNISTDataset(Dataset):
-    def __init__(self, root, mode, domains, contents):
+    def __init__(self, root, mode, domains, contents, normal_multiplier=5):
         """
         root: str, root folder where RMNIST is located
         mode: str, choose one: "train", "val" or "test"
@@ -26,6 +26,7 @@ class RMNISTDataset(Dataset):
         self.mode = mode
         self.domains = domains
         self.contents = contents
+        self.normal_multiplier = normal_multiplier
         self.domain_dict = {domain: torch.LongTensor([i]) for i, domain in enumerate(self.domains)}
         self.content_dict = {content: torch.LongTensor([i]) for i, content in enumerate(self.contents)}
         if "augmented" in root and mode == "train":
@@ -54,9 +55,9 @@ class RMNISTDataset(Dataset):
                         content = int(content)
                         if content in self.contents:
                             imgs = torch.load(f"{self.normal_data_dir}/{domain}/{content}/data.pt")
-                            self.image_data += (imgs,) * 5
-                            self.domain_data += (torch.nn.functional.one_hot(self.domain_dict[domain], num_classes=len(self.domains)).view(1, -1),) * imgs.shape[0] * 5
-                            self.content_data += (torch.nn.functional.one_hot(self.content_dict[content], num_classes=len(self.contents)).view(1, -1),) * imgs.shape[0] * 5
+                            self.image_data += (imgs,) * self.normal_multiplier
+                            self.domain_data += (torch.nn.functional.one_hot(self.domain_dict[domain], num_classes=len(self.domains)).view(1, -1),) * imgs.shape[0] * self.normal_multiplier
+                            self.content_data += (torch.nn.functional.one_hot(self.content_dict[content], num_classes=len(self.contents)).view(1, -1),) * imgs.shape[0] * self.normal_multiplier
             self.image_data = torch.cat(self.image_data, dim=0)
             self.domain_data = torch.cat(self.domain_data, dim=0)
             self.content_data = torch.cat(self.content_data, dim=0)
@@ -108,7 +109,7 @@ class RMNISTDataset(Dataset):
 
 
 class RMNISTDataModule(pl.LightningDataModule):
-    def __init__(self, root, domains, contents, batch_size, num_workers, shuffle_all=False):
+    def __init__(self, root, domains, contents, batch_size, num_workers, shuffle_all=False, normal_multiplier=5):
         """
         root: str, root folder where RMNIST is located
         domains: list of int [0, 15, 30, 45, 60, 75]
@@ -124,16 +125,17 @@ class RMNISTDataModule(pl.LightningDataModule):
         self.batch_size = batch_size
         self.num_workers = num_workers
         self.shuffle_all = shuffle_all
+        self.normal_multiplier = normal_multiplier
 
     def prepare_data(self):
         pass
 
     def setup(self, stage=None):
         if stage in (None, "fit"):
-            self.rmnist_train = RMNISTDataset(root=self.root, mode="train", domains=self.domains, contents=self.contents)
-            self.rmnist_val = RMNISTDataset(root=self.root, mode="val", domains=self.domains, contents=self.contents)
+            self.rmnist_train = RMNISTDataset(root=self.root, mode="train", domains=self.domains, contents=self.contents, normal_multiplier=self.normal_multiplier)
+            self.rmnist_val = RMNISTDataset(root=self.root, mode="val", domains=self.domains, contents=self.contents, normal_multiplier=self.normal_multiplier)
         if stage in (None, "test"):
-            self.rmnist_test = RMNISTDataset(root=self.root, mode="test", domains=self.domains, contents=self.contents)
+            self.rmnist_test = RMNISTDataset(root=self.root, mode="test", domains=self.domains, contents=self.contents, normal_multiplier=self.normal_multiplier)
 
     def train_dataloader(self):
         return DataLoader(self.rmnist_train, batch_size=self.batch_size, shuffle=True, num_workers=self.num_workers)

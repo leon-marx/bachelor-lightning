@@ -44,6 +44,7 @@ if __name__ == "__main__":
     parser.add_argument("--max_steps", type=int, default=-1)
     parser.add_argument("--batch_size", type=int, default=4)
     parser.add_argument("--iov", type=int, default=1)
+    parser.add_argument("--normal_multiplier", type=int, default=5)
     args = parser.parse_args()
     #################### EDIT THIS IN ORDER TO CHANGE THE SWEEP
     configs = {
@@ -86,10 +87,10 @@ if __name__ == "__main__":
             "dropout": [False],
             "batch_norm": [True],
             "initialize": [True],
-            # "domains": ["01234", "01235", "01245", "01345", "02345", "12345"],
+            "domains": ["01234", "01235", "01245", "01345", "02345", "12345"],
             # "domains": ["01234", "01235"],
             # "domains": ["01245"],
-            "domains": ["01345", "02345", "12345"],
+            # "domains": ["01345", "02345", "12345"],
             "root": ["data/variants/RMNIST_augmented"]
             },
         "ERM_augmented": {
@@ -97,10 +98,10 @@ if __name__ == "__main__":
             "nonlinear_classifier": [False],
             "lr": [1e-4],
             "weight_decay": [0.0],
-            # "domains": ["01234", "01235", "01245", "01345", "02345", "12345"],
+            "domains": ["01234", "01235", "01245", "01345", "02345", "12345"],
             # "domains": ["01234", "01235"],
             # "domains": ["01245"],
-            "domains": ["01345", "02345", "12345"],
+            # "domains": ["01345", "02345", "12345"],
             "root": ["data/variants/RMNIST_augmented"]
             },
     }
@@ -232,9 +233,9 @@ if __name__ == "__main__":
                         elif args.data == "RMNIST":
                             contents = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
                             dm = RMNISTDataModule(root=root, domains=domains, contents=contents,
-                                                batch_size=batch_size, num_workers=20)
+                                                batch_size=batch_size, num_workers=20, normal_multiplier=args.normal_multiplier)
                             log_dm = RMNISTDataModule(root=root, domains=domains, contents=contents,
-                                                batch_size=batch_size, num_workers=20, shuffle_all=True)
+                                                batch_size=batch_size, num_workers=20, shuffle_all=True, normal_multiplier=args.normal_multiplier)
                         num_domains = len(domains)
                         num_contents = len(contents)
 
