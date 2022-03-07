@@ -8,7 +8,9 @@ if __name__ == "__main__":
     parser.add_argument("--logdir", type=str, default=None)
     args = parser.parse_args()
 
-    for folder in os.listdir(args.logdir):
+    os.chdir(f"logs/{args.logdir}")
+
+    for folder in os.listdir():
         folder_components = folder.split("_")
         model = folder_components[0]
         data = folder_components[1]
