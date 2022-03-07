@@ -278,7 +278,7 @@ if __name__ == "__main__":
                             ckpt_path = f"{ckpt_dir}/version_0/checkpoints/"
                             for filename in os.listdir(f"{ckpt_dir}/version_0/checkpoints/"):
                                 ckpt_path += filename
-                            if model_name == "CNN":
+                            if "CNN" in model_name:
                                 model = CNN.load_from_checkpoint(
                                     checkpoint_path=ckpt_path,
                                     data=data,
@@ -294,7 +294,7 @@ if __name__ == "__main__":
                                     dropout=dropout,
                                     batch_norm=batch_norm,
                                     initialize=initialize)
-                            if model_name == "ERM":
+                            if "ERM" in model_name:
                                 model = ERM.load_from_checkpoint(
                                     checkpoint_path=ckpt_path,
                                     input_shape=input_shape,
