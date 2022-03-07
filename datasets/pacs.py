@@ -40,10 +40,11 @@ class PACSDataset(Dataset):
 
     def get_transform(self):
         transform = transforms.Compose([
-            transforms.RandomResizedCrop(224, scale=(0.7, 1.0)),
-            transforms.RandomHorizontalFlip(),
-            transforms.ColorJitter(0.3, 0.3, 0.3, 0.3),
-            transforms.RandomGrayscale(),
+            # transforms.RandomResizedCrop(224, scale=(0.7, 1.0)),
+            transforms.RandomResizedCrop(224, scale=(1.0, 1.0)),
+            # transforms.RandomHorizontalFlip(),
+            # transforms.ColorJitter(0.3, 0.3, 0.3, 0.3),
+            # transforms.RandomGrayscale(),
             transforms.ToTensor(),
             SetToTanhRange(),
         ])
@@ -62,7 +63,7 @@ class PACSDataset(Dataset):
             content = torch.nn.functional.one_hot(self.content_dict[content_name], num_classes=len(self.contents)).view(-1)
             return image, domain, content, f"{domain_name}/{content_name}/{filename}"
 
-        
+
 class PACSDataModule(pl.LightningDataModule):
     def __init__(self, root, domains, contents, batch_size, num_workers, shuffle_all=False):
         """
@@ -93,35 +94,49 @@ class PACSDataModule(pl.LightningDataModule):
 
     def train_dataloader(self):
         return DataLoader(self.pacs_train, batch_size=self.batch_size, shuffle=True, num_workers=self.num_workers)
-    
+
     def val_dataloader(self):
         return DataLoader(self.pacs_val, batch_size=self.batch_size, shuffle=self.shuffle_all, num_workers=self.num_workers)
-    
+
     def test_dataloader(self):
         return DataLoader(self.pacs_test, batch_size=self.batch_size, shuffle=self.shuffle_all, num_workers=self.num_workers)
-    
+
 
 if __name__ == "__main__":
-    domains = ["art_painting", "cartoon", "photo"]
+    domains = ["art_painting", "cartoon", "photo", "sketch"]
     contents =  ["dog", "elephant", "giraffe", "guitar", "horse", "house", "person"]
     batch_size = 4
     num_workers = 0
     root = "data"
-    dm = PACSDataModule(root=root, domains=domains, contents=contents, batch_size=batch_size, num_workers=num_workers, normalize=True)
+    dm = PACSDataModule(root=root, domains=domains, contents=contents, batch_size=batch_size, num_workers=num_workers)
     dm.setup()
     import numpy as np
     import matplotlib.pyplot as plt
-    def gauss(x):
-        return 1 / np.sqrt(2 * np.pi) * np.exp(-x ** 2 / 2)
-    xx = np.linspace(-4, 4, 100)
-    for (img, domain, content, fname) in dm.train_dataloader():
-        # print(img)
-        # print(domain)
-        # print(content)
-        # print(fname)
-        # plt.hist(img.flatten().numpy(), density=True)
-        # plt.plot(xx, gauss(xx))
-        # plt.show()
-        # plt.close()
-        print(img.min(), img.max())
+    # def gauss(x):
+    #     return 1 / np.sqrt(2 * np.pi) * np.exp(-x ** 2 / 2)
+    # xx = np.linspace(-4, 4, 100)
+    # for (img, domain, content, fname) in dm.train_dataloader():
+    #     # print(img)
+    #     # print(domain)
+    #     # print(content)
+    #     # print(fname)
+    #     # plt.hist(img.flatten().numpy(), density=True)
+    #     # plt.plot(xx, gauss(xx))
+    #     # plt.show()
+    #     # plt.close()
+    #     print(img.min(), img.max())
     # torch.save(data, "debugging/data.pt")
+
+    def make_plot(batch):
+        for i in range(4):
+            img = batch[0][i].view(3, 224, 224).permute(1, 2, 0)
+            plt.subplot(2, 2, i+1)
+            plt.imshow(img)
+            plt.xticks([])
+            plt.yticks([])
+        plt.tight_layout()
+        plt.show()
+    while True:
+        batch = next(iter(dm.train_dataloader()))
+        make_plot(batch)
+        print("plot")

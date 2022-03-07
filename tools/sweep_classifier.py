@@ -45,6 +45,7 @@ if __name__ == "__main__":
     parser.add_argument("--batch_size", type=int, default=4)
     parser.add_argument("--iov", type=int, default=1)
     parser.add_argument("--normal_multiplier", type=int, default=5)
+    parser.add_argument("--random_seed", type=int, default=17)
     args = parser.parse_args()
     #################### EDIT THIS IN ORDER TO CHANGE THE SWEEP
     configs = {
@@ -107,7 +108,7 @@ if __name__ == "__main__":
     }
     ####################
     # Configuration
-    pl.seed_everything(17, workers=True)
+    pl.seed_everything(args.random_seed, workers=True)
     torch.backends.cudnn.deterministic = True
     torch.backends.cudnn.benchmark = False
 
