@@ -13,9 +13,10 @@ if __name__ == "__main__":
     for folder in os.listdir():
         folder_components = folder.split("_")
         model = folder_components[0]
-        data = folder_components[1]
-        domains = folder_components[2]
-        new_folder = model + "_" + domains + "_" + data
+        data = folder_components[2]
+        domains = folder_components[1]
+        # new_folder = model + "_" + domains + "_" + data
+        new_folder = model + "_" + data + "_" + domains
 
         print(f"Renaming {folder} to {new_folder}")
 
