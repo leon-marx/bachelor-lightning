@@ -110,7 +110,7 @@ if __name__ == "__main__":
                     try:
                         print(f"Configuration: {conf}")
                         # Default values
-                        log_dir = f"logs/sweep_{args.log_name}/{model_name}"
+                        log_dir = f"logs/dg_results/{args.log_name}/{model_name}"
 
                         if "latent_size" in conf:
                             latent_size = conf["latent_size"]
@@ -240,10 +240,12 @@ if __name__ == "__main__":
                             ckpt_dir_parts = log_dir.split("/")
                             ckpt_dir = ""
                             for i, s in enumerate(ckpt_dir_parts):
-                                if i != 1:
+                                if i != 1 and i != 2:
                                     ckpt_dir += s +"/"
-                                else:
+                                elif i != 1:
                                     ckpt_dir += args.ckpt_dir + "/"
+                                else:
+                                    pass
                             ckpt_dir = ckpt_dir[:-1]
 
 
