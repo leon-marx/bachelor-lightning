@@ -50,7 +50,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
     #################### EDIT THIS IN ORDER TO CHANGE THE SWEEP
     configs = {
-        "CNN": {
+        "CNN_normal": {
             "data": ["RMNIST"],
             "num_domains": [5],
             "num_contents": [10],
@@ -65,15 +65,40 @@ if __name__ == "__main__":
             "batch_norm": [True],
             "initialize": [True],
             "domains": ["01234", "01235", "01245", "01345", "02345", "12345"],
-            "root": ["data", "data/variants/RMNIST_augmented"]
+            "root": ["data"]
             },
-        "ERM": {
+        "ERM_normal": {
             "input_shape": [(1, 28, 28)],
             "nonlinear_classifier": [False],
             "lr": [1e-4],
             "weight_decay": [0.0],
             "domains": ["01234", "01235", "01245", "01345", "02345", "12345"],
-            "root": ["data", "data/variants/RMNIST_augmented"]
+            "root": ["data"]
+            },
+        "CNN_augmented": {
+            "data": ["RMNIST"],
+            "num_domains": [5],
+            "num_contents": [10],
+            "latent_size": [128],
+            "lr": [1e-4],
+            "depth": [2],
+            "out_channels": ["128,128,256,256,512,512"],
+            "kernel_size": [3],
+            "activation": ["relu"],
+            "downsampling": ["stride"],
+            "dropout": [False],
+            "batch_norm": [True],
+            "initialize": [True],
+            "domains": ["01234", "01235", "01245", "01345", "02345", "12345"],
+            "root": ["data/variants/RMNIST_augmented"]
+            },
+        "ERM_augmented": {
+            "input_shape": [(1, 28, 28)],
+            "nonlinear_classifier": [False],
+            "lr": [1e-4],
+            "weight_decay": [0.0],
+            "domains": ["01234", "01235", "01245", "01345", "02345", "12345"],
+            "root": ["data/variants/RMNIST_augmented"]
             },
     }
     ####################
