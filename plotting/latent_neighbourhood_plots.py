@@ -53,18 +53,18 @@ def latent_neighbourhood(model, train_batch, val_batch, version_path, num_channe
         val_enc_mu,
         val_enc_mu + torch.randn_like(val_enc_mu) * (0.5 * val_enc_logvar).exp(),
         val_enc_mu + val_noise * (0.5 * val_enc_logvar).exp() * 0.1,
-        val_enc_mu + val_noise * (0.5 * val_enc_logvar).exp() * 0.2,
         val_enc_mu + val_noise * (0.5 * val_enc_logvar).exp() * 0.5,
-        val_enc_mu + val_noise * (0.5 * val_enc_logvar).exp(),
-        val_enc_mu + torch.ones_like(val_enc_mu) * (0.5 * val_enc_logvar).exp() * 0.1,
-        val_enc_mu + torch.ones_like(val_enc_mu) * (0.5 * val_enc_logvar).exp() * 0.5,
-        val_enc_mu + torch.ones_like(val_enc_mu) * (0.5 * val_enc_logvar).exp(),
+        val_enc_mu + val_noise * (0.5 * val_enc_logvar).exp() * 1,
+        val_enc_mu + val_noise * (0.5 * val_enc_logvar).exp() * 2,
+        val_enc_mu + torch.ones_like(val_enc_mu) * (0.5 * val_enc_logvar).exp() * 1,
+        val_enc_mu + torch.ones_like(val_enc_mu) * (0.5 * val_enc_logvar).exp() * 2,
+        val_enc_mu + torch.ones_like(val_enc_mu) * (0.5 * val_enc_logvar).exp() * 3,
     ]
     val_reconstructions = tuple()
     for z in val_z_list:
         val_reconstructions += (shift(model.decoder(z, val_domains, val_contents)),)
     val_imgs = shift(val_imgs)
-    val_grid = torchvision.utils.make_grid(torch.stack((val_imgs,) + val_reconstructions, dim=1).view(-1, num_channels, image_size, image_size))
+    val_grid = torchvision.utils.make_grid(torch.stack((val_imgs,) + val_reconstructions, dim=1).view(-1, num_channels, image_size, image_size), nrow=10)
     torchvision.utils.save_image(val_grid, f"{version_path}images/images/val_latent_neighbourhood.png")
 
     model.train()
