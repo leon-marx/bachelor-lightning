@@ -40,11 +40,11 @@ class PACSDataset(Dataset):
 
     def get_transform(self):
         transform = transforms.Compose([
-            # transforms.RandomResizedCrop(224, scale=(0.7, 1.0)),
-            transforms.RandomResizedCrop(224, scale=(1.0, 1.0)),
-            # transforms.RandomHorizontalFlip(),
-            # transforms.ColorJitter(0.3, 0.3, 0.3, 0.3),
-            # transforms.RandomGrayscale(),
+            transforms.RandomResizedCrop(224, scale=(0.7, 1.0)),
+            # transforms.RandomResizedCrop(224, scale=(1.0, 1.0)),
+            transforms.RandomHorizontalFlip(),
+            transforms.ColorJitter(0.3, 0.3, 0.3, 0.3),
+            transforms.RandomGrayscale(),
             transforms.ToTensor(),
             SetToTanhRange(),
         ])

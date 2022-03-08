@@ -40,7 +40,7 @@ def latent_neighbourhood(model, train_batch, val_batch, version_path, num_channe
     for z in train_z_list:
         train_reconstructions += (shift(model.decoder(z, train_domains, train_contents)),)
     train_imgs = shift(train_imgs)
-    train_grid = torchvision.utils.make_grid(torch.stack((train_imgs,) + train_reconstructions, dim=1).view(-1, num_channels, image_size, image_size))
+    train_grid = torchvision.utils.make_grid(torch.stack((train_imgs,) + train_reconstructions, dim=1).view(-1, num_channels, image_size, image_size), nrow=6)
     torchvision.utils.save_image(train_grid, f"{version_path}images/train_latent_neighbourhood.png")
 
     val_imgs = val_batch[0][:max(8, len(val_batch[0]))].to(model.device)
