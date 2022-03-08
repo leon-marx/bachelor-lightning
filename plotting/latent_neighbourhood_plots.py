@@ -29,12 +29,12 @@ def latent_neighbourhood(model, train_batch, val_batch, version_path, num_channe
         train_enc_mu,
         train_enc_mu + torch.randn_like(train_enc_mu) * (0.5 * train_enc_logvar).exp(),
         train_enc_mu + train_noise * (0.5 * train_enc_logvar).exp() * 0.1,
-        train_enc_mu + train_noise * (0.5 * train_enc_logvar).exp() * 0.2,
         train_enc_mu + train_noise * (0.5 * train_enc_logvar).exp() * 0.5,
-        train_enc_mu + train_noise * (0.5 * train_enc_logvar).exp(),
-        train_enc_mu + torch.ones_like(train_enc_mu) * (0.5 * train_enc_logvar).exp() * 0.1,
-        train_enc_mu + torch.ones_like(train_enc_mu) * (0.5 * train_enc_logvar).exp() * 0.5,
-        train_enc_mu + torch.ones_like(train_enc_mu) * (0.5 * train_enc_logvar).exp(),
+        train_enc_mu + train_noise * (0.5 * train_enc_logvar).exp() * 1,
+        train_enc_mu + train_noise * (0.5 * train_enc_logvar).exp() * 2,
+        train_enc_mu + torch.ones_like(train_enc_mu) * (0.5 * train_enc_logvar).exp() * 1,
+        train_enc_mu + torch.ones_like(train_enc_mu) * (0.5 * train_enc_logvar).exp() * 2,
+        train_enc_mu + torch.ones_like(train_enc_mu) * (0.5 * train_enc_logvar).exp() * 3,
     ]
     train_reconstructions = tuple()
     for z in train_z_list:
