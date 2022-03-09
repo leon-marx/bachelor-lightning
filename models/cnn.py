@@ -100,7 +100,7 @@ class CNN(pl.LightningModule):
         contents = batch[2]
 
         loss = torch.nn.functional.cross_entropy(self(images), torch.argmax(contents, dim=1))
-        self.log("train_loss", loss)
+        # self.log("train_loss", loss)
         return loss
 
     def validation_step(self, batch, batch_idx):
@@ -118,7 +118,7 @@ class CNN(pl.LightningModule):
         contents = batch[2]
 
         loss = torch.nn.functional.cross_entropy(self(images), torch.argmax(contents, dim=1))
-        self.log("val_loss", loss)
+        # self.log("val_loss", loss)
         return loss
 
     def test_step(self, batch, batch_idx):
@@ -136,7 +136,7 @@ class CNN(pl.LightningModule):
         contents = batch[2]
 
         loss = torch.nn.functional.cross_entropy(self(images), torch.argmax(contents, dim=1))
-        self.log("test_loss", loss)
+        # self.log("test_loss", loss)
         return loss
 
     def configure_optimizers(self):
