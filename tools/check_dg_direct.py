@@ -238,6 +238,7 @@ if __name__ == "__main__":
                                                 batch_size=batch_size, num_workers=20, shuffle_all=True)
                         num_domains = len(test_domains)
                         num_contents = len(contents)
+                        dm.setup()
 
 
 
