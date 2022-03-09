@@ -243,9 +243,9 @@ if __name__ == "__main__":
 
 
 
-                        if args.restart or not os.path.isdir(f"{log_dir}"):
+                        if True:
                             # Configuration
-                            os.makedirs(log_dir, exist_ok=True)
+                            # os.makedirs(log_dir, exist_ok=True)
                             iov = args.iov == 1
                             print(f"Images on val: {iov}")
                             print(f"Testing {args.mode} performance:")
