@@ -322,7 +322,7 @@ class Encoder(torch.nn.Module):
 
 
 if __name__ == "__main__":
-    batch_size = 4
+    batch_size = 1
     num_domains = 6
     num_contents = 10
 
@@ -337,14 +337,14 @@ if __name__ == "__main__":
     dropout = False
     batch_norm = True
 
-    # batch = [
-    #     torch.randn(size=(batch_size, 1, 28, 28)),
-    #     torch.nn.functional.one_hot(torch.randint(
-    #         low=0, high=num_domains, size=(batch_size,)), num_classes=num_domains),
-    #     torch.nn.functional.one_hot(torch.randint(
-    #         low=0, high=num_contents, size=(batch_size,)), num_classes=num_contents),
-    #     (f"pic_{i}" for i in range(batch_size))
-    # ]
+    batch = [
+        torch.randn(size=(batch_size, 1, 28, 28)),
+        torch.nn.functional.one_hot(torch.randint(
+            low=0, high=num_domains, size=(batch_size,)), num_classes=num_domains),
+        torch.nn.functional.one_hot(torch.randint(
+            low=0, high=num_contents, size=(batch_size,)), num_classes=num_contents),
+        (f"pic_{i}" for i in range(batch_size))
+    ]
 
     model = CNN(data="RMNIST", num_domains=num_domains, num_contents=num_contents,
         latent_size=latent_size, lr=lr, depth=depth,
@@ -356,14 +356,18 @@ if __name__ == "__main__":
     # print("Done!")
 
 
-    from datasets.rotated_mnist import RMNISTDataModule
+    # from datasets.rotated_mnist import RMNISTDataModule
     root = "data"#/variants/RMNIST_augmented"
     domains = [0, 15, 30, 45, 75]
     contents = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
-    dm = RMNISTDataModule(root=root, domains=domains, contents=contents,
-                        batch_size=batch_size, num_workers=0)
-    dm.setup()
-    batch = next(iter(dm.train_dataloader()))
-    loss = model.training_step(batch, 0)
-    print(loss)
-    print("Done!")
+    # dm = RMNISTDataModule(root=root, domains=domains, contents=contents,
+    #                     batch_size=batch_size, num_workers=0)
+    # dm.setup()
+    # batch = next(iter(dm.train_dataloader()))
+    # loss = model.training_step(batch, 0)
+    # print(loss)
+    # print("Done!")
+    output = model(batch[0])
+    pred = torch.argmax(output).item()
+    print(output.shape)
+    print(pred)

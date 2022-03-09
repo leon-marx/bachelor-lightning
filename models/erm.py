@@ -112,7 +112,7 @@ class ERM(pl.LightningModule):
 
 
 if __name__ == "__main__":
-    batch_size = 4
+    batch_size = 1
     num_domains = 6
     num_contents = 10
 
@@ -148,35 +148,39 @@ if __name__ == "__main__":
     domains = batch[1]
     contents = batch[2]
     print("Model:")
+    output = model(batch[0])
+    print(output.shape)
+    pred = torch.argmax(output).item()
+    print(pred)
 
-    modules1 = [
-        model.featurizer.conv1,
-        torch.nn.functional.relu,
-        model.featurizer.bn0,
-        model.featurizer.conv2,
-        torch.nn.functional.relu,
-        model.featurizer.bn1,
-        model.featurizer.conv3,
-        torch.nn.functional.relu,
-        model.featurizer.bn2,
-        model.featurizer.conv4,
-        torch.nn.functional.relu,
-        model.featurizer.bn3,
-        model.featurizer.avgpool
-    ]
-    modules2 = [
-        torch.nn.Linear(128, num_classes)
-    ]
-    output = images
-    for m in modules1:
-        output = m(output)
-        print(m, output.shape)
-    output = output.view(len(output), -1)
-    for m in modules2:
-        output = m(output)
-        print(m, output.shape)
+    # modules1 = [
+    #     model.featurizer.conv1,
+    #     torch.nn.functional.relu,
+    #     model.featurizer.bn0,
+    #     model.featurizer.conv2,
+    #     torch.nn.functional.relu,
+    #     model.featurizer.bn1,
+    #     model.featurizer.conv3,
+    #     torch.nn.functional.relu,
+    #     model.featurizer.bn2,
+    #     model.featurizer.conv4,
+    #     torch.nn.functional.relu,
+    #     model.featurizer.bn3,
+    #     model.featurizer.avgpool
+    # ]
+    # modules2 = [
+    #     torch.nn.Linear(128, num_classes)
+    # ]
+    # output = images
+    # for m in modules1:
+    #     output = m(output)
+    #     print(m, output.shape)
+    # output = output.view(len(output), -1)
+    # for m in modules2:
+    #     output = m(output)
+    #     print(m, output.shape)
 
-    print(output)
+    # print(output)
 
 
     # from datasets.rotated_mnist import RMNISTDataModule

@@ -302,7 +302,12 @@ if __name__ == "__main__":
                                 model.eval()
                                 losses = []
                                 for i, batch in tqdm(enumerate(iter(dm.test_dataloader()))):
-                                    loss = model.test_step(batch, i).item()
+                                    pred = torch.argmax(model(batch[0])).item()
+                                    truth = torch.argmax(batch[1]).item()
+                                    if pred == truth:
+                                        loss = 0.0
+                                    else:
+                                        loss = 1.0
                                     losses.append(loss)
                                 losses = np.array(losses)
                                 mean_loss = np.mean(losses)
