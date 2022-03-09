@@ -304,6 +304,7 @@ if __name__ == "__main__":
                                 for i, batch in tqdm(enumerate(iter(dm.test_dataloader()))):
                                     pred = torch.argmax(model(batch[0])).item()
                                     truth = torch.argmax(batch[1]).item()
+                                    print(pred, truth)
                                     if pred == truth:
                                         loss = 0.0
                                     else:
