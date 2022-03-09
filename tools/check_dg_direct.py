@@ -296,7 +296,8 @@ if __name__ == "__main__":
                                     weight_decay=weight_decay)
 
                             # Test
-                            with model.eval():
+                            with torch.no_grad():
+                                model.eval()
                                 losses = []
                                 for i, batch in enumerate(iter(dm.test_dataloader())):
                                     loss = model.test_step(batch, i).item()
