@@ -6,6 +6,7 @@ import torch
 import copy
 import random
 import numpy as np
+from tqdm import tqdm
 
 # Own Modules
 from datasets.pacs import PACSDataModule
@@ -300,13 +301,14 @@ if __name__ == "__main__":
                             with torch.no_grad():
                                 model.eval()
                                 losses = []
-                                for i, batch in enumerate(iter(dm.test_dataloader())):
+                                for i, batch in tqdm(enumerate(iter(dm.test_dataloader()))):
                                     loss = model.test_step(batch, i).item()
                                     losses.append(loss)
                                 losses = np.array(losses)
                                 mean_loss = np.mean(losses)
                                 D_mean_loss = np.sqrt(np.sum((losses - mean_loss) ** 2)) / (len(losses) - 1)
                                 fname = f"logs/dg_results/run-dg_results_{args.mode}_runs_{args.log_name}_{model_name}_{conf['domains']}_version_0-tag-test_loss"
+                                print(f"Saving: {fname}")
                                 np.savetxt(fname, losses)
 
                             print(f"Completed step {step}!")
